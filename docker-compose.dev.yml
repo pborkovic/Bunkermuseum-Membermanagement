@@ -1,0 +1,55 @@
+services:
+  app-dev:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile.dev
+      target: development
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DEVTOOLS_RESTART_ENABLED=true
+      - SPRING_DEVTOOLS_LIVERELOAD_ENABLED=true
+      - VAADIN_PRODUCTION_MODE=false
+      - VAADIN_FRONTEND_HOTDEPLOY=true
+      - VAADIN_SKIP_NODE_MODULES_CLEANUP=true
+    volumes:
+      # Mount Java source code for hot reload
+      - ./src/main/java:/app/src/main/java:delegated
+      - ./src/main/resources:/app/src/main/resources:delegated
+      - ./src/test:/app/src/test:delegated
+
+      # Mount frontend source code for hot reload
+      - ./src/main/frontend/views:/app/src/main/frontend/views:delegated
+      - ./src/main/frontend/themes:/app/src/main/frontend/themes:delegated
+      - ./src/main/frontend/components:/app/src/main/frontend/components:delegated
+
+      # Configuration files (allow npm to update package-lock.json)
+      - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
+      - ./tsconfig.json:/app/tsconfig.json:ro
+      - ./vite.config.ts:/app/vite.config.ts:ro
+      - ./vite.generated.ts:/app/vite.generated.ts:ro
+      - ./pom.xml:/app/pom.xml:ro
+
+      # Cache volumes for better performance
+      - maven_cache:/root/.m2
+      - vaadin_cache:/root/.vaadin
+      # Let Vaadin manage node_modules directly without volume mounting
+      # - node_modules_cache:/app/node_modules
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    command: ["./mvnw", "spring-boot:run", "-Dspring-boot.run.jvmArguments='-Dvaadin.frontend.hotdeploy=true'"]
+
+volumes:
+  maven_cache:
+  vaadin_cache:
+
+networks:
+  default:
+    name: bunkermuseum-dev-network

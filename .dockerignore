@@ -31,6 +31,8 @@ Thumbs.db
 LICENSE*
 
 # Docker files (avoid recursive copying)
-Dockerfile*
 docker-compose*.yml
 .dockerignore
+
+# Keep nginx directory - it contains needed files
+# nginx/

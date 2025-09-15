@@ -10,6 +10,7 @@ import java.time.LocalDate;
 @Table(name = "task")
 public class Task {
 
+    //TODO: remove
     public static final int DESCRIPTION_MAX_LENGTH = 300;
 
     @Id

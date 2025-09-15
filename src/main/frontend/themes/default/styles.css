@@ -1,1 +1,117 @@
-/* Add your styles here */
+/* Dark Mode Variables and Styles */
+
+/* Light theme (default) */
+:root {
+  --app-bg-color: #ffffff;
+  --app-text-color: #1a1a1a;
+  --app-border-color: #e0e0e0;
+  --app-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --app-accent-color: #2563eb;
+  --app-accent-hover: #1d4ed8;
+  --app-surface-color: #f8fafc;
+  --app-card-bg: #ffffff;
+  --app-input-bg: #ffffff;
+  --app-input-border: #d1d5db;
+}
+
+/* Dark theme */
+[theme="dark"] {
+  --app-bg-color: #0f172a;
+  --app-text-color: #f1f5f9;
+  --app-border-color: #334155;
+  --app-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --app-accent-color: #3b82f6;
+  --app-accent-hover: #2563eb;
+  --app-surface-color: #1e293b;
+  --app-card-bg: #1e293b;
+  --app-input-bg: #334155;
+  --app-input-border: #475569;
+}
+
+/* Global dark mode styles */
+[theme="dark"] {
+  color-scheme: dark;
+}
+
+[theme="dark"] body {
+  background-color: var(--app-bg-color);
+  color: var(--app-text-color);
+}
+
+/* Override Vaadin components for dark mode */
+[theme="dark"] vaadin-app-layout {
+  background-color: var(--app-bg-color);
+  color: var(--app-text-color);
+}
+
+[theme="dark"] vaadin-drawer-toggle {
+  color: var(--app-text-color);
+}
+
+[theme="dark"] vaadin-side-nav {
+  background-color: var(--app-surface-color);
+}
+
+[theme="dark"] vaadin-side-nav-item {
+  color: var(--app-text-color);
+}
+
+[theme="dark"] vaadin-side-nav-item[selected] {
+  background-color: var(--app-accent-color);
+  color: white;
+}
+
+[theme="dark"] vaadin-button {
+  background-color: var(--app-accent-color);
+  color: white;
+  border: 1px solid var(--app-accent-color);
+}
+
+[theme="dark"] vaadin-button:hover {
+  background-color: var(--app-accent-hover);
+}
+
+[theme="dark"] vaadin-text-field,
+[theme="dark"] vaadin-date-picker {
+  background-color: var(--app-input-bg);
+  border: 1px solid var(--app-input-border);
+  color: var(--app-text-color);
+}
+
+[theme="dark"] vaadin-grid {
+  background-color: var(--app-card-bg);
+  color: var(--app-text-color);
+  border: 1px solid var(--app-border-color);
+}
+
+[theme="dark"] vaadin-grid-cell-content {
+  background-color: var(--app-card-bg);
+  color: var(--app-text-color);
+}
+
+[theme="dark"] vaadin-progress-bar {
+  background-color: var(--app-surface-color);
+}
+
+/* Theme toggle button styles */
+.theme-toggle {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.theme-toggle:hover {
+  background-color: var(--app-surface-color);
+}
+
+.theme-toggle-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--app-text-color);
+}

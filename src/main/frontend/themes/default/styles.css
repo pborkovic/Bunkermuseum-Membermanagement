@@ -1,1 +1,369 @@
-/* Add your styles here */
+/* IntelliJ-Inspired Dark Mode */
+
+/* Light theme (default) */
+:root {
+  --app-bg-color: #ffffff;
+  --app-text-color: #1a1a1a;
+  --app-border-color: #e0e0e0;
+  --app-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --app-accent-color: #2563eb;
+  --app-accent-hover: #1d4ed8;
+  --app-surface-color: #f8fafc;
+  --app-card-bg: #ffffff;
+  --app-input-bg: #ffffff;
+  --app-input-border: #d1d5db;
+  --app-success-color: #10b981;
+  --app-warning-color: #f59e0b;
+  --app-error-color: #ef4444;
+}
+
+/* IntelliJ IDEA Dark Theme */
+[theme="dark"] {
+  /* Background colors inspired by IntelliJ Darcula theme */
+  --app-bg-color: #2b2b2b;              /* Main background */
+  --app-surface-color: #313335;         /* Elevated surfaces (panels, cards) */
+  --app-card-bg: #3c3f41;               /* Card backgrounds */
+  --app-input-bg: #45494a;              /* Input field backgrounds */
+
+  /* Text colors */
+  --app-text-color: #bbbbbb;            /* Primary text (IntelliJ default text) */
+  --app-text-secondary: #808080;        /* Secondary text */
+  --app-text-muted: #606366;            /* Muted text */
+
+  /* Border and separator colors */
+  --app-border-color: #515558;          /* Standard borders */
+  --app-border-light: #414547;          /* Light borders */
+  --app-input-border: #6b6b6b;          /* Input borders */
+  --app-input-border-focus: #4a9eff;    /* Focused input borders */
+
+  /* Accent colors inspired by IntelliJ syntax highlighting */
+  --app-accent-color: #4a9eff;          /* Primary accent (IntelliJ blue) */
+  --app-accent-hover: #3d8bdb;          /* Hover state */
+  --app-accent-active: #2e7ac6;         /* Active state */
+
+  /* Semantic colors matching IntelliJ */
+  --app-success-color: #59a869;         /* Green (success, strings) */
+  --app-warning-color: #cc7832;         /* Orange (warnings, keywords) */
+  --app-error-color: #bc3f3c;           /* Red (errors) */
+  --app-info-color: #9876aa;            /* Purple (info, types) */
+
+  /* Selection and hover states */
+  --app-selection-bg: #2d4f67;          /* Selection background */
+  --app-hover-bg: #4c5052;              /* Hover background */
+  --app-focus-bg: #3a3c3e;              /* Focus background */
+
+  /* Shadow for depth */
+  --app-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --app-shadow-light: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Global dark mode styles */
+[theme="dark"] {
+  color-scheme: dark;
+}
+
+[theme="dark"] body {
+  background-color: var(--app-bg-color);
+  color: var(--app-text-color);
+}
+
+/* IntelliJ-Inspired Vaadin Component Styling */
+
+/* App Layout - Main IDE window feel */
+[theme="dark"] vaadin-app-layout {
+  background-color: var(--app-bg-color);
+  color: var(--app-text-color);
+  border: 1px solid var(--app-border-light);
+}
+
+/* Drawer Toggle - Tool window controls */
+[theme="dark"] vaadin-drawer-toggle {
+  color: var(--app-text-color);
+  background-color: transparent;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+[theme="dark"] vaadin-drawer-toggle:hover {
+  background-color: var(--app-hover-bg);
+  color: var(--app-accent-color);
+}
+
+/* Side Navigation - Project tree feel */
+[theme="dark"] vaadin-side-nav {
+  background-color: var(--app-surface-color);
+  border-right: 1px solid var(--app-border-color);
+  box-shadow: var(--app-shadow-light);
+}
+
+[theme="dark"] vaadin-side-nav-item {
+  color: var(--app-text-color);
+  border-radius: 4px;
+  margin: 2px 4px;
+  transition: all 0.2s ease;
+}
+
+[theme="dark"] vaadin-side-nav-item:hover {
+  background-color: var(--app-hover-bg);
+  color: var(--app-text-color);
+}
+
+[theme="dark"] vaadin-side-nav-item[selected] {
+  background-color: var(--app-selection-bg);
+  color: var(--app-accent-color);
+  font-weight: 500;
+}
+
+/* Buttons - IntelliJ button styling */
+[theme="dark"] vaadin-button {
+  background-color: var(--app-accent-color);
+  color: white;
+  border: 1px solid var(--app-accent-color);
+  border-radius: 4px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: var(--app-shadow-light);
+}
+
+[theme="dark"] vaadin-button:hover {
+  background-color: var(--app-accent-hover);
+  border-color: var(--app-accent-hover);
+  box-shadow: var(--app-shadow);
+}
+
+[theme="dark"] vaadin-button:active {
+  background-color: var(--app-accent-active);
+  transform: translateY(1px);
+}
+
+[theme="dark"] vaadin-button[theme~="secondary"] {
+  background-color: var(--app-surface-color);
+  color: var(--app-text-color);
+  border-color: var(--app-border-color);
+}
+
+[theme="dark"] vaadin-button[theme~="success"] {
+  background-color: var(--app-success-color);
+  border-color: var(--app-success-color);
+}
+
+/* Form Controls - IDE input styling */
+[theme="dark"] vaadin-text-field,
+[theme="dark"] vaadin-date-picker,
+[theme="dark"] vaadin-combo-box {
+  background-color: var(--app-input-bg);
+  border: 1px solid var(--app-input-border);
+  border-radius: 4px;
+  color: var(--app-text-color);
+  transition: all 0.2s ease;
+}
+
+[theme="dark"] vaadin-text-field:focus-within,
+[theme="dark"] vaadin-date-picker:focus-within,
+[theme="dark"] vaadin-combo-box:focus-within {
+  border-color: var(--app-input-border-focus);
+  box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.2);
+}
+
+[theme="dark"] vaadin-text-field input,
+[theme="dark"] vaadin-date-picker input {
+  background-color: transparent;
+  color: var(--app-text-color);
+}
+
+[theme="dark"] vaadin-text-field::part(input-field),
+[theme="dark"] vaadin-date-picker::part(input-field) {
+  background-color: var(--app-input-bg);
+  border-radius: 4px;
+}
+
+/* Grid - Table styling like IntelliJ tool windows */
+[theme="dark"] vaadin-grid {
+  background-color: var(--app-card-bg);
+  color: var(--app-text-color);
+  border: 1px solid var(--app-border-color);
+  border-radius: 4px;
+  box-shadow: var(--app-shadow-light);
+}
+
+[theme="dark"] vaadin-grid-cell-content {
+  background-color: transparent;
+  color: var(--app-text-color);
+  border-bottom: 1px solid var(--app-border-light);
+}
+
+[theme="dark"] vaadin-grid::part(header-cell) {
+  background-color: var(--app-surface-color);
+  color: var(--app-text-secondary);
+  border-bottom: 2px solid var(--app-border-color);
+  font-weight: 600;
+}
+
+[theme="dark"] vaadin-grid::part(row):hover {
+  background-color: var(--app-hover-bg);
+}
+
+[theme="dark"] vaadin-grid::part(selected-row) {
+  background-color: var(--app-selection-bg);
+}
+
+/* Progress Bar - Loading indicators */
+[theme="dark"] vaadin-progress-bar {
+  background-color: var(--app-surface-color);
+  border-radius: 2px;
+  height: 4px;
+}
+
+[theme="dark"] vaadin-progress-bar::part(bar) {
+  background-color: var(--app-accent-color);
+  border-radius: 2px;
+}
+
+/* Notifications - IntelliJ balloon styling */
+[theme="dark"] vaadin-notification-card {
+  background-color: var(--app-card-bg);
+  color: var(--app-text-color);
+  border: 1px solid var(--app-border-color);
+  border-radius: 6px;
+  box-shadow: var(--app-shadow);
+}
+
+[theme="dark"] vaadin-notification-card[theme~="success"] {
+  border-left: 4px solid var(--app-success-color);
+}
+
+[theme="dark"] vaadin-notification-card[theme~="error"] {
+  border-left: 4px solid var(--app-error-color);
+}
+
+[theme="dark"] vaadin-notification-card[theme~="warning"] {
+  border-left: 4px solid var(--app-warning-color);
+}
+
+/* IntelliJ-Style Theme Toggle Button */
+.theme-toggle {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  position: relative;
+  min-width: 36px;
+  min-height: 36px;
+}
+
+.theme-toggle:hover {
+  background-color: var(--app-hover-bg, rgba(255, 255, 255, 0.1));
+  transform: scale(1.05);
+}
+
+.theme-toggle:active {
+  transform: scale(0.95);
+}
+
+.theme-toggle-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--app-text-color);
+  transition: all 0.2s ease;
+}
+
+[theme="dark"] .theme-toggle-icon {
+  color: var(--app-accent-color);
+}
+
+/* Syntax Highlighting Inspired Utility Classes */
+.text-keyword {
+  color: var(--app-warning-color, #cc7832);
+  font-weight: 500;
+}
+
+.text-string {
+  color: var(--app-success-color, #59a869);
+}
+
+.text-number {
+  color: var(--app-info-color, #9876aa);
+}
+
+.text-comment {
+  color: var(--app-text-muted, #808080);
+  font-style: italic;
+}
+
+.text-error {
+  color: var(--app-error-color, #bc3f3c);
+}
+
+.text-accent {
+  color: var(--app-accent-color, #4a9eff);
+}
+
+/* Professional IDE-style Cards */
+[theme="dark"] .ide-card {
+  background-color: var(--app-card-bg);
+  border: 1px solid var(--app-border-color);
+  border-radius: 6px;
+  box-shadow: var(--app-shadow-light);
+  padding: 16px;
+  margin: 8px 0;
+  transition: all 0.2s ease;
+}
+
+[theme="dark"] .ide-card:hover {
+  border-color: var(--app-accent-color);
+  box-shadow: var(--app-shadow);
+}
+
+/* Status indicators */
+.status-success {
+  color: var(--app-success-color);
+}
+
+.status-warning {
+  color: var(--app-warning-color);
+}
+
+.status-error {
+  color: var(--app-error-color);
+}
+
+.status-info {
+  color: var(--app-info-color);
+}
+
+/* IntelliJ-style scrollbar for webkit browsers */
+[theme="dark"] ::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+[theme="dark"] ::-webkit-scrollbar-track {
+  background: var(--app-bg-color);
+}
+
+[theme="dark"] ::-webkit-scrollbar-thumb {
+  background: var(--app-border-color);
+  border-radius: 6px;
+  border: 2px solid var(--app-bg-color);
+}
+
+[theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--app-text-muted);
+}
+
+/* Code-like monospace elements */
+[theme="dark"] code,
+[theme="dark"] pre,
+[theme="dark"] .monospace {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', monospace;
+  background-color: var(--app-input-bg);
+  color: var(--app-text-color);
+  border: 1px solid var(--app-border-light);
+  border-radius: 4px;
+  padding: 2px 6px;
+}

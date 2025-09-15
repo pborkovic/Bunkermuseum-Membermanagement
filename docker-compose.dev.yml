@@ -23,6 +23,9 @@ services:
       - ./src/main/frontend/views:/app/src/main/frontend/views:delegated
       - ./src/main/frontend/themes:/app/src/main/frontend/themes:delegated
       - ./src/main/frontend/components:/app/src/main/frontend/components:delegated
+      - ./src/main/frontend/contexts:/app/src/main/frontend/contexts:delegated
+      - ./src/main/frontend/hooks:/app/src/main/frontend/hooks:delegated
+      - ./src/main/frontend/utils:/app/src/main/frontend/utils:delegated
 
       # Configuration files (allow npm to update package-lock.json)
       - ./package.json:/app/package.json

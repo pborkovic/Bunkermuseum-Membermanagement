@@ -20,6 +20,7 @@ export default function MainView() {
         <div className="flex flex-col items-center">
           <Icon src="icons/construction.svg" className="text-success" style={{ width: '200px', height: '200px' }} />
           <p>Replace this view with your own main view!</p>
+            <p>test</p>
         </div>
       </div>
     </main>

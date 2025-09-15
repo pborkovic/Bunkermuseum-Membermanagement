@@ -2,7 +2,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile.nginx
+      dockerfile: nginx/Dockerfile
       cache_from:
         - eclipse-temurin:21-jdk
         - nginx:alpine

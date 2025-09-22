@@ -13,6 +13,17 @@ services:
       - VAADIN_PRODUCTION_MODE=false
       - VAADIN_FRONTEND_HOTDEPLOY=true
       - VAADIN_SKIP_NODE_MODULES_CLEANUP=true
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-dev:5432/bunkermuseum_dev
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver
+      - SPRING_DATASOURCE_USERNAME=bunkermuseum_dev
+      - SPRING_DATASOURCE_PASSWORD=bunkermuseum_dev_password
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_REDIS_HOST=redis-dev
+      - SPRING_REDIS_PORT=6379
+      - MINIO_ENDPOINT=http://minio-dev:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin123
+      - MINIO_BUCKET_NAME=bunkermuseum-dev-files
     volumes:
       # Mount Java source code for hot reload
       - ./src/main/java:/app/src/main/java:delegated
@@ -41,6 +52,10 @@ services:
       # Let Vaadin manage node_modules directly without volume mounting
       # - node_modules_cache:/app/node_modules
     restart: unless-stopped
+    depends_on:
+      - postgres-dev
+      - redis-dev
+      - minio-dev
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s
@@ -49,9 +64,63 @@ services:
       start_period: 60s
     command: ["./mvnw", "spring-boot:run", "-Dspring-boot.run.jvmArguments='-Dvaadin.frontend.hotdeploy=true'"]
 
+  postgres-dev:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=bunkermuseum_dev
+      - POSTGRES_USER=bunkermuseum_dev
+      - POSTGRES_PASSWORD=bunkermuseum_dev_password
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bunkermuseum_dev -d bunkermuseum_dev"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  redis-dev:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_dev_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  minio-dev:
+    image: minio/minio:latest
+    ports:
+      - "9010:9000"
+      - "9011:9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin123
+    volumes:
+      - minio_dev_data:/data
+    command: server /data --console-address ":9001"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 60s
+
 volumes:
   maven_cache:
   vaadin_cache:
+  postgres_dev_data:
+  redis_dev_data:
+  minio_dev_data:
 
 networks:
   default:

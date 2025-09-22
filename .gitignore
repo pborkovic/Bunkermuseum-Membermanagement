@@ -1,6 +1,7 @@
 /target/
 .idea/
 .vscode/
+.CLAUDE
 .settings
 .project
 .classpath

@@ -18,6 +18,14 @@ services:
       - SPRING_DATASOURCE_USERNAME=bunkermuseum_dev
       - SPRING_DATASOURCE_PASSWORD=bunkermuseum_dev_password
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_SHOW_SQL=true
+      - SPRING_JPA_FORMAT_SQL=true
+      - SPRING_JPA_PROPERTIES_HIBERNATE_GENERATE_STATISTICS=true
+      - SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE=10
+      - SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE=2
+      - SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT=30000
+      - SPRING_DATASOURCE_HIKARI_IDLE_TIMEOUT=600000
+      - SPRING_DATASOURCE_HIKARI_MAX_LIFETIME=1800000
       - SPRING_REDIS_HOST=redis-dev
       - SPRING_REDIS_PORT=6379
       - MINIO_ENDPOINT=http://minio-dev:9000
@@ -62,7 +70,10 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
-    command: ["./mvnw", "spring-boot:run", "-Dspring-boot.run.jvmArguments='-Dvaadin.frontend.hotdeploy=true'"]
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    command: ["sh", "-c", "./mvnw dependency:go-offline -B -q || true && ./mvnw spring-boot:run -Dspring-boot.run.jvmArguments='-Dvaadin.frontend.hotdeploy=true'"]
 
   postgres-dev:
     image: postgres:15-alpine

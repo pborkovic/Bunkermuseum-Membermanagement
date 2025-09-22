@@ -1,4 +1,4 @@
-package com.bunkermuseum.taskmanagement;
+package com.bunkermuseum.membermanagement;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

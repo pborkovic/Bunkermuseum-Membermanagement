@@ -11,8 +11,11 @@ RUN mkdir -p $HOME
 WORKDIR $HOME
 
 # Install Node.js for frontend development
-RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
-    apt-get install -y nodejs
+RUN apt-get update && \
+    curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
+    apt-get install -y nodejs && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Copy dependency files first for better caching
 COPY package*.json ./
@@ -20,9 +23,8 @@ COPY pom.xml ./
 COPY mvnw ./
 COPY .mvn ./.mvn/
 
-# Install dependencies
+# Install NPM dependencies
 RUN npm install
-RUN ./mvnw dependency:go-offline -B
 
 # Copy source code (this will be overridden by volumes in dev)
 COPY . .

@@ -60,6 +60,7 @@ public class Task {
             throw new IllegalArgumentException("Description length exceeds " + DESCRIPTION_MAX_LENGTH);
         }
         this.description = description;
+
     }
 
     public Instant getCreationDate() {

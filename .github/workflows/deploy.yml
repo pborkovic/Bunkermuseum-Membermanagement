@@ -10,7 +10,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: ${{ github.repository_owner }}/bunkermuseum
 
 jobs:
   deploy:
@@ -37,8 +37,8 @@ jobs:
           export IMAGE_TAG=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
           # Deploy with zero downtime
-          docker-compose pull app
-          docker-compose up -d app
+          docker compose pull app
+          docker compose up -d app
 
           # Clean up old images
           docker image prune -f

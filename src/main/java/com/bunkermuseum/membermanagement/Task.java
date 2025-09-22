@@ -1,4 +1,4 @@
-package com.bunkermuseum.taskmanagement;
+package com.bunkermuseum.membermanagement;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.Cache;

@@ -1,4 +1,4 @@
-package com.bunkermuseum.taskmanagement;
+package com.bunkermuseum.membermanagement;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;

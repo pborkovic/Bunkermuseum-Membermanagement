@@ -13,7 +13,7 @@
  */
 @NullMarked
 @NonNullApi // Until https://github.com/vaadin/hilla/issues/2612 has been fixed
-package com.bunkermuseum.taskmanagement;
+package com.bunkermuseum.membermanagement;
 // TODO Remove this package once you have added real features
 
 import org.jspecify.annotations.NullMarked;

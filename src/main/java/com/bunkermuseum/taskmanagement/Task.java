@@ -1,38 +1,50 @@
 package com.bunkermuseum.taskmanagement;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "task")
+@Table(name = "task", indexes = {
+    @Index(name = "idx_task_creation_date", columnList = "creation_date"),
+    @Index(name = "idx_task_due_date", columnList = "due_date")
+})
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Task {
 
     public static final int DESCRIPTION_MAX_LENGTH = 300;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    @Column(name = "task_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "description", nullable = false, length = DESCRIPTION_MAX_LENGTH)
+    @Column(nullable = false, length = DESCRIPTION_MAX_LENGTH)
     private String description = "";
 
     @Column(name = "creation_date", nullable = false)
+    @CreationTimestamp
     private Instant creationDate;
+
+    @Column(name = "last_modified_date")
+    @UpdateTimestamp
+    private Instant lastModifiedDate;
 
     @Column(name = "due_date")
     @Nullable
     private LocalDate dueDate;
 
-    protected Task() { // To keep Hibernate happy
+    protected Task() {
+        // Default constructor for JPA
     }
 
-    public Task(String description, Instant creationDate) {
+    public Task(String description) {
         setDescription(description);
-        this.creationDate = creationDate;
     }
 
     public @Nullable Long getId() {
@@ -54,6 +66,10 @@ public class Task {
         return creationDate;
     }
 
+    public @Nullable Instant getLastModifiedDate() {
+        return lastModifiedDate;
+    }
+
     public @Nullable LocalDate getDueDate() {
         return dueDate;
     }
@@ -64,23 +80,15 @@ public class Task {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || !getClass().isAssignableFrom(obj.getClass())) {
-            return false;
-        }
-        if (obj == this) {
-            return true;
-        }
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
 
-        Task other = (Task) obj;
-        return getId() != null && getId().equals(other.getId());
+        Task task = (Task) obj;
+        return getId() != null && getId().equals(task.getId());
     }
 
     @Override
     public int hashCode() {
-        // Hashcode should never change during the lifetime of an object. Because of
-        // this we can't use getId() to calculate the hashcode. Unless you have sets
-        // with lots of entities in them, returning the same hashcode should not be a
-        // problem.
         return getClass().hashCode();
     }
 }

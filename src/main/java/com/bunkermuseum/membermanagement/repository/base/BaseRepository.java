@@ -335,21 +335,6 @@ public abstract class BaseRepository<T extends Model, R extends JpaRepository<T,
      * debugging information. Concrete repository implementations should override
      * this method to provide meaningful entity-specific names.</p>
      *
-     * <p><strong>Implementation Requirements:</strong></p>
-     * <ul>
-     *   <li>Return a descriptive name for the entity type (e.g., "User", "Product", "Order")</li>
-     *   <li>Use singular form ("User" not "Users")</li>
-     *   <li>Keep the name concise but descriptive</li>
-     *   <li>Avoid technical terms like "Entity" or "Model" in the name</li>
-     * </ul>
-     *
-     * <p><strong>Usage Examples:</strong></p>
-     * <ul>
-     *   <li>Log messages: "Creating User entities", "Deleting Product entity"</li>
-     *   <li>Exception messages: "User with ID 123 not found"</li>
-     *   <li>Debug information: "Fetching all Order entities"</li>
-     * </ul>
-     *
      * <p><strong>Default Implementation:</strong> Returns "Entity" as a generic fallback.
      * While functional, this generic name is less helpful for logging and debugging.
      * Concrete implementations are strongly encouraged to override this method.</p>
@@ -388,20 +373,9 @@ public abstract class BaseRepository<T extends Model, R extends JpaRepository<T,
      *   <li>Preserves the original exception as the cause for debugging</li>
      * </ul>
      *
-     * <p><strong>Usage Pattern:</strong></p>
-     * <pre>{@code
-     * return executeWithLogging("Finding by ID", () -> {
-     *     return repository.findById(id);
-     * });
-     * }</pre>
-     *
      * <p><strong>Exception Propagation:</strong> This method will always propagate
      * exceptions as RuntimeExceptions. Use the overloaded version with a default
      * value if you need graceful degradation.</p>
-     *
-     * <p><strong>Performance Impact:</strong> Adds minimal overhead for logging.
-     * Debug logs are typically disabled in production, so performance impact
-     * is negligible in most environments.</p>
      *
      * @param operation Description of the operation for logging (e.g., "Finding by ID", "Creating entity")
      * @param supplier The repository operation to execute, wrapped in a functional interface
@@ -462,14 +436,6 @@ public abstract class BaseRepository<T extends Model, R extends JpaRepository<T,
      *   <li>Still preserves error details in logs for debugging</li>
      * </ul>
      *
-     * <p><strong>Default Value Considerations:</strong></p>
-     * <ul>
-     *   <li>Choose default values that represent "safe" or "empty" states</li>
-     *   <li>Ensure default values are consistent with method return type expectations</li>
-     *   <li>Consider whether null is an appropriate default (be careful with NPEs)</li>
-     *   <li>Document the default behavior for consumers of your repository</li>
-     * </ul>
-     *
      * @param operation Description of the operation for logging (e.g., "Checking existence", "Counting entities")
      * @param supplier The repository operation to execute, wrapped in a functional interface
      * @param defaultValue Value to return if the operation fails, should represent a safe fallback
@@ -496,6 +462,8 @@ public abstract class BaseRepository<T extends Model, R extends JpaRepository<T,
 
     /**
      * Functional interface for repository operations.
+     *
+     * @author Philipp Borkovic
      */
     @FunctionalInterface
     protected interface RepositoryOperation<T> {
@@ -504,15 +472,48 @@ public abstract class BaseRepository<T extends Model, R extends JpaRepository<T,
 
     /**
      * Creates a new entity instance from field-value data using reflection.
-     * Override this method in concrete repositories for custom entity creation logic.
      *
-     * @param data Map of field names to values
-     * @return New entity instance
+     * <p>This method provides a generic approach to creating entity instances from
+     * dynamic field-value pairs using Java reflection. It extracts the concrete entity
+     * type from generic parameters, instantiates a new entity, and populates its fields
+     * with the provided data map.</p>
+     *
+     * <p><strong>Creation Process:</strong></p>
+     * <ol>
+     *   <li>Extracts the concrete entity class from generic type parameters</li>
+     *   <li>Creates a new instance using the default constructor</li>
+     *   <li>Delegates field population to {@link #updateEntityFromData(Object, Map)}</li>
+     *   <li>Returns the fully populated entity instance</li>
+     * </ol>
+     *
+     * <p><strong>Type Resolution:</strong></p>
+     * <ul>
+     *   <li>Uses reflection to determine the concrete entity type at runtime</li>
+     *   <li>Extracts type information from the generic superclass declaration</li>
+     *   <li>Handles the complexity of Java's type erasure</li>
+     *   <li>Requires proper generic type declaration in concrete implementations</li>
+     * </ul>
+     *
+     * <p><strong>Constructor Requirements:</strong></p>
+     * <ul>
+     *   <li>Entity must have a public or accessible default (no-argument) constructor</li>
+     *   <li>Constructor should not throw exceptions during instantiation</li>
+     *   <li>Entity should be in a valid state after default construction</li>
+     * </ul>
+     *
+     * @param data Map containing field names as keys and field values as values. Must not be null.
+     * @return New entity instance with populated fields, never null
+     *
+     * @throws IllegalArgumentException if data is null
+     * @throws RuntimeException if entity instantiation or field population fails
+     *
+     * @see #updateEntityFromData(Object, Map)
+     * @see #create(Map)
+     *
+     * @author Philipp Borkovic
      */
     protected T createEntityFromData(Map<String, Object> data) {
         try {
-            // This is a basic implementation using reflection
-            // Override in concrete repositories for better performance and type safety
             @SuppressWarnings("unchecked")
             Class<T> entityClass = (Class<T>) ((java.lang.reflect.ParameterizedType)
                 getClass().getGenericSuperclass()).getActualTypeArguments()[0];
@@ -527,10 +528,40 @@ public abstract class BaseRepository<T extends Model, R extends JpaRepository<T,
 
     /**
      * Updates an entity instance from field-value data using reflection.
-     * Override this method in concrete repositories for custom update logic.
      *
-     * @param entity The entity to update
-     * @param data Map of field names to values
+     * <p>This method provides a generic approach to updating existing entity instances
+     * with dynamic field-value pairs using Java reflection. It iterates through the
+     * provided data map and attempts to set each field value on the target entity,
+     * handling both direct fields and inherited fields from parent classes.</p>
+     *
+     * <p><strong>Field Update Process:</strong></p>
+     * <ol>
+     *   <li>Iterates through each field-value pair in the data map</li>
+     *   <li>Attempts to find the field in the entity's class</li>
+     *   <li>If not found, searches in the entity's superclass (e.g., Model base class)</li>
+     *   <li>Makes the field accessible if it's private or protected</li>
+     *   <li>Sets the field value directly using reflection</li>
+     *   <li>Logs warnings for fields that cannot be found</li>
+     * </ol>
+     *
+     * <p><strong>Error Handling:</strong></p>
+     * <ul>
+     *   <li>Unknown fields generate warning logs but don't stop processing</li>
+     *   <li>Field access errors (wrong types, etc.) cause RuntimeException</li>
+     *   <li>Preserves partial updates - fields set before error remain changed</li>
+     *   <li>Original exception is wrapped with descriptive message</li>
+     * </ul>
+     *
+     * @param entity The entity instance to update with new field values. Must not be null.
+     * @param data Map containing field names as keys and new values as values. Must not be null.
+     *
+     * @throws IllegalArgumentException if entity or data is null
+     * @throws RuntimeException if field access or assignment fails
+     *
+     * @see #createEntityFromData(Map)
+     * @see #updateWithData(UUID, Map)
+     *
+     * @author Philipp Borkovic
      */
     protected void updateEntityFromData(T entity, Map<String, Object> data) {
         try {
@@ -545,7 +576,6 @@ public abstract class BaseRepository<T extends Model, R extends JpaRepository<T,
                     field.setAccessible(true);
                     field.set(entity, value);
                 } catch (NoSuchFieldException e) {
-                    // Try superclass fields
                     try {
                         Field field = entityClass.getSuperclass().getDeclaredField(fieldName);
                         field.setAccessible(true);

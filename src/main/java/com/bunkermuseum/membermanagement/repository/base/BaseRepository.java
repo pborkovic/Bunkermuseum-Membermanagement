@@ -1,7 +1,7 @@
 package com.bunkermuseum.membermanagement.repository.base;
 
 import com.bunkermuseum.membermanagement.model.base.Model;
-import com.bunkermuseum.membermanagement.repository.base.contract.BaseRepositoryInterface;
+import com.bunkermuseum.membermanagement.repository.base.contract.BaseRepositoryContract;
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +16,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
- * <p>This abstract class provides the concrete implementation for the BaseRepositoryInterface,
+ * <p>This abstract class provides the concrete implementation for the BaseRepositoryContract,
  * serving as the foundation for all repository implementations in the application.</p>
  *
  * @param <T> The entity type extending Model
@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
  */
 @Transactional(readOnly = true)
 public abstract class BaseRepository<T extends Model, R extends JpaRepository<T, UUID>>
-        implements BaseRepositoryInterface<T> {
+        implements BaseRepositoryContract<T> {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
     protected final R repository;

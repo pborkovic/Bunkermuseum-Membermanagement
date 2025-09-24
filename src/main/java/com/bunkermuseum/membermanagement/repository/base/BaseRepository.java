@@ -478,7 +478,7 @@ public abstract class BaseRepository<T extends Model, R extends JpaRepository<T,
      * <ol>
      *   <li>Extracts the concrete entity class from generic type parameters</li>
      *   <li>Creates a new instance using the default constructor</li>
-     *   <li>Delegates field population to {@link #updateEntityFromData(Object, Map)}</li>
+     *   <li>Delegates field population to {@link #updateEntityFromData(Model, Map)}</li>
      *   <li>Returns the fully populated entity instance</li>
      * </ol>
      *
@@ -503,7 +503,7 @@ public abstract class BaseRepository<T extends Model, R extends JpaRepository<T,
      * @throws IllegalArgumentException if data is null
      * @throws RuntimeException if entity instantiation or field population fails
      *
-     * @see #updateEntityFromData(Object, Map)
+     * @see #updateEntityFromData(Model, Map)
      * @see #create(Map)
      *
      * @author Philipp Borkovic

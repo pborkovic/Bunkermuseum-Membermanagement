@@ -16,3 +16,4 @@ vite.generated.ts
 
 .env.dev
 .env.prod
+src/main/java/com/docs

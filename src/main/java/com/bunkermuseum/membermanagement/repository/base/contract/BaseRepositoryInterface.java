@@ -109,7 +109,7 @@ public interface BaseRepositoryInterface<T extends Model> {
      * @throws IllegalArgumentException if id is null
      *
      * @see #findById(UUID)
-     * @see #update(UUID, Object)
+     * @see #update(UUID, T)
      */
     T findByIdOrFail(UUID id);
 
@@ -174,7 +174,7 @@ public interface BaseRepositoryInterface<T extends Model> {
      * @throws org.springframework.transaction.TransactionException if no active transaction
      *
      * @see #createAll(List)
-     * @see #createAndFlush(Object)
+     * @see #createAndFlush(T)
      * @see #create(Map)
      */
     T create(T entity);
@@ -408,7 +408,7 @@ public interface BaseRepositoryInterface<T extends Model> {
      * @throws org.springframework.dao.DataIntegrityViolationException if database constraints are violated
      * @throws org.springframework.transaction.TransactionException if no active transaction
      *
-     * @see #create(Object)
+     * @see #create(T)
      * @see #createMany(List)
      * @see #processInChunks(int, Consumer)
      */
@@ -496,7 +496,7 @@ public interface BaseRepositoryInterface<T extends Model> {
      * @throws org.springframework.dao.DataIntegrityViolationException if database constraints are violated
      * @throws org.springframework.transaction.TransactionException if no active transaction
      *
-     * @see #create(Object)
+     * @see #create(T)
      * @see #flush()
      */
     T createAndFlush(T entity);
@@ -541,7 +541,7 @@ public interface BaseRepositoryInterface<T extends Model> {
      * @throws javax.validation.ConstraintViolationException if entity validation fails during flush
      * @throws org.springframework.transaction.TransactionException if no active transaction
      *
-     * @see #createAndFlush(Object)
+     * @see #createAndFlush(T)
      */
     void flush();
 
@@ -593,7 +593,7 @@ public interface BaseRepositoryInterface<T extends Model> {
      * @throws javax.validation.ConstraintViolationException if entity validation fails
      * @throws org.springframework.dao.DataIntegrityViolationException if database constraints are violated
      *
-     * @see #create(Object)
+     * @see #create(T)
      * @see #createMany(List)
      * @see #updateWithData(UUID, Map)
      */
@@ -648,7 +648,7 @@ public interface BaseRepositoryInterface<T extends Model> {
      * @throws javax.validation.ConstraintViolationException if updated entity validation fails
      * @throws org.springframework.dao.DataIntegrityViolationException if database constraints are violated
      *
-     * @see #update(UUID, Object)
+     * @see #update(UUID, T)
      * @see #findByIdOrFail(UUID)
      * @see #create(Map)
      */

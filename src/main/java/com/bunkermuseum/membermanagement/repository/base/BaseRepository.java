@@ -16,15 +16,11 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
- * {@inheritDoc}
- *
  * <p>This abstract class provides the concrete implementation for the BaseRepositoryInterface,
  * serving as the foundation for all repository implementations in the application.</p>
  *
  * @param <T> The entity type extending Model
  * @param <R> The Spring Data JPA repository type
- *
- * @author Patrick Borkovic
  */
 @Transactional(readOnly = true)
 public abstract class BaseRepository<T extends Model, R extends JpaRepository<T, UUID>>

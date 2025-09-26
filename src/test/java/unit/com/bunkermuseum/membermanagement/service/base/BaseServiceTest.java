@@ -130,7 +130,7 @@ class BaseServiceTest {
     }
 
     /**
-     * Tests the {@link BaseService#findById(UUID)} method when an entity exists.
+     * Tests the {@link BaseService#findById} method when an entity exists.
      *
      * <p>This test verifies that:</p>
      * <ul>
@@ -152,7 +152,7 @@ class BaseServiceTest {
     }
 
     /**
-     * Tests the {@link BaseService#findById(UUID)} method when an entity does not exist.
+     * Tests the {@link BaseService#findById} method when an entity does not exist.
      *
      * <p>This test verifies that:</p>
      * <ul>
@@ -173,7 +173,7 @@ class BaseServiceTest {
     }
 
     /**
-     * Tests the {@link BaseService#findByIdOrFail(UUID)} method when an entity exists.
+     * Tests the {@link BaseService#findByIdOrFail} method when an entity exists.
      *
      * <p>This test verifies that:</p>
      * <ul>
@@ -194,7 +194,7 @@ class BaseServiceTest {
     }
 
     /**
-     * Tests the {@link BaseService#create(Object)} method with full business rule workflow.
+     * Tests the {@link BaseService#create} method with full business rule workflow.
      *
      * <p>This test verifies that:</p>
      * <ul>
@@ -220,7 +220,7 @@ class BaseServiceTest {
     }
 
     /**
-     * Tests the {@link BaseService#update(UUID, Object)} method with full business rule workflow.
+     * Tests the {@link BaseService#update} method with full business rule workflow.
      *
      * <p>This test verifies that:</p>
      * <ul>
@@ -246,7 +246,7 @@ class BaseServiceTest {
     }
 
     /**
-     * Tests the {@link BaseService#deleteById(UUID)} method with full business rule workflow.
+     * Tests the {@link BaseService#deleteById} method with full business rule workflow.
      *
      * <p>This test verifies that:</p>
      * <ul>
@@ -272,7 +272,7 @@ class BaseServiceTest {
     }
 
     /**
-     * Tests the {@link BaseService#deleteById(UUID)} method when deletion fails.
+     * Tests the {@link BaseService#deleteById} method when deletion fails.
      *
      * <p>This test verifies that:</p>
      * <ul>
@@ -296,7 +296,7 @@ class BaseServiceTest {
     }
 
     /**
-     * Tests the {@link BaseService#findAll(Pageable)} method for pagination support.
+     * Tests the {@link BaseService#findAll} method for pagination support.
      *
      * <p>This test verifies that:</p>
      * <ul>
@@ -341,7 +341,7 @@ class BaseServiceTest {
     }
 
     /**
-     * Tests the {@link BaseService#createAll(Iterable)} method for bulk creation with business rules.
+     * Tests the {@link BaseService#createAll} method for bulk creation with business rules.
      *
      * <p>This test verifies that:</p>
      * <ul>
@@ -368,7 +368,7 @@ class BaseServiceTest {
     }
 
     /**
-     * Tests the {@link BaseService#existsById(UUID)} method when entity exists.
+     * Tests the {@link BaseService#existsById} method when entity exists.
      *
      * <p>This test verifies that:</p>
      * <ul>
@@ -389,7 +389,7 @@ class BaseServiceTest {
     }
 
     /**
-     * Tests the {@link BaseService#existsById(UUID)} method when entity does not exist.
+     * Tests the {@link BaseService#existsById} method when entity does not exist.
      *
      * <p>This test verifies that:</p>
      * <ul>
@@ -410,7 +410,7 @@ class BaseServiceTest {
     }
 
     /**
-     * Tests the {@link BaseService#create(Map)} method for dynamic entity creation with business rules.
+     * Tests the {@link BaseService#create} method for dynamic entity creation with business rules.
      *
      * <p>This test verifies that:</p>
      * <ul>
@@ -437,7 +437,7 @@ class BaseServiceTest {
     }
 
     /**
-     * Tests the {@link BaseService#updateWithData(UUID, Map)} method for dynamic updates with business rules.
+     * Tests the {@link BaseService#updateWithData} method for dynamic updates with business rules.
      *
      * <p>This test verifies that:</p>
      * <ul>
@@ -464,7 +464,7 @@ class BaseServiceTest {
     }
 
     /**
-     * Tests the {@link BaseService#createMany(List)} method for bulk dynamic entity creation.
+     * Tests the {@link BaseService#createMany} method for bulk dynamic entity creation.
      *
      * <p>This test verifies that:</p>
      * <ul>
@@ -495,7 +495,7 @@ class BaseServiceTest {
     }
 
     /**
-     * Tests the {@link BaseService#processInChunks(int, Consumer)} method for batch processing.
+     * Tests the {@link BaseService#processInChunks} method for batch processing.
      *
      * <p>This test verifies that:</p>
      * <ul>
@@ -581,7 +581,7 @@ class BaseServiceTest {
     }
 
     /**
-     * Tests the {@link BaseService#validateForCreate(Object)} method with null entity.
+     * Tests the {@link BaseService#validateForCreate} method with null entity.
      *
      * <p>This test verifies that:</p>
      * <ul>
@@ -602,7 +602,7 @@ class BaseServiceTest {
     }
 
     /**
-     * Tests the {@link BaseService#validateForUpdate(UUID, Object)} method with null ID.
+     * Tests the {@link BaseService#validateForUpdate} method with null ID.
      *
      * <p>This test verifies that:</p>
      * <ul>
@@ -623,7 +623,7 @@ class BaseServiceTest {
     }
 
     /**
-     * Tests the {@link BaseService#validateForUpdate(UUID, Object)} method with null entity.
+     * Tests the {@link BaseService#validateForUpdate} method with null entity.
      *
      * <p>This test verifies that:</p>
      * <ul>
@@ -644,7 +644,7 @@ class BaseServiceTest {
     }
 
     /**
-     * Tests the {@link BaseService#validateForDelete(UUID)} method with null ID.
+     * Tests the {@link BaseService#validateForDelete} method with null ID.
      *
      * <p>This test verifies that:</p>
      * <ul>
@@ -686,7 +686,7 @@ class BaseServiceTest {
     }
 
     /**
-     * Tests the {@link BaseService#getEntityName()} method default implementation.
+     * Tests the getEntityName() method default implementation.
      *
      * <p>This test verifies that:</p>
      * <ul>

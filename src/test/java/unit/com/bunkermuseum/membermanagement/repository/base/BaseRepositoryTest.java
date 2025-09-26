@@ -49,11 +49,8 @@ import static org.mockito.Mockito.*;
  *   <li>Includes edge cases and boundary conditions</li>
  * </ul>
  *
- * @author Generated Tests
- * @version 1.0
  * @see BaseRepository
  * @see JpaRepository
- * @since 1.0
  */
 @ExtendWith(MockitoExtension.class)
 class BaseRepositoryTest {
@@ -249,7 +246,7 @@ class BaseRepositoryTest {
     }
 
     /**
-     * Tests the {@link BaseRepository#create(Object)} method for entity creation.
+     * Tests the {@link BaseRepository#create} method for entity creation.
      *
      * <p>This test verifies that:</p>
      * <ul>
@@ -269,7 +266,7 @@ class BaseRepositoryTest {
     }
 
     /**
-     * Tests the {@link BaseRepository#update(UUID, Object)} method when entity exists.
+     * Tests the {@link BaseRepository#update} method when entity exists.
      *
      * <p>This test verifies that:</p>
      * <ul>
@@ -292,7 +289,7 @@ class BaseRepositoryTest {
     }
 
     /**
-     * Tests the {@link BaseRepository#update(UUID, Object)} method when entity does not exist.
+     * Tests the {@link BaseRepository#update} method when entity does not exist.
      *
      * <p>This test verifies that:</p>
      * <ul>
@@ -405,7 +402,7 @@ class BaseRepositoryTest {
     }
 
     /**
-     * Tests the {@link BaseRepository#findAllById(Iterable)} method for bulk retrieval.
+     * Tests the {@link BaseRepository#findAllById} method for bulk retrieval.
      *
      * <p>This test verifies that:</p>
      * <ul>
@@ -427,7 +424,7 @@ class BaseRepositoryTest {
     }
 
     /**
-     * Tests the {@link BaseRepository#createAll(Iterable)} method for bulk entity creation.
+     * Tests the {@link BaseRepository#createAll} method for bulk entity creation.
      *
      * <p>This test verifies that:</p>
      * <ul>
@@ -488,7 +485,7 @@ class BaseRepositoryTest {
     }
 
     /**
-     * Tests the {@link BaseRepository#createAndFlush(Object)} method for immediate persistence.
+     * Tests the {@link BaseRepository#createAndFlush} method for immediate persistence.
      *
      * <p>This test verifies that:</p>
      * <ul>
@@ -706,7 +703,7 @@ class BaseRepositoryTest {
     }
 
     /**
-     * Tests the {@link BaseRepository#getEntityName()} method default implementation.
+     * Tests the getEntityName() method default implementation.
      *
      * <p>This test verifies that:</p>
      * <ul>
@@ -729,7 +726,7 @@ class BaseRepositoryTest {
     }
 
     /**
-     * Tests the {@link BaseRepository#executeWithLogging} method error handling.
+     * Tests the executeWithLogging method error handling.
      *
      * <p>This test verifies that:</p>
      * <ul>

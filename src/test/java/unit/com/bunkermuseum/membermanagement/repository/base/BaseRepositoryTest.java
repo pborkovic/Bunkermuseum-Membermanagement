@@ -117,7 +117,7 @@ class BaseRepositoryTest {
     }
 
     /**
-     * Tests the {@link BaseRepository#findById(UUID)} method when an entity exists.
+     * Tests the {@link BaseRepository#findById} method when an entity exists.
      *
      * <p>This test verifies that:</p>
      * <ul>
@@ -138,7 +138,7 @@ class BaseRepositoryTest {
     }
 
     /**
-     * Tests the {@link BaseRepository#findById(UUID)} method when an entity does not exist.
+     * Tests the {@link BaseRepository#findById} method when an entity does not exist.
      *
      * <p>This test verifies that:</p>
      * <ul>
@@ -158,7 +158,7 @@ class BaseRepositoryTest {
     }
 
     /**
-     * Tests the {@link BaseRepository#findByIdOrFail(UUID)} method when an entity exists.
+     * Tests the {@link BaseRepository#findByIdOrFail} method when an entity exists.
      *
      * <p>This test verifies that:</p>
      * <ul>
@@ -178,7 +178,7 @@ class BaseRepositoryTest {
     }
 
     /**
-     * Tests the {@link BaseRepository#findByIdOrFail(UUID)} method when an entity does not exist.
+     * Tests the {@link BaseRepository#findByIdOrFail} method when an entity does not exist.
      *
      * <p>This test verifies that:</p>
      * <ul>
@@ -315,7 +315,7 @@ class BaseRepositoryTest {
     }
 
     /**
-     * Tests the {@link BaseRepository#deleteById(UUID)} method when entity exists.
+     * Tests the {@link BaseRepository#deleteById} method when entity exists.
      *
      * <p>This test verifies that:</p>
      * <ul>

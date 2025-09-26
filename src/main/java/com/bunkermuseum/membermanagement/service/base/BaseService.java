@@ -631,4 +631,5 @@ public abstract class BaseService<T extends Model, R extends BaseRepositoryContr
     protected void afterDelete(UUID id) {
         // Override in concrete services for entity-specific logic
     }
+
 }

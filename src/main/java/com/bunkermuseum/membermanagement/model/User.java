@@ -7,6 +7,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.jspecify.annotations.Nullable;
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * User entity representing system users with authentication and profile information.
@@ -229,6 +231,28 @@ public class User extends Model {
      */
     @Column(name = "microsoft_id", unique = true, length = 255)
     private @Nullable String microsoftId;
+
+    /**
+     * The roles assigned to this user.
+     *
+     * <p>This represents the many-to-many relationship between users and roles.
+     * Each user can have multiple roles, and each role can be assigned to multiple users.
+     * The relationship is managed through a join table 'user_roles'.</p>
+     *
+     * @author Philipp Borkovic
+     */
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+        name = "user_roles",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "role_id"),
+        indexes = {
+            @Index(name = "idx_user_roles_user_id", columnList = "user_id"),
+            @Index(name = "idx_user_roles_role_id", columnList = "role_id"),
+            @Index(name = "idx_user_roles_user_role", columnList = "user_id, role_id")
+        }
+    )
+    private Set<Role> roles = new HashSet<>();
 
     /**
      * Creates a new user with basic authentication information.

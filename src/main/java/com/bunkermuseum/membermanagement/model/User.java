@@ -35,11 +35,19 @@ import java.time.Instant;
  * @see jakarta.validation.constraints
  */
 @Entity
-@Table(name = "users", uniqueConstraints = {
-    @UniqueConstraint(columnNames = "email", name = "uk_users_email"),
-    @UniqueConstraint(columnNames = "google_id", name = "uk_users_google_id"),
-    @UniqueConstraint(columnNames = "microsoft_id", name = "uk_users_microsoft_id")
-})
+@Table(name = "users",
+    uniqueConstraints = {
+        @UniqueConstraint(columnNames = "email", name = "uk_users_email"),
+        @UniqueConstraint(columnNames = "google_id", name = "uk_users_google_id"),
+        @UniqueConstraint(columnNames = "microsoft_id", name = "uk_users_microsoft_id")
+    },
+    indexes = {
+        @Index(name = "idx_users_email", columnList = "email"),
+        @Index(name = "idx_users_name", columnList = "name"),
+        @Index(name = "idx_users_deleted_at", columnList = "deleted_at"),
+        @Index(name = "idx_users_name_deleted", columnList = "name, deleted_at"),
+    }
+)
 public class User extends Model {
 
     /**

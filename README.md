@@ -4,20 +4,19 @@ A comprehensive member management platform for the Bunkermuseum Wurzenpass, prov
 
 ## Tech Stack
 
-| Technology | Version | Description |
-|------------|---------|-------------|
-| ☕ **Java** | 21 | Backend language |
-| 🌱 **Spring Boot** | 3.5.5 | Application framework |
-| 🛡️ **Spring Security** | 3.5.5 | Authentication & authorization |
-| 🗄️ **Spring Data JPA** | 3.5.5 | Data persistence layer |
-| 🔧 **Vaadin** | 24.8.8 | Full-stack web framework |
-| ⚛️ **React** | 18.3.1 | Frontend components |
-| 📜 **TypeScript** | 5.8.3 | Type-safe frontend development |
-| 🐘 **PostgreSQL** | Runtime | Production database |
-| ☕ **Caffeine** | Latest | Caching layer |
+| Technology | Version     | Description |
+|------------|-------------|-------------|
+| ☕ **Java** | 21          | Backend language |
+| 🌱 **Spring Boot** | 3.5.5       | Application framework |
+| 🛡️ **Spring Security** | 3.5.5       | Authentication & authorization |
+| 🗄️ **Spring Data JPA** | 3.5.5       | Data persistence layer |
+| 🔧 **Vaadin** | 24.8.8      | Full-stack web framework |
+| ⚛️ **React** | 18.3.1      | Frontend components |
+| 📜 **TypeScript** | 5.8.3       | Type-safe frontend development |
+| 🐘 **PostgreSQL** | Runtime     | Production database |
 | 🐳 **Docker** | Multi-stage | Containerization |
-| 📊 **JaCoCo** | 0.8.11 | Code coverage |
-| 🚀 **Vite** | 6.3.5 | Frontend build tool |
+| 📊 **JaCoCo** | 0.8.11      | Code coverage |
+| 🚀 **Vite** | 6.3.5       | Frontend build tool |
 
 ## Prerequisites
 

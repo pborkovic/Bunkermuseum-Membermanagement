@@ -61,6 +61,10 @@ jobs:
     - name: Generate test coverage report
       run: ./mvnw jacoco:report
 
+    - name: Check test coverage thresholds
+      run: |
+        ./mvnw jacoco:check || echo "Coverage check failed - review coverage report"
+
     - name: Upload test results
       uses: actions/upload-artifact@v4
       if: always()

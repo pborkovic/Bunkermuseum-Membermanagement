@@ -1,35 +1,70 @@
-# App README
+# Bunkermuseum Wurzenpass - Member Management Platform
 
-- [ ] TODO Replace or update this README with instructions relevant to your application
+A comprehensive member management platform for the Bunkermuseum Wurzenpass, providing tools for member registration, management, and administrative functions.
 
-To start the application in development mode, import it into your IDE and run the `Application` class. 
-You can also start the application from the command line by running: 
+## Tech Stack
+
+| Technology | Version | Description |
+|------------|---------|-------------|
+| ☕ **Java** | 21 | Backend language |
+| 🌱 **Spring Boot** | 3.5.5 | Application framework |
+| 🛡️ **Spring Security** | 3.5.5 | Authentication & authorization |
+| 🗄️ **Spring Data JPA** | 3.5.5 | Data persistence layer |
+| 🔧 **Vaadin** | 24.8.8 | Full-stack web framework |
+| ⚛️ **React** | 18.3.1 | Frontend components |
+| 📜 **TypeScript** | 5.8.3 | Type-safe frontend development |
+| 🐘 **PostgreSQL** | Runtime | Production database |
+| ☕ **Caffeine** | Latest | Caching layer |
+| 🐳 **Docker** | Multi-stage | Containerization |
+| 📊 **JaCoCo** | 0.8.11 | Code coverage |
+| 🚀 **Vite** | 6.3.5 | Frontend build tool |
+
+## Prerequisites
+
+- Java 21 or higher
+- Node.js (for frontend dependencies)
+- PostgreSQL (for production)
+- Docker (optional, for containerized deployment)
+
+## Quick Start
+
+### Development Mode
+
+1. **Clone the repository:**
+   ```bash
+   git clone <repository-url>
+   cd Bunkermuseum
+   ```
+
+2. **Start the application:**
+   ```bash
+   ./dev-start.sh
+   ```
+
+3. **Access the application:**
+   - Open your browser to `http://localhost:8080`
+
+
+## Testing
+
+Run the test suite:
 
 ```bash
-./mvnw
+./mvnw test
 ```
 
-To build the application in production mode, run:
+Generate code coverage report:
 
 ```bash
-./mvnw -Pproduction package
+./mvnw test jacoco:report
 ```
 
-To build a Docker image, run:
+Coverage reports will be available in `target/site/jacoco/`
 
-```bash
-docker build -t my-application:latest .
-```
+## Database Configuration
 
-If you use commercial components, pass the license key as a build secret:
+## Development Resources
 
-```bash
-docker build --secret id=proKey,src=$HOME/.vaadin/proKey .
-```
-
-## Getting Started
-
-The [Getting Started](https://vaadin.com/docs/latest/getting-started) guide will quickly familiarize you with your new
-App implementation. You'll learn how to set up your development environment, understand the project 
-structure, and find resources to help you add muscles to your skeleton — transforming it into a fully-featured 
-application.
+- [Vaadin Documentation](https://vaadin.com/docs)
+- [Spring Boot Reference](https://spring.io/projects/spring-boot)
+- [React Documentation](https://react.dev)

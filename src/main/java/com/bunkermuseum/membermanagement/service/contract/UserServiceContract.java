@@ -15,4 +15,26 @@ import com.bunkermuseum.membermanagement.model.User;
  * @see com.bunkermuseum.membermanagement.service.base.BaseService
  */
 public interface UserServiceContract {
+
+    /**
+     * Creates a new user in the system.
+     * <p>
+     * This method performs several validations and handles possible errors:
+     * <ul>
+     *     <li>If the input {@code user} is {@code null}, an {@link IllegalArgumentException} is thrown.</li>
+     *     <li>If the repository returns {@code null} after attempting to create the user,
+     *         a {@link RuntimeException} is thrown indicating failure.</li>
+     *     <li>Any {@link IllegalArgumentException} from the repository is logged and rethrown.</li>
+     *     <li>Any other unexpected exception is logged and wrapped in a {@link RuntimeException}.</li>
+     * </ul>
+     * </p>
+     *
+     * @param user the {@link User} object containing the details of the user to create.
+     *             Must not be {@code null}.
+     * @return the created {@link User} object returned by the repository.
+     * @throws IllegalArgumentException if {@code user} is {@code null} or invalid.
+     * @throws RuntimeException if the repository fails to create the user or any unexpected
+     *         error occurs during creation.
+     */
+    public User createUser(User user);
 }

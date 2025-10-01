@@ -48,4 +48,36 @@ public class UserService extends BaseService<User, UserRepositoryContract>
     public UserService(UserRepositoryContract repository) {
         super(repository);
     }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @author Philipp Borkovic
+     */
+    @Override
+    public User createUser(User user) {
+        if (user == null) {
+            throw new IllegalArgumentException("User must not be null");
+        }
+
+        try {
+            User createdUser = repository.create(user);
+
+            if (createdUser == null) {
+                logger.warn("Repository returned null when creating user: {}", user.getName());
+
+                throw new RuntimeException("User creation failed");
+            }
+
+            return createdUser;
+        } catch (IllegalArgumentException e) {
+            logger.error("Invalid user data provided for username: {}", user.getName(), e);
+
+            throw e;
+        } catch (Exception e) {
+            logger.error("Unexpected error occurred while creating user: {}", user.getName(), e);
+
+            throw new RuntimeException("Error occurred while creating user", e);
+        }
+    }
 }

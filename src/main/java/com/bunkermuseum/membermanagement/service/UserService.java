@@ -202,8 +202,10 @@ public class UserService extends BaseService<User, UserRepositoryContract>
      */
     private void cleanupOldLoginAttempts() {
         Instant cutoffTime = Instant.now().minus(FAILED_ATTEMPTS_CLEANUP_HOURS, ChronoUnit.HOURS);
+
         loginAttempts.entrySet().removeIf(entry ->
             entry.getValue().getLastAttempt().isBefore(cutoffTime)
         );
     }
+
 }

@@ -1,6 +1,7 @@
 package com.bunkermuseum.membermanagement.service.contract;
 
 import com.bunkermuseum.membermanagement.model.User;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Service contract interface for User entity business operations.
@@ -36,5 +37,26 @@ public interface UserServiceContract {
      * @throws RuntimeException if the repository fails to create the user or any unexpected
      *         error occurs during creation.
      */
-    public User createUser(User user);
+    User createUser(User user);
+
+    /**
+     * Authenticates a user with email and password credentials.
+     *
+     * <p>This method provides secure authentication with the following features:</p>
+     * <ul>
+     *     <li>Password validation using BCrypt</li>
+     *     <li>Account lockout after failed attempts</li>
+     *     <li>Rate limiting to prevent brute force attacks</li>
+     *     <li>Secure logging that never exposes credentials</li>
+     * </ul>
+     *
+     * @param email The user's email address. Must not be null or blank.
+     * @param password The user's plain text password. Must not be null or blank.
+     *
+     * @return The authenticated User object if credentials are valid, null if invalid
+     *
+     * @throws IllegalArgumentException if email or password is null or blank
+     * @throws RuntimeException if account is locked or rate limit exceeded
+     */
+    @Nullable User login(String email, String password);
 }

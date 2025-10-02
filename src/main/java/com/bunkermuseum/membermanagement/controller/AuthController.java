@@ -161,6 +161,79 @@ public class AuthController {
     }
 
     /**
+     * Changes the current user's password (GDPR Article 16 - Right to Rectification).
+     *
+     * @param currentPassword The current password for verification
+     * @param newPassword The new password (must meet OWASP requirements)
+     *
+     * @throws IllegalArgumentException if validation fails
+     * @throws RuntimeException if password change fails
+     *
+     * @author Philipp Borkovic
+     */
+    public void changePassword(String currentPassword, String newPassword) {
+        String email = getCurrentUserEmail();
+        userService.changePassword(email, currentPassword, newPassword);
+        logger.info("Password changed for user: {}", email);
+    }
+
+    /**
+     * Deletes the current user's account (GDPR Article 17 - Right to Erasure).
+     *
+     * @param password The user's password for verification
+     *
+     * @throws IllegalArgumentException if validation fails
+     * @throws RuntimeException if account deletion fails
+     *
+     * @author Philipp Borkovic
+     */
+    public void deleteAccount(String password) {
+        String email = getCurrentUserEmail();
+        userService.deleteAccount(email, password);
+
+        SecurityContextHolder.clearContext();
+        request.getSession().invalidate();
+
+        logger.info("Account deleted for user: {}", email);
+    }
+
+    /**
+     * Exports all user data in JSON format (GDPR Article 20 - Right to Data Portability).
+     *
+     * @param password The user's password for verification
+     * @return JSON string containing all user data
+     *
+     * @throws IllegalArgumentException if validation fails
+     * @throws RuntimeException if data export fails
+     *
+     * @author Philipp Borkovic
+     */
+    public String exportUserData(String password) {
+        String email = getCurrentUserEmail();
+        String data = userService.exportUserData(email, password);
+        logger.info("Data export completed for user: {}", email);
+        return data;
+    }
+
+    /**
+     * Gets the current authenticated user's email from security context.
+     *
+     * @return The current user's email
+     * @throws RuntimeException if user is not authenticated
+     *
+     * @author Philipp Borkovic
+     */
+    private String getCurrentUserEmail() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (principal instanceof User user) {
+            return user.getEmail();
+        }
+
+        throw new RuntimeException("User not authenticated");
+    }
+
+    /**
      * Response object for successful login operations.
      *
      * <p>This record provides a clean, immutable data structure for returning

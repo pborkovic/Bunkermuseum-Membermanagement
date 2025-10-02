@@ -46,25 +46,25 @@ function TaskEntryForm(props: TaskEntryFormProps) {
     }
   };
   return (
-    <>
-      <TextField
-        placeholder="What do you want to do?"
-        aria-label="Task description"
-        maxlength={255}
-        style={{ minWidth: '20em' }}
-        value={description.value}
-        onValueChanged={(evt) => (description.value = evt.detail.value)}
-      />
-      <DatePicker
-        placeholder="Due date"
-        aria-label="Due date"
-        value={dueDate.value}
-        onValueChanged={(evt) => (dueDate.value = evt.detail.value)}
-      />
-      <Button onClick={createTask} theme="primary">
-        Create
-      </Button>
-    </>
+      <>
+        <TextField
+            placeholder="What do you want to do?"
+            aria-label="Task description"
+            maxlength={255}
+            style={{ minWidth: '20em' }}
+            value={description.value}
+            onValueChanged={(evt) => (description.value = evt.detail.value)}
+        />
+        <DatePicker
+            placeholder="Due date"
+            aria-label="Due date"
+            value={dueDate.value}
+            onValueChanged={(evt) => (dueDate.value = evt.detail.value)}
+        />
+        <Button onClick={createTask} theme="primary">
+          Create
+        </Button>
+      </>
   );
 }
 
@@ -72,21 +72,21 @@ export default function TaskListView() {
   const dataProvider = useGridDataProvider(TaskService.list);
 
   return (
-    <main className="w-full h-full flex flex-col box-border gap-s p-m">
-      <ViewToolbar title="Task List">
-        <Group>
-          <TaskEntryForm onTaskCreated={dataProvider.refresh} />
-        </Group>
-      </ViewToolbar>
-      <Grid dataProvider={dataProvider}>
-        <GridColumn path="description" />
-        <GridColumn path="dueDate" header="Due Date">
-          {({ item }) => (item.dueDate ? dateFormatter.format(new Date(item.dueDate)) : 'Never')}
-        </GridColumn>
-        <GridColumn path="creationDate" header="Creation Date">
-          {({ item }) => dateTimeFormatter.format(new Date(item.creationDate))}
-        </GridColumn>
-      </Grid>
-    </main>
+      <main className="w-full h-full flex flex-col box-border gap-s p-m">
+        <ViewToolbar title="Task List">
+          <Group>
+            <TaskEntryForm onTaskCreated={dataProvider.refresh} />
+          </Group>
+        </ViewToolbar>
+        <Grid dataProvider={dataProvider}>
+          <GridColumn path="description" />
+          <GridColumn path="dueDate" header="Due Date">
+            {({ item }) => (item.dueDate ? dateFormatter.format(new Date(item.dueDate)) : 'Never')}
+          </GridColumn>
+          <GridColumn path="creationDate" header="Creation Date">
+            {({ item }) => dateTimeFormatter.format(new Date(item.creationDate))}
+          </GridColumn>
+        </Grid>
+      </main>
   );
 }

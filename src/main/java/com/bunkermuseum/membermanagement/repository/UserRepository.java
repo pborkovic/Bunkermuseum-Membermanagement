@@ -6,6 +6,8 @@ import com.bunkermuseum.membermanagement.repository.contract.UserRepositoryContr
 import com.bunkermuseum.membermanagement.repository.jpa.UserJpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 /**
  * Repository implementation for User entity operations.
  *
@@ -45,5 +47,25 @@ public class UserRepository extends BaseRepository<User, UserJpaRepository>
     @Override
     protected String getEntityName() {
         return "User";
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @author Philipp Borkovic
+     */
+    @Override
+    public Optional<User> findByEmail(String email) {
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Email must not be null or blank");
+        }
+
+        try {
+            return repository.findByEmail(email);
+        } catch (Exception e) {
+            logger.error("Error finding user by email: {}", email, e);
+
+            throw new RuntimeException("Error occurred while finding user by email", e);
+        }
     }
 }

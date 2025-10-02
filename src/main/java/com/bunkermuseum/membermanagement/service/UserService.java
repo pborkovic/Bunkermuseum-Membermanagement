@@ -267,7 +267,7 @@ public class UserService extends BaseService<User, UserRepositoryContract>
         user.setPassword(hashedPassword);
 
         try {
-            repository.update(user);
+            repository.update(user.getId(), user);
 
             logger.info("Password changed successfully for user: {}", email);
         } catch (Exception e) {
@@ -301,7 +301,7 @@ public class UserService extends BaseService<User, UserRepositoryContract>
         }
 
         try {
-            repository.delete(user.getId());
+            repository.deleteById(user.getId());
             logger.info("Account deleted (soft delete) for user: {}", email);
         } catch (Exception e) {
             logger.error("Error deleting account for user: {}", email, e);

@@ -101,13 +101,19 @@ public class AuthController {
                 return null;
             }
 
+            var authorities = java.util.Collections.singletonList(
+                    new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_USER")
+            );
+
             UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(user, null, java.util.Collections.emptyList());
+                    new UsernamePasswordAuthenticationToken(user, null, authorities);
+            authentication.setDetails(user);
 
             SecurityContext context = SecurityContextHolder.createEmptyContext();
             context.setAuthentication(authentication);
             SecurityContextHolder.setContext(context);
 
+            // Store security context in session
             request.getSession(true).setAttribute(
                     HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
                     context

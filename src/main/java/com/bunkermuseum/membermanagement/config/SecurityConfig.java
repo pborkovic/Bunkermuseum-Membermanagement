@@ -64,18 +64,19 @@ public class SecurityConfig extends VaadinWebSecurity {
                 .sessionFixation().migrateSession()
                 .maximumSessions(1)
                 .maxSessionsPreventsLogin(false)
-            )
-            .logout(logout -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/")
-                .invalidateHttpSession(true)
-                .deleteCookies("JSESSIONID")
-                .clearAuthentication(true)
             );
 
         super.configure(http);
 
-        setLoginView(http, "/login");
+        setLoginView(http, "/login", "/login");
+
+        http.logout(logout -> logout
+            .logoutUrl("/logout")
+            .logoutSuccessUrl("/login")
+            .invalidateHttpSession(true)
+            .deleteCookies("JSESSIONID")
+            .clearAuthentication(true)
+        );
     }
 
     /**

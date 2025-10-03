@@ -1,52 +1,34 @@
-import { Outlet, useLocation, useNavigate } from 'react-router';
-import '@vaadin/icons';
-import { AppLayout, Icon, ProgressBar, Scroller, SideNav, SideNavItem } from '@vaadin/react-components';
-import { Suspense, useMemo } from 'react';
-import { createMenuItems } from '@vaadin/hilla-file-router/runtime.js';
-import { ThemeToggle } from 'Frontend/components/ThemeToggle';
+import { Outlet } from 'react-router';
+import { ProgressBar } from '@vaadin/react-components';
+import { Suspense } from 'react';
 import { ThemeProvider } from 'Frontend/contexts/ThemeContext';
 
-function Header() {
-  // TODO Replace with real application logo and name
-  return (
-    <div className="flex p-m gap-m items-center justify-between" slot="drawer">
-      <div className="flex gap-m items-center">
-        <Icon icon="vaadin:cubes" className="text-primary icon-l" />
-        <span className="font-semibold text-l">Bunker Museum</span>
-      </div>
-      <ThemeToggle />
-    </div>
-  );
-}
-
-function MainMenu() {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  return (
-    <SideNav className="mx-m" onNavigate={({ path }) => path != null && navigate(path)} location={location}>
-      {createMenuItems().map(({ to, icon, title }) => (
-        <SideNavItem path={to} key={to}>
-          {icon && <Icon icon={icon} slot="prefix" />}
-          {title}
-        </SideNavItem>
-      ))}
-    </SideNav>
-  );
-}
-
-export default function MainLayout() {
+/**
+ * MainLayout component - Root layout for the entire application.
+ *
+ * This component provides the foundational structure for all application routes:
+ * - Wraps the app in ThemeProvider for dark/light mode support
+ * - Provides a loading indicator during route transitions via Suspense
+ * - Renders child routes through React Router's Outlet
+ *
+ * Layout hierarchy:
+ * MainLayout (this component)
+ *   └─ ThemeProvider (theme context)
+ *      └─ Suspense (loading boundary)
+ *         └─ Outlet (route-specific content)
+ *
+ * @component
+ *
+ * @returns {JSX.Element} The main application layout wrapper
+ *
+ * @layout.tsx
+ */
+export default function MainLayout(): JSX.Element {
   return (
     <ThemeProvider>
-      <AppLayout primarySection="drawer">
-        <Header />
-        <Scroller slot="drawer">
-          <MainMenu />
-        </Scroller>
-        <Suspense fallback={<ProgressBar indeterminate={true} className="m-0" />}>
-          <Outlet />
-        </Suspense>
-      </AppLayout>
+      <Suspense fallback={<ProgressBar indeterminate={true} className="m-0" />}>
+        <Outlet />
+      </Suspense>
     </ThemeProvider>
   );
 }

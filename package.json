@@ -137,7 +137,7 @@
       "workbox-core": "7.3.0",
       "workbox-precaching": "7.3.0"
     },
-    "hash": "db02ecdb5fd30e483a877839a89becf60985065995410ac87cfb36891217695d"
+    "hash": "1259664f85213bda9fa268c3063da380d855ea2e5b64a11ef96c8c11d9f3b439"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
@@ -232,6 +232,7 @@
     "tw-animate-css": "$tw-animate-css",
     "@radix-ui/react-select": "$@radix-ui/react-select",
     "@radix-ui/react-popover": "$@radix-ui/react-popover",
-    "react-day-picker": "$react-day-picker"
+    "react-day-picker": "$react-day-picker",
+    "zod": "$zod"
   }
 }

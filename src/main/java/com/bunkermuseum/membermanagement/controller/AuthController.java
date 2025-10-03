@@ -240,6 +240,55 @@ public class AuthController {
     }
 
     /**
+     * Registers a new user account.
+     *
+     * <p>This endpoint creates a new user account with the provided registration
+     * information. It validates all input data, checks for duplicate emails,
+     * hashes the password securely, and creates the user record in the database.</p>
+     *
+     * @param request The registration request containing all user information
+     *
+     * @return A RegistrationResponse indicating success or failure
+     *
+     * @throws IllegalArgumentException if validation fails or email already exists
+     * @throws RuntimeException if a system error occurs
+     *
+     * @author Philipp Borkovic
+     */
+    public RegistrationResponse register(RegistrationRequest request) {
+        String clientIp = getClientIp();
+        String email = request.email();
+
+        try {
+            userService.register(
+                    request.name(),
+                    email,
+                    request.password(),
+                    request.salutation(),
+                    request.academicTitle(),
+                    request.rank(),
+                    request.birthday(),
+                    request.phone(),
+                    request.street(),
+                    request.city(),
+                    request.postalCode()
+            );
+
+            logger.info("User registered successfully: {} from IP: {}", email, clientIp);
+
+            return new RegistrationResponse(true, "Registration successful");
+        } catch (IllegalArgumentException e) {
+            logger.error("Validation error during registration for email: {} from IP: {}", email, clientIp, e);
+
+            throw e;
+        } catch (Exception e) {
+            logger.error("Unexpected error during registration for email: {} from IP: {}", email, clientIp, e);
+
+            throw new RuntimeException("Registration failed. Please try again.", e);
+        }
+    }
+
+    /**
      * Response object for successful login operations.
      *
      * <p>This record provides a clean, immutable data structure for returning
@@ -258,5 +307,49 @@ public class AuthController {
             String name,
             String email,
             boolean emailVerified
+    ) {}
+
+    /**
+     * Request object for user registration.
+     *
+     * @param name The user's full name
+     * @param email The user's email address
+     * @param password The user's password (will be hashed)
+     * @param salutation The user's salutation/gender
+     * @param academicTitle The user's academic title (optional)
+     * @param rank The user's rank (optional)
+     * @param birthday The user's date of birth
+     * @param phone The user's phone number
+     * @param street The user's street address
+     * @param city The user's city
+     * @param postalCode The user's postal code
+     *
+     * @author Philipp Borkovic
+     */
+    public record RegistrationRequest(
+            String name,
+            String email,
+            String password,
+            String salutation,
+            String academicTitle,
+            String rank,
+            java.time.LocalDate birthday,
+            String phone,
+            String street,
+            String city,
+            String postalCode
+    ) {}
+
+    /**
+     * Response object for registration operations.
+     *
+     * @param success Whether the registration was successful
+     * @param message A message describing the result
+     *
+     * @author Philipp Borkovic
+     */
+    public record RegistrationResponse(
+            boolean success,
+            String message
     ) {}
 }

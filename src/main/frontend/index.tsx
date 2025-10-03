@@ -1,4 +1,4 @@
-import { createElement } from 'react';
+import { createElement, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { RouterProvider } from 'react-router';
 import { router } from 'Frontend/generated/routes.js';
@@ -17,8 +17,14 @@ import './styles/globals.css';
  * This file customizes the default Vaadin Hilla entry point to:
  * 1. Import global styles (globals.css) with Shadcn UI theme variables
  * 2. Maintain compatibility with Vaadin's hot module replacement
+ *
+ * @author Philipp Borkovic
  */
 function App() {
+    useEffect(() => {
+        document.documentElement.classList.add('dark');
+    }, []);
+
     return <RouterProvider router={router} />;
 }
 

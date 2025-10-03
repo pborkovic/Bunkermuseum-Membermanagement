@@ -9,6 +9,7 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { Icon } from '@vaadin/react-components';
 import { z } from 'zod';
 import { subYears } from 'date-fns';
+import { AuthController } from 'Frontend/generated/endpoints';
 
 /**
  * Validation constants for the registration form.
@@ -20,7 +21,7 @@ const VALIDATION = {
   MAX_PASSWORD_LENGTH: 128,
   MIN_SPECIAL_CHARS: 2,
   MAX_AGE_YEARS: 110,
-  MAX_POSTLEITZAHL_LENGTH: 5,
+  MIN_POSTLEITZAHL_LENGTH: 4,
 } as const;
 
 /**
@@ -68,7 +69,7 @@ const registrationSchema = z.object({
   street: z.string().min(1, 'Straße ist erforderlich'),
   city: z.string().min(1, 'Stadt ist erforderlich'),
   postalCode: z.string()
-    .length(VALIDATION.MAX_POSTLEITZAHL_LENGTH, 'Postleitzahl muss 5 Zeichen lang sein')
+    .min(VALIDATION.MIN_POSTLEITZAHL_LENGTH, `Postleitzahl muss mindestens ${VALIDATION.MIN_POSTLEITZAHL_LENGTH} Zeichen lang sein`)
     .regex(/^\d+$/, 'Postleitzahl darf nur Zahlen enthalten'),
   password: z.string()
     .min(VALIDATION.MIN_PASSWORD_LENGTH, `Passwort muss mindestens ${VALIDATION.MIN_PASSWORD_LENGTH} Zeichen lang sein`)
@@ -185,18 +186,32 @@ export default function RegisterView(): JSX.Element {
 
       setIsLoading(true);
 
-      // TODO: Implement registration API call
+      const response = await AuthController.register({
+        name: validatedData.name,
+        email: validatedData.email,
+        password: validatedData.password,
+        salutation: validatedData.salutation,
+        academicTitle: validatedData.academicTitle || '',
+        rank: validatedData.rank || '',
+        birthday: validatedData.birthday!.toISOString().split('T')[0],
+        phone: validatedData.phone,
+        street: validatedData.street,
+        city: validatedData.city,
+        postalCode: validatedData.postalCode,
+      });
 
-      setTimeout(() => {
-        setIsLoading(false);
+      if (response?.success) {
         navigate('/login');
-      }, 1000);
+      } else {
+        setError(response?.message || 'Registrierung fehlgeschlagen');
+      }
     } catch (err: any) {
       if (err instanceof z.ZodError) {
         setError(err.issues[0].message);
       } else {
         setError(err.message || 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.');
       }
+    } finally {
       setIsLoading(false);
     }
   };
@@ -331,12 +346,12 @@ export default function RegisterView(): JSX.Element {
                 <Input
                   id="postleitzahl"
                   type="text"
-                  placeholder="12345"
+                  placeholder="1234"
                   value={postleitzahl}
                   onChange={(e) => setPostleitzahl(e.target.value)}
                   disabled={isLoading}
                   required
-                  maxLength={VALIDATION.MAX_POSTLEITZAHL_LENGTH}
+                  minLength={VALIDATION.MIN_POSTLEITZAHL_LENGTH}
                   className="h-9"
                 />
               </div>

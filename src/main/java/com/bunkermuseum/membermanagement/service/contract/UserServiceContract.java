@@ -42,6 +42,44 @@ public interface UserServiceContract {
     User createUser(User user);
 
     /**
+     * Registers a new user with all registration information.
+     *
+     * <p>This method creates a new user account with all provided registration data.
+     * It validates input, checks for duplicate emails, hashes the password securely,
+     * and stores all user information in the database.</p>
+     *
+     * @param name The user's full name
+     * @param email The user's email address
+     * @param password The user's password (will be hashed)
+     * @param salutation The user's salutation/gender
+     * @param academicTitle The user's academic title (optional)
+     * @param rank The user's rank (optional)
+     * @param birthday The user's date of birth
+     * @param phone The user's phone number
+     * @param street The user's street address
+     * @param city The user's city
+     * @param postalCode The user's postal code
+     *
+     * @return The created User object
+     *
+     * @throws IllegalArgumentException if validation fails or email already exists
+     * @throws RuntimeException if user creation fails
+     */
+    User register(
+            String name,
+            String email,
+            String password,
+            String salutation,
+            String academicTitle,
+            String rank,
+            java.time.LocalDate birthday,
+            String phone,
+            String street,
+            String city,
+            String postalCode
+    );
+
+    /**
      * Authenticates a user with email and password credentials.
      *
      * <p>This method provides secure authentication with the following features:</p>

@@ -158,6 +158,161 @@ public class UserService extends BaseService<User, UserRepositoryContract>
      * @author Philipp Borkovic
      */
     @Override
+    @Transactional
+    public User register(
+            String name,
+            String email,
+            String password,
+            String salutation,
+            String academicTitle,
+            String rank,
+            java.time.LocalDate birthday,
+            String phone,
+            String street,
+            String city,
+            String postalCode
+    ) {
+        validateRequiredFields(name, email, password);
+
+        String normalizedEmail = email.trim().toLowerCase();
+
+        if (repository.findByEmail(normalizedEmail).isPresent()) {
+            throw new IllegalArgumentException("This email address is already in use");
+        }
+
+        validatePassword(password);
+
+        User user = buildUser(
+                name.trim(),
+                normalizedEmail,
+                password,
+                salutation,
+                academicTitle,
+                rank,
+                birthday,
+                phone,
+                street,
+                city,
+                postalCode
+        );
+
+        return persistUser(user, normalizedEmail);
+    }
+
+    /**
+     * Validates required registration fields.
+     *
+     * @param name User's name
+     * @param email User's email
+     * @param password User's password
+     *
+     * @throws IllegalArgumentException if any required field is null or blank
+     *
+     * @author Philipp Borkovic
+     */
+    private void validateRequiredFields(String name, String email, String password) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Name is required");
+        }
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Email is required");
+        }
+        if (password == null || password.isBlank()) {
+            throw new IllegalArgumentException("Password is required");
+        }
+    }
+
+    /**
+     * Validates password strength using PasswordValidator.
+     *
+     * @param password The password to validate
+     *
+     * @throws IllegalArgumentException if password validation fails
+     *
+     * @author Philipp Borkovic
+     */
+    private void validatePassword(String password) {
+        PasswordValidator.ValidationResult validationResult = PasswordValidator.validate(password);
+
+        if (!validationResult.isValid()) {
+            throw new IllegalArgumentException(validationResult.getErrorMessage());
+        }
+    }
+
+    /**
+     * Builds a User object with all registration data.
+     *
+     * @return Configured User object with hashed password
+     *
+     * @author Philipp Borkovic
+     */
+    private User buildUser(
+            String name,
+            String email,
+            String password,
+            String salutation,
+            String academicTitle,
+            String rank,
+            java.time.LocalDate birthday,
+            String phone,
+            String street,
+            String city,
+            String postalCode
+    ) {
+        User user = new User(name, email, null);
+        user.setSalutation(salutation);
+        user.setAcademicTitle(academicTitle);
+        user.setRank(rank);
+        user.setBirthday(birthday);
+        user.setPhone(phone);
+        user.setStreet(street);
+        user.setCity(city);
+        user.setPostalCode(postalCode);
+        user.setPassword(passwordEncoder.encode(password));
+
+        return user;
+    }
+
+    /**
+     * Persists user to database with error handling.
+     *
+     * @param user User to persist
+     * @param email User's email (for logging)
+     *
+     * @return Persisted User object
+     *
+     * @throws RuntimeException if persistence fails
+     *
+     * @author Philipp Borkovic
+     */
+    private User persistUser(User user, String email) {
+        try {
+            User createdUser = repository.create(user);
+
+            if (createdUser == null) {
+                logger.warn("Repository returned null when creating user: {}", email);
+                throw new RuntimeException("User could not be created");
+            }
+            logger.info("User registered successfully: {}", email);
+
+            return createdUser;
+        } catch (IllegalArgumentException e) {
+            logger.error("Validation error during registration for email: {}", email, e);
+
+            throw e;
+        } catch (Exception e) {
+            logger.error("Unexpected error during registration for email: {}", email, e);
+
+            throw new RuntimeException("Registration failed. Please try again.", e);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @author Philipp Borkovic
+     */
+    @Override
     public @Nullable User login(String email, String password) {
         if (email == null || email.isBlank()) {
             throw new IllegalArgumentException("Email must not be null or blank");

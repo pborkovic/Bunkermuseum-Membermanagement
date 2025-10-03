@@ -233,6 +233,125 @@ public class User extends Model {
     private @Nullable String microsoftId;
 
     /**
+     * The user's salutation (gender).
+     *
+     * <p>Stores the user's preferred salutation/gender designation.
+     * Common values include "männlich" (male), "weiblich" (female), "divers" (diverse).</p>
+     *
+     * <p><strong>Database Mapping:</strong> Maps to 'salutation' column</p>
+     * <p><strong>Constraints:</strong> NULLABLE, VARCHAR(20)</p>
+     *
+     * @author Philipp Borkovic
+     */
+    @Column(name = "salutation", length = 20)
+    private String salutation;
+
+    /**
+     * The user's academic title.
+     *
+     * <p>Stores academic titles such as "Dr.", "Prof.", "Prof. Dr.", etc.
+     * This field is optional and may be null for users without academic titles.</p>
+     *
+     * <p><strong>Database Mapping:</strong> Maps to 'academic_title' column</p>
+     * <p><strong>Constraints:</strong> NULLABLE, VARCHAR(50)</p>
+     *
+     * @author Philipp Borkovic
+     */
+    @Column(name = "academic_title", length = 50)
+    private String academicTitle;
+
+    /**
+     * The user's military or professional rank.
+     *
+     * <p>Stores military ranks or professional designations that are relevant
+     * to the user's position or status within the organization.</p>
+     *
+     * <p><strong>Database Mapping:</strong> Maps to 'rank' column</p>
+     * <p><strong>Constraints:</strong> NULLABLE, VARCHAR(50)</p>
+     *
+     * @author Philipp Borkovic
+     */
+    @Column(name = "rank", length = 50)
+    private String rank;
+
+    /**
+     * The user's date of birth.
+     *
+     * <p>Stores the user's birthday for age verification and demographic purposes.
+     * Used to ensure users meet minimum age requirements.</p>
+     *
+     * <p><strong>Validation Rules:</strong></p>
+     * <ul>
+     *   <li>Must not be in the future</li>
+     *   <li>User cannot be older than 110 years (validated on frontend)</li>
+     * </ul>
+     *
+     * <p><strong>Database Mapping:</strong> Maps to 'birthday' column</p>
+     * <p><strong>Constraints:</strong> NULLABLE, DATE</p>
+     *
+     * @author Philipp Borkovic
+     */
+    @Column(name = "birthday")
+    private java.time.LocalDate birthday;
+
+    /**
+     * The user's phone number.
+     *
+     * <p>Stores the user's contact phone number for communication purposes.
+     * Format is not strictly enforced to accommodate international numbers.</p>
+     *
+     * <p><strong>Database Mapping:</strong> Maps to 'phone' column</p>
+     * <p><strong>Constraints:</strong> NULLABLE, VARCHAR(20)</p>
+     *
+     * @author Philipp Borkovic
+     */
+    @Column(name = "phone", length = 20)
+    private String phone;
+
+    /**
+     * The user's street address including house number.
+     *
+     * <p>Stores the street name and house number portion of the user's address.</p>
+     *
+     * <p><strong>Database Mapping:</strong> Maps to 'street' column</p>
+     * <p><strong>Constraints:</strong> NULLABLE, VARCHAR(255)</p>
+     *
+     * @author Philipp Borkovic
+     */
+    @Column(name = "street", length = 255)
+    private String street;
+
+    /**
+     * The user's city.
+     *
+     * <p>Stores the city portion of the user's address.</p>
+     *
+     * <p><strong>Database Mapping:</strong> Maps to 'city' column</p>
+     * <p><strong>Constraints:</strong> NULLABLE, VARCHAR(100)</p>
+     *
+     * @author Philipp Borkovic
+     */
+    @Column(name = "city", length = 100)
+    private String city;
+
+    /**
+     * The user's postal code.
+     *
+     * <p>Stores the postal code (PLZ) for the user's address.
+     * For German addresses, this is typically a 5-digit code.</p>
+     *
+     * <p><strong>Validation:</strong> German postal codes must be exactly 5 digits
+     * (validated on frontend)</p>
+     *
+     * <p><strong>Database Mapping:</strong> Maps to 'postal_code' column</p>
+     * <p><strong>Constraints:</strong> NULLABLE, VARCHAR(10)</p>
+     *
+     * @author Philipp Borkovic
+     */
+    @Column(name = "postal_code", length = 10)
+    private String postalCode;
+
+    /**
      * The roles assigned to this user.
      *
      * <p>This represents the many-to-many relationship between users and roles.
@@ -466,6 +585,204 @@ public class User extends Model {
      */
     public void setMicrosoftId(@Nullable String microsoftId) {
         this.microsoftId = microsoftId;
+    }
+
+    /**
+     * Gets the user's salutation.
+     *
+     * @return The user's salutation, or null if not set
+     *
+     * @author Philipp Borkovic
+     */
+    public String getSalutation() {
+        return salutation;
+    }
+
+    /**
+     * Sets the user's salutation.
+     *
+     * @param salutation The user's salutation (e.g., "männlich", "weiblich", "divers")
+     *
+     * @author Philipp Borkovic
+     */
+    public void setSalutation(String salutation) {
+        this.salutation = salutation;
+    }
+
+    /**
+     * Gets the user's academic title.
+     *
+     * @return The user's academic title, or null if not set
+     *
+     * @author Philipp Borkovic
+     */
+    public String getAcademicTitle() {
+        return academicTitle;
+    }
+
+    /**
+     * Sets the user's academic title.
+     *
+     * @param academicTitle The user's academic title (e.g., "Dr.", "Prof.")
+     *
+     * @author Philipp Borkovic
+     */
+    public void setAcademicTitle(String academicTitle) {
+        this.academicTitle = academicTitle;
+    }
+
+    /**
+     * Gets the user's rank.
+     *
+     * @return The user's rank, or null if not set
+     *
+     * @author Philipp Borkovic
+     */
+    public String getRank() {
+        return rank;
+    }
+
+    /**
+     * Sets the user's rank.
+     *
+     * @param rank The user's military or professional rank
+     *
+     * @author Philipp Borkovic
+     */
+    public void setRank(String rank) {
+        this.rank = rank;
+    }
+
+    /**
+     * Gets the user's date of birth.
+     *
+     * @return The user's birthday, or null if not set
+     *
+     * @author Philipp Borkovic
+     */
+    public java.time.LocalDate getBirthday() {
+        return birthday;
+    }
+
+    /**
+     * Sets the user's date of birth.
+     *
+     * @param birthday The user's birthday
+     *
+     * @author Philipp Borkovic
+     */
+    public void setBirthday(java.time.LocalDate birthday) {
+        this.birthday = birthday;
+    }
+
+    /**
+     * Gets the user's phone number.
+     *
+     * @return The user's phone number, or null if not set
+     *
+     * @author Philipp Borkovic
+     */
+    public String getPhone() {
+        return phone;
+    }
+
+    /**
+     * Sets the user's phone number.
+     *
+     * @param phone The user's phone number
+     *
+     * @author Philipp Borkovic
+     */
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    /**
+     * Gets the user's street address.
+     *
+     * @return The user's street address, or null if not set
+     *
+     * @author Philipp Borkovic
+     */
+    public String getStreet() {
+        return street;
+    }
+
+    /**
+     * Sets the user's street address.
+     *
+     * @param street The user's street address including house number
+     *
+     * @author Philipp Borkovic
+     */
+    public void setStreet(String street) {
+        this.street = street;
+    }
+
+    /**
+     * Gets the user's city.
+     *
+     * @return The user's city, or null if not set
+     *
+     * @author Philipp Borkovic
+     */
+    public String getCity() {
+        return city;
+    }
+
+    /**
+     * Sets the user's city.
+     *
+     * @param city The user's city
+     *
+     * @author Philipp Borkovic
+     */
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    /**
+     * Gets the user's postal code.
+     *
+     * @return The user's postal code, or null if not set
+     *
+     * @author Philipp Borkovic
+     */
+    public String getPostalCode() {
+        return postalCode;
+    }
+
+    /**
+     * Sets the user's postal code.
+     *
+     * @param postalCode The user's postal code
+     *
+     * @author Philipp Borkovic
+     */
+    public void setPostalCode(String postalCode) {
+        this.postalCode = postalCode;
+    }
+
+    /**
+     * Gets the roles assigned to this user.
+     *
+     * @return The set of roles assigned to this user
+     *
+     * @author Philipp Borkovic
+     */
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
+    /**
+     * Sets the roles assigned to this user.
+     *
+     * @param roles The set of roles to assign
+     *
+     * @author Philipp Borkovic
+     */
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
     }
 
     /**

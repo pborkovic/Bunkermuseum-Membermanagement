@@ -68,7 +68,7 @@ public class SecurityConfig extends VaadinWebSecurity {
 
         super.configure(http);
 
-        setLoginView(http, "/login");
+        setLoginView(http, "/login", "/login");
 
         http.logout(logout -> logout
             .logoutUrl("/logout")

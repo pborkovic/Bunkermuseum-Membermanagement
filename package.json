@@ -4,6 +4,10 @@
   "type": "module",
   "dependencies": {
     "@polymer/polymer": "3.5.2",
+    "@radix-ui/react-label": "^2.1.7",
+    "@radix-ui/react-popover": "^1.1.15",
+    "@radix-ui/react-select": "^2.2.6",
+    "@radix-ui/react-slot": "^1.2.3",
     "@vaadin/bundles": "24.8.7",
     "@vaadin/common-frontend": "0.0.19",
     "@vaadin/hilla-file-router": "24.8.8",
@@ -24,10 +28,11 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "construct-style-sheets-polyfill": "3.1.0",
-    "date-fns": "2.29.3",
+    "date-fns": "^2.30.0",
     "lit": "3.3.0",
     "lucide-react": "^0.544.0",
     "react": "18.3.1",
+    "react-day-picker": "^8.10.1",
     "react-dom": "18.3.1",
     "react-router": "7.6.1",
     "tailwind-merge": "^3.3.1",
@@ -38,6 +43,8 @@
     "@preact/signals-react-transform": "0.5.1",
     "@rollup/plugin-replace": "6.0.2",
     "@rollup/pluginutils": "5.1.4",
+    "@tailwindcss/postcss": "^4.1.14",
+    "@types/node": "^24.6.2",
     "@types/react": "18.3.23",
     "@types/react-dom": "18.3.7",
     "@vaadin/hilla-generator-cli": "24.8.8",
@@ -129,7 +136,7 @@
       "workbox-core": "7.3.0",
       "workbox-precaching": "7.3.0"
     },
-    "hash": "2cca3a525ea4f54ff80031d40d2449a6890216c6e530b4f6200aebf3467e169c"
+    "hash": "db02ecdb5fd30e483a877839a89becf60985065995410ac87cfb36891217695d"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
@@ -214,6 +221,16 @@
     "@vaadin/upload": "24.8.7",
     "@vaadin/router": "2.0.0",
     "@vaadin/vertical-layout": "24.8.7",
-    "@vaadin/virtual-list": "24.8.7"
+    "@vaadin/virtual-list": "24.8.7",
+    "@radix-ui/react-label": "$@radix-ui/react-label",
+    "@radix-ui/react-slot": "$@radix-ui/react-slot",
+    "class-variance-authority": "$class-variance-authority",
+    "clsx": "$clsx",
+    "lucide-react": "$lucide-react",
+    "tailwind-merge": "$tailwind-merge",
+    "tw-animate-css": "$tw-animate-css",
+    "@radix-ui/react-select": "$@radix-ui/react-select",
+    "@radix-ui/react-popover": "$@radix-ui/react-popover",
+    "react-day-picker": "$react-day-picker"
   }
 }

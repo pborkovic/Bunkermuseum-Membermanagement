@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Icon } from '@vaadin/react-components';
+import { z } from 'zod';
+import { subYears } from 'date-fns';
 
 /**
  * Validation constants for the registration form.
@@ -15,19 +17,80 @@ import { Icon } from '@vaadin/react-components';
  */
 const VALIDATION = {
   MIN_PASSWORD_LENGTH: 8,
+  MAX_PASSWORD_LENGTH: 128,
+  MIN_SPECIAL_CHARS: 2,
+  MAX_AGE_YEARS: 110,
   MAX_POSTLEITZAHL_LENGTH: 5,
 } as const;
 
 /**
- * Error messages for form validation.
+ * Regex pattern for counting special characters in password.
+ * Matches: !@#$%^&*()_+-=[]{}|;:'",.<>?/~`
+ */
+const SPECIAL_CHAR_REGEX = /[!@#$%^&*()_+\-=\[\]{}|;:'",.<>?/~`]/g;
+
+/**
+ * List of commonly used passwords that must be rejected.
+ * These passwords are too weak and commonly found in breach databases.
  *
  * @author Philipp Borkovic
  */
-const ERROR_MESSAGES = {
-  PASSWORD_MISMATCH: 'Passwörter stimmen nicht überein',
-  PASSWORD_TOO_SHORT: 'Passwort muss mindestens 8 Zeichen lang sein',
-  GENERIC_ERROR: 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',
-} as const;
+const FORBIDDEN_PASSWORDS = [
+  "password", "123456", "123456789", "12345678", "12345", "1234567",
+  "password1", "1234567890", "qwerty", "abc123", "111111", "123123",
+  "admin", "letmein", "welcome", "monkey", "dragon", "master", "sunshine",
+  "princess", "football", "qwerty123", "solo", "passw0rd", "starwars",
+  "password123", "login", "admin123", "root", "toor", "pass", "test",
+  "guest", "oracle", "cisco", "changeme", "administrator", "user"
+] as const;
+
+/**
+ * Zod validation schema for registration form.
+ * Validates all required fields with appropriate constraints.
+ *
+ * @author Philipp Borkovic
+ */
+const registrationSchema = z.object({
+  salutation: z.string().min(1, 'Anrede ist erforderlich'),
+  academicTitle: z.string().optional(),
+  rank: z.string().optional(),
+  name: z.string().min(1, 'Name ist erforderlich'),
+  email: z.string().email('Ungültige E-Mail-Adresse'),
+  birthday: z.date()
+    .max(new Date(), 'Geburtsdatum darf nicht in der Zukunft liegen')
+    .min(
+      subYears(new Date(), VALIDATION.MAX_AGE_YEARS),
+      `Sie können nicht älter als ${VALIDATION.MAX_AGE_YEARS} Jahre sein`
+    )
+    .optional()
+    .refine((date) => date !== undefined, 'Geburtstag ist erforderlich'),
+  phone: z.string().min(1, 'Telefonnummer ist erforderlich'),
+  street: z.string().min(1, 'Straße ist erforderlich'),
+  city: z.string().min(1, 'Stadt ist erforderlich'),
+  postalCode: z.string()
+    .length(VALIDATION.MAX_POSTLEITZAHL_LENGTH, 'Postleitzahl muss 5 Zeichen lang sein')
+    .regex(/^\d+$/, 'Postleitzahl darf nur Zahlen enthalten'),
+  password: z.string()
+    .min(VALIDATION.MIN_PASSWORD_LENGTH, `Passwort muss mindestens ${VALIDATION.MIN_PASSWORD_LENGTH} Zeichen lang sein`)
+    .max(VALIDATION.MAX_PASSWORD_LENGTH, `Passwort darf maximal ${VALIDATION.MAX_PASSWORD_LENGTH} Zeichen lang sein`)
+    .refine(
+      (password) => (password.match(SPECIAL_CHAR_REGEX) || []).length >= VALIDATION.MIN_SPECIAL_CHARS,
+      `Passwort muss mindestens ${VALIDATION.MIN_SPECIAL_CHARS} Sonderzeichen enthalten`
+    )
+    .refine(
+      (password) => !FORBIDDEN_PASSWORDS.includes(password.toLowerCase() as any),
+      'Dieses Passwort ist zu häufig verwendet und nicht sicher'
+    ),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: 'Passwörter stimmen nicht überein',
+  path: ['confirmPassword'],
+});
+
+/**
+ * Type derived from Zod schema for type-safety
+ */
+type RegistrationFormInput = z.infer<typeof registrationSchema>;
 
 /**
  * Gender options for the Anrede (salutation) field.
@@ -53,48 +116,6 @@ export const config: ViewConfig = {
   flowLayout: false,
 };
 
-/**
- * User registration data interface.
- * Represents all fields collected during the registration process.
- *
- * @interface RegistrationFormData
- *
- * @author Philipp Borkovic
- */
-interface RegistrationFormData {
-  anrede: string;
-  akademischerTitel: string;
-  dienstgrad: string;
-  name: string;
-  email: string;
-  geburtstag?: Date;
-  telefon: string;
-  strasse: string;
-  stadt: string;
-  postleitzahl: string;
-  password: string;
-}
-
-/**
- * Validates password requirements.
- *
- * @param {string} password - The password to validate
- * @param {string} confirmPassword - The password confirmation
- * @returns {string | null} Error message if validation fails, null otherwise
- *
- * @author Philipp Borkovic
- */
-function validatePassword(password: string, confirmPassword: string): string | null {
-  if (password !== confirmPassword) {
-    return ERROR_MESSAGES.PASSWORD_MISMATCH;
-  }
-
-  if (password.length < VALIDATION.MIN_PASSWORD_LENGTH) {
-    return ERROR_MESSAGES.PASSWORD_TOO_SHORT;
-  }
-
-  return null;
-}
 
 /**
  * Registration view component for the Bunker Museum application.
@@ -136,7 +157,7 @@ export default function RegisterView(): JSX.Element {
 
   /**
    * Handles form submission and registration process.
-   * Validates passwords, submits registration data, and navigates to login on success.
+   * Validates all form fields using Zod schema, then submits registration data.
    *
    * @param {React.FormEvent} e - The form submission event
    *
@@ -146,22 +167,36 @@ export default function RegisterView(): JSX.Element {
     e.preventDefault();
     setError('');
 
-    const passwordError = validatePassword(password, confirmPassword);
-    if (passwordError) {
-      setError(passwordError);
-      return;
-    }
-
-    setIsLoading(true);
-
     try {
+      const validatedData = registrationSchema.parse({
+        salutation: anrede,
+        academicTitle: akademischerTitel,
+        rank: dienstgrad,
+        name,
+        email,
+        birthday: geburtstag,
+        phone: telefon,
+        street: strasse,
+        city: stadt,
+        postalCode: postleitzahl,
+        password,
+        confirmPassword,
+      });
+
+      setIsLoading(true);
+
       // TODO: Implement registration API call
+
       setTimeout(() => {
         setIsLoading(false);
         navigate('/login');
       }, 1000);
     } catch (err: any) {
-      setError(err.message || ERROR_MESSAGES.GENERIC_ERROR);
+      if (err instanceof z.ZodError) {
+        setError(err.issues[0].message);
+      } else {
+        setError(err.message || 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.');
+      }
       setIsLoading(false);
     }
   };
@@ -331,8 +366,12 @@ export default function RegisterView(): JSX.Element {
                   disabled={isLoading}
                   required
                   minLength={VALIDATION.MIN_PASSWORD_LENGTH}
+                  maxLength={VALIDATION.MAX_PASSWORD_LENGTH}
                   className="h-9"
                 />
+                <p className="text-xs text-muted-foreground">
+                  {VALIDATION.MIN_PASSWORD_LENGTH}-{VALIDATION.MAX_PASSWORD_LENGTH} Zeichen, mindestens {VALIDATION.MIN_SPECIAL_CHARS} Sonderzeichen
+                </p>
               </div>
 
               <div className="space-y-1.5">
@@ -346,6 +385,7 @@ export default function RegisterView(): JSX.Element {
                   disabled={isLoading}
                   required
                   minLength={VALIDATION.MIN_PASSWORD_LENGTH}
+                  maxLength={VALIDATION.MAX_PASSWORD_LENGTH}
                   className="h-9"
                 />
               </div>

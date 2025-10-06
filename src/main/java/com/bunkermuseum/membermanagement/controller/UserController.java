@@ -7,6 +7,8 @@ import com.vaadin.hilla.Endpoint;
 import jakarta.annotation.Nonnull;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * REST controller for User management operations.
@@ -68,6 +70,51 @@ public class UserController {
         }
     }
 
+    /**
+     * Retrieves all users from the system.
+     *
+     * <p>This method fetches all registered users. It's intended for administrative
+     * purposes and should be protected by appropriate authorization checks.</p>
+     *
+     * @return List of all users in the system
+     * @throws ResponseStatusException with {@link HttpStatus#INTERNAL_SERVER_ERROR} if
+     *         any unexpected error occurs during retrieval.
+     *
+     * @author Philipp Borkovic
+     */
+    public List<User> getAllUsers() {
+        try {
+            return userService.getAllUsers();
+        } catch (Exception exception) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve users", exception);
+        }
+    }
 
+    /**
+     * Updates a user's profile information.
+     *
+     * <p>This method allows updating user profile fields such as name and email.</p>
+     *
+     * @param userId The ID of the user to update
+     * @param name The new name (optional, null to keep existing)
+     * @param email The new email (optional, null to keep existing)
+     *
+     * @return The updated User object
+     * @throws ResponseStatusException with {@link HttpStatus#BAD_REQUEST} if userId is invalid
+     *         or user not found
+     * @throws ResponseStatusException with {@link HttpStatus#INTERNAL_SERVER_ERROR} if
+     *         any unexpected error occurs during update
+     *
+     * @author Philipp Borkovic
+     */
+    public User updateProfile(@Nonnull UUID userId, String name, String email) {
+        try {
+            return userService.updateProfile(userId, name, email);
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid data: " + exception.getMessage(), exception);
+        } catch (Exception exception) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update profile", exception);
+        }
+    }
 
 }

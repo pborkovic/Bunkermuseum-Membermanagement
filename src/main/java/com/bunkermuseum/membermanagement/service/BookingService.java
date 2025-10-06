@@ -41,4 +41,20 @@ public class BookingService extends BaseService<Booking, BookingRepositoryContra
     public BookingService(BookingRepositoryContract repository) {
         super(repository);
     }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @author Philipp Borkovic
+     */
+    @Override
+    public java.util.List<Booking> getAllBookings() {
+        try {
+            return repository.findAll();
+        } catch (Exception exception) {
+            logger.error("Error retrieving all bookings", exception);
+
+            throw new RuntimeException("Failed to retrieve bookings", exception);
+        }
+    }
 }

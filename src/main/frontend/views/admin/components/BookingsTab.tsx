@@ -110,17 +110,11 @@ export default function BookingsTab(): JSX.Element {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold">Buchungsverwaltung</h2>
-          <p className="text-sm text-muted-foreground">
-            Übersicht aller Buchungen und Transaktionen
-          </p>
-        </div>
-        <Button onClick={loadBookings} variant="outline">
-          <Icon icon="vaadin:refresh" className="mr-2" style={{ width: '16px', height: '16px' }} />
-          Aktualisieren
-        </Button>
+      <div className="mb-4">
+        <h2 className="text-xl font-semibold">Buchungsverwaltung</h2>
+        <p className="text-sm text-muted-foreground">
+          Übersicht aller Buchungen und Transaktionen
+        </p>
       </div>
 
       {/* Error message */}
@@ -131,7 +125,7 @@ export default function BookingsTab(): JSX.Element {
       )}
 
       {/* Bookings grid */}
-      <Card className="p-4">
+      <div className="bg-white rounded-lg p-4">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
@@ -189,7 +183,7 @@ export default function BookingsTab(): JSX.Element {
             />
           </Grid>
         )}
-      </Card>
+      </div>
 
       {/* Booking details modal */}
       <Dialog
@@ -200,7 +194,7 @@ export default function BookingsTab(): JSX.Element {
         headerTitle="Buchungsdetails"
       >
         {selectedBooking && (
-          <div className="space-y-4 p-4">
+          <div className="space-y-4 p-4 min-w-[600px]">
             {/* Booking icon */}
             <div className="flex justify-center">
               <Icon icon="vaadin:invoice" className="text-primary" style={{ width: '64px', height: '64px' }} />

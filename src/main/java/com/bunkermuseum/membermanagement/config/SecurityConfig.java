@@ -59,8 +59,7 @@ public class SecurityConfig extends VaadinWebSecurity {
      */
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http
-            .sessionManagement(session -> session
+        http.sessionManagement(session -> session
                 .sessionFixation().migrateSession()
                 .maximumSessions(1)
                 .maxSessionsPreventsLogin(false)
@@ -68,7 +67,7 @@ public class SecurityConfig extends VaadinWebSecurity {
 
         super.configure(http);
 
-        setLoginView(http, "/login", "/login");
+        setLoginView(http, "/login", "/");
 
         http.logout(logout -> logout
             .logoutUrl("/logout")

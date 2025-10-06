@@ -2,6 +2,8 @@ package com.bunkermuseum.membermanagement.service.contract;
 
 import com.bunkermuseum.membermanagement.model.User;
 import org.jspecify.annotations.Nullable;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Service contract interface for User entity business operations.
@@ -176,4 +178,38 @@ public interface UserServiceContract {
      * @throws RuntimeException if user not found or authentication fails
      */
     String exportUserData(String email, String password);
+
+    /**
+     * Retrieves all users from the system.
+     *
+     * <p>This method fetches all registered users from the database.
+     * It's intended for administrative purposes and should be protected
+     * by appropriate authorization checks.</p>
+     *
+     * @return List of all users in the system
+     *
+     * @throws RuntimeException if retrieval fails
+     *
+     * @author Philipp Borkovic
+     */
+    List<User> getAllUsers();
+
+    /**
+     * Updates a user's profile information.
+     *
+     * <p>This method allows updating user profile fields such as name and email.
+     * It validates the input and ensures data integrity.</p>
+     *
+     * @param userId The ID of the user to update
+     * @param name The new name (optional, null to keep existing)
+     * @param email The new email (optional, null to keep existing)
+     *
+     * @return The updated User object
+     *
+     * @throws IllegalArgumentException if userId is null or user not found
+     * @throws RuntimeException if update fails
+     *
+     * @author Philipp Borkovic
+     */
+    User updateProfile(UUID userId, @Nullable String name, @Nullable String email);
 }

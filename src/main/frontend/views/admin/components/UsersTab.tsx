@@ -93,17 +93,11 @@ export default function UsersTab(): JSX.Element {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold">Benutzerverwaltung</h2>
-          <p className="text-sm text-muted-foreground">
-            Übersicht aller registrierten Benutzer
-          </p>
-        </div>
-        <Button onClick={loadUsers} variant="outline">
-          <Icon icon="vaadin:refresh" className="mr-2" style={{ width: '16px', height: '16px' }} />
-          Aktualisieren
-        </Button>
+      <div className="mb-4">
+        <h2 className="text-xl font-semibold">Benutzerverwaltung</h2>
+        <p className="text-sm text-muted-foreground">
+          Übersicht aller registrierten Benutzer
+        </p>
       </div>
 
       {/* Error message */}
@@ -114,7 +108,7 @@ export default function UsersTab(): JSX.Element {
       )}
 
       {/* Users grid */}
-      <Card className="p-4">
+      <div className="bg-white rounded-lg p-4">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
@@ -161,7 +155,7 @@ export default function UsersTab(): JSX.Element {
             />
           </Grid>
         )}
-      </Card>
+      </div>
 
       {/* User details modal */}
       <Dialog
@@ -172,7 +166,7 @@ export default function UsersTab(): JSX.Element {
         headerTitle="Benutzerdetails"
       >
         {selectedUser && (
-          <div className="space-y-4 p-4">
+          <div className="space-y-4 p-4 min-w-[600px]">
             {/* User icon */}
             <div className="flex justify-center">
               <Icon icon="vaadin:user-card" className="text-primary" style={{ width: '64px', height: '64px' }} />

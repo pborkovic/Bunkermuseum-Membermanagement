@@ -3,6 +3,7 @@ package com.bunkermuseum.membermanagement.controller;
 import com.bunkermuseum.membermanagement.model.Booking;
 import com.bunkermuseum.membermanagement.service.contract.BookingServiceContract;
 import com.vaadin.hilla.Endpoint;
+import jakarta.annotation.security.PermitAll;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -15,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
  * @see BookingServiceContract
  */
 @Endpoint
+@PermitAll
 public class BookingController {
 
     private final BookingServiceContract bookingService;

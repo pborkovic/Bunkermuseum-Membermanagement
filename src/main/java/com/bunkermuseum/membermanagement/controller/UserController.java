@@ -5,6 +5,7 @@ import com.bunkermuseum.membermanagement.service.UserService;
 import com.bunkermuseum.membermanagement.service.contract.UserServiceContract;
 import com.vaadin.hilla.Endpoint;
 import jakarta.annotation.Nonnull;
+import jakarta.annotation.security.PermitAll;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
@@ -24,6 +25,7 @@ import java.util.UUID;
  * @see User
  */
 @Endpoint
+@PermitAll
 public class UserController {
 
     private final UserServiceContract userService;

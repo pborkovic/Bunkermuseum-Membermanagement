@@ -152,7 +152,7 @@ export default function SettingsTab(): JSX.Element {
       )}
 
       {/* Profile information */}
-      <Card className="p-6">
+      <div className="bg-white rounded-lg border p-6">
         <div className="mb-4 flex items-center space-x-3">
           <Icon icon="vaadin:user" className="text-primary" style={{ width: '24px', height: '24px' }} />
           <h3 className="text-lg font-semibold">Profilinformationen</h3>
@@ -195,10 +195,10 @@ export default function SettingsTab(): JSX.Element {
             </div>
           </form>
         )}
-      </Card>
+      </div>
 
       {/* Change password */}
-      <Card className="p-6">
+      <div className="bg-white rounded-lg border p-6">
         <div className="mb-4 flex items-center space-x-3">
           <Icon icon="vaadin:lock" className="text-primary" style={{ width: '24px', height: '24px' }} />
           <h3 className="text-lg font-semibold">Passwort ändern</h3>
@@ -250,10 +250,10 @@ export default function SettingsTab(): JSX.Element {
             </Button>
           </div>
         </form>
-      </Card>
+      </div>
 
       {/* Account information */}
-      <Card className="p-6">
+      <div className="bg-white rounded-lg border p-6">
         <div className="mb-4 flex items-center space-x-3">
           <Icon icon="vaadin:info-circle" className="text-primary" style={{ width: '24px', height: '24px' }} />
           <h3 className="text-lg font-semibold">Kontoinformationen</h3>
@@ -278,7 +278,7 @@ export default function SettingsTab(): JSX.Element {
             <span className="col-span-2">{new Date().toLocaleDateString('de-DE')}</span>
           </div>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }

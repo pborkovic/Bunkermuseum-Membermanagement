@@ -9,11 +9,12 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -530,6 +531,66 @@ public class UserService extends BaseService<User, UserRepositoryContract>
             .replace("\n", "\\n")
             .replace("\r", "\\r")
             .replace("\t", "\\t");
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @author Philipp Borkovic
+     */
+    @Override
+    public List<User> getAllUsers() {
+        try {
+            return repository.findAll();
+        } catch (Exception exception) {
+            logger.error("Error retrieving all users", exception);
+            throw new RuntimeException("Failed to retrieve users", exception);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @author Philipp Borkovic
+     */
+    @Override
+    @Transactional
+    public User updateProfile(UUID userId, @Nullable String name, @Nullable String email) {
+        if (userId == null) {
+            throw new IllegalArgumentException("User ID must not be null");
+        }
+
+        try {
+            Optional<User> optionalUser = repository.findById(userId);
+
+            if (optionalUser.isEmpty()) {
+                throw new IllegalArgumentException("User not found with ID: " + userId);
+            }
+
+            User user = optionalUser.get();
+
+            if (name != null && !name.isBlank()) {
+                user.setName(name);
+            }
+
+            if (email != null && !email.isBlank()) {
+                user.setEmail(email);
+            }
+
+            User updatedUser = repository.update(userId, user);
+
+            logger.info("Profile updated for user: {}", userId);
+
+            return updatedUser;
+        } catch (IllegalArgumentException exception) {
+            logger.error("User not found or invalid data: {}", userId, exception);
+
+            throw exception;
+        } catch (Exception exception) {
+            logger.error("Error updating profile for user: {}", userId, exception);
+
+            throw new RuntimeException("Failed to update profile", exception);
+        }
     }
 
 }

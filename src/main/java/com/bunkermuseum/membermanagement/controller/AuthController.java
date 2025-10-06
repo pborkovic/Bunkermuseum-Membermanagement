@@ -222,6 +222,31 @@ public class AuthController {
     }
 
     /**
+     * Gets the current authenticated user.
+     *
+     * <p>This endpoint retrieves the currently authenticated user from the security context.
+     * It's useful for displaying user profile information and checking authentication status.</p>
+     *
+     * @return The current authenticated User object, or null if not authenticated
+     *
+     * @author Philipp Borkovic
+     */
+    public @Nullable User getCurrentUser() {
+        try {
+            Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+            if (principal instanceof User user) {
+                return user;
+            }
+
+            return null;
+        } catch (Exception e) {
+            logger.error("Error retrieving current user", e);
+            return null;
+        }
+    }
+
+    /**
      * Gets the current authenticated user's email from security context.
      *
      * @return The current user's email

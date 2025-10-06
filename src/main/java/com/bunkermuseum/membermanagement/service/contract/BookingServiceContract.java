@@ -1,6 +1,7 @@
 package com.bunkermuseum.membermanagement.service.contract;
 
 import com.bunkermuseum.membermanagement.model.Booking;
+import java.util.List;
 
 /**
  * Service contract interface for Booking entity business operations.
@@ -29,5 +30,5 @@ public interface BookingServiceContract {
      *
      * @author Philipp Borkovic
      */
-    java.util.List<Booking> getAllBookings();
+    List<Booking> getAllBookings();
 }

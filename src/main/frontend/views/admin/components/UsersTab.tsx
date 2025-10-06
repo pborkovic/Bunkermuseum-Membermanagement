@@ -126,32 +126,30 @@ export default function UsersTab(): JSX.Element {
         ) : (
           <Grid
             items={users}
-            onActiveItemChanged={(e: any) => {
-              const user = e.detail.value;
-              if (user) handleUserClick(user);
-            }}
             className="cursor-pointer"
           >
             <GridColumn path="name" header="Name" autoWidth />
             <GridColumn path="email" header="E-Mail" autoWidth />
             <GridColumn
-              header="E-Mail verifiziert"
-              autoWidth
-              renderer={({ item }: any) => (
-                <span>
-                  {item.emailVerifiedAt ? (
-                    <Icon icon="vaadin:check-circle" className="text-success" style={{ width: '16px', height: '16px' }} />
-                  ) : (
-                    <Icon icon="vaadin:close-circle" className="text-destructive" style={{ width: '16px', height: '16px' }} />
-                  )}
-                </span>
-              )}
-            />
-            <GridColumn
               path="createdAt"
               header="Erstellt am"
               autoWidth
               renderer={({ item }: any) => formatDate(item.createdAt)}
+            />
+            <GridColumn
+              header="Aktionen"
+              autoWidth
+              renderer={({ item }: any) => (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleUserClick(item);
+                  }}
+                  className="p-1 hover:bg-muted rounded"
+                >
+                  <Icon icon="vaadin:ellipsis-dots-v" style={{ width: '20px', height: '20px' }} />
+                </button>
+              )}
             />
           </Grid>
         )}

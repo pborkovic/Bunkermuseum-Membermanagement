@@ -189,7 +189,18 @@ public class Booking extends Model {
     /**
      * Gets the expected purpose of the transaction.
      *
-     * @return The expected purpose, or null if not set
+     * <p>Retrieves the intended or planned purpose that was originally anticipated
+     * for this booking transaction. This value can be compared with the actual
+     * purpose to identify discrepancies in transaction intentions.</p>
+     *
+     * <p><strong>Use Cases:</strong></p>
+     * <ul>
+     *   <li>Budget planning and tracking</li>
+     *   <li>Variance analysis between expected and actual purposes</li>
+     *   <li>Audit trail for transaction expectations</li>
+     * </ul>
+     *
+     * @return The expected purpose string, or null if no expectation was set
      *
      * @author Philipp Borkovic
      */
@@ -200,7 +211,11 @@ public class Booking extends Model {
     /**
      * Sets the expected purpose of the transaction.
      *
-     * @param expectedPurpose The expected purpose
+     * <p>Assigns the intended or planned purpose for this booking transaction.
+     * This should typically be set during booking creation or when planning
+     * expected transactions.</p>
+     *
+     * @param expectedPurpose The intended purpose description, or null to clear
      *
      * @author Philipp Borkovic
      */
@@ -209,9 +224,13 @@ public class Booking extends Model {
     }
 
     /**
-     * Gets the expected amount.
+     * Gets the expected amount for the transaction.
      *
-     * @return The expected amount, or null if not set
+     * <p>Retrieves the anticipated monetary value that was planned for this
+     * booking. This amount uses {@link BigDecimal} for precise financial
+     * calculations and is stored with 2 decimal places precision.</p>
+     *
+     * @return The expected amount as BigDecimal, or null if not planned
      *
      * @author Philipp Borkovic
      */
@@ -220,9 +239,13 @@ public class Booking extends Model {
     }
 
     /**
-     * Sets the expected amount.
+     * Sets the expected amount for the transaction.
      *
-     * @param expectedAmount The expected amount
+     * <p>Assigns the anticipated monetary value for this booking transaction.
+     * Use {@link BigDecimal} to ensure precise financial calculations without
+     * floating-point rounding errors.</p>
+     *
+     * @param expectedAmount The planned amount as BigDecimal, or null to clear
      *
      * @author Philipp Borkovic
      */
@@ -231,9 +254,13 @@ public class Booking extends Model {
     }
 
     /**
-     * Gets the timestamp when payment was received.
+     * Gets the timestamp when the payment was received.
      *
-     * @return The received timestamp, or null if not set
+     * <p>Retrieves the exact date and time when the actual payment or transaction
+     * was received and processed. Uses {@link Instant} for timezone-independent
+     * timestamp storage.</p>
+     *
+     * @return The received timestamp as Instant, or null if not yet received
      *
      * @author Philipp Borkovic
      */
@@ -242,9 +269,12 @@ public class Booking extends Model {
     }
 
     /**
-     * Sets the timestamp when payment was received.
+     * Sets the timestamp when the payment was received.
      *
-     * @param receivedAt The received timestamp
+     * <p>Records the exact date and time when the actual payment or transaction
+     * was received. Should be set when payment is confirmed and processed.</p>
+     *
+     * @param receivedAt The received timestamp as Instant, or null to clear
      *
      * @author Philipp Borkovic
      */
@@ -253,9 +283,13 @@ public class Booking extends Model {
     }
 
     /**
-     * Gets the actual purpose of the transaction.
+     * Gets the actual purpose of the transaction as received.
      *
-     * @return The actual purpose, or null if not set
+     * <p>Retrieves the actual purpose or description that was stated in the
+     * received transaction. This may differ from the expected purpose and is
+     * useful for reconciliation and variance analysis.</p>
+     *
+     * @return The actual purpose as stated in the transaction, or null if not recorded
      *
      * @author Philipp Borkovic
      */
@@ -264,9 +298,13 @@ public class Booking extends Model {
     }
 
     /**
-     * Sets the actual purpose of the transaction.
+     * Sets the actual purpose of the transaction as received.
      *
-     * @param actualPurpose The actual purpose
+     * <p>Records the actual purpose or payment reference that was stated in the
+     * received transaction. This should reflect exactly what was provided by
+     * the payer, even if it differs from expectations.</p>
+     *
+     * @param actualPurpose The actual purpose as received, or null to clear
      *
      * @author Philipp Borkovic
      */
@@ -275,9 +313,13 @@ public class Booking extends Model {
     }
 
     /**
-     * Gets the actual amount received.
+     * Gets the actual amount received in the transaction.
      *
-     * @return The actual amount, or null if not set
+     * <p>Retrieves the real monetary value that was actually received, which
+     * may differ from the expected amount. Uses {@link BigDecimal} for precise
+     * financial calculations.</p>
+     *
+     * @return The actual received amount as BigDecimal, or null if not received
      *
      * @author Philipp Borkovic
      */
@@ -286,9 +328,13 @@ public class Booking extends Model {
     }
 
     /**
-     * Sets the actual amount received.
+     * Sets the actual amount received in the transaction.
      *
-     * @param actualAmount The actual amount
+     * <p>Records the real monetary value that was received in this transaction.
+     * This value should reflect the exact amount credited, including any
+     * fees, adjustments, or currency conversions.</p>
+     *
+     * @param actualAmount The received amount as BigDecimal, or null to clear
      *
      * @author Philipp Borkovic
      */
@@ -297,9 +343,13 @@ public class Booking extends Model {
     }
 
     /**
-     * Gets the member identifier.
+     * Gets the member identifier (ofMG).
      *
-     * @return The member identifier, or null if not set
+     * <p>Retrieves the member reference or identifier associated with this booking.
+     * This field maintains the original German abbreviation "ofMG" (of Member/Mitglied)
+     * for compatibility with legacy systems.</p>
+     *
+     * @return The member identifier string, or null if not associated
      *
      * @author Philipp Borkovic
      */
@@ -308,9 +358,17 @@ public class Booking extends Model {
     }
 
     /**
-     * Sets the member identifier.
+     * Sets the member identifier (ofMG).
      *
-     * @param ofMG The member identifier
+     * <p>Assigns a member reference or identifier to this booking. This field
+     * maintains backward compatibility with legacy systems using the "ofMG"
+     * (of Member/Mitglied) designation.</p>
+     *
+     * <p><strong>Relationship with User:</strong> This text field can coexist
+     * with the {@link #user} foreign key relationship, allowing both legacy
+     * references and modern user associations.</p>
+     *
+     * @param ofMG The member identifier string, or null to clear
      *
      * @author Philipp Borkovic
      */
@@ -321,7 +379,15 @@ public class Booking extends Model {
     /**
      * Gets the user associated with this booking.
      *
-     * @return The user, or null if not set
+     * <p>Retrieves the {@link User} entity that owns or is responsible for this
+     * booking. This establishes a many-to-one relationship where multiple bookings
+     * can belong to a single user.</p>
+     *
+     * <p><strong>Lazy Loading:</strong> This relationship uses LAZY fetch strategy,
+     * meaning the User entity is not loaded from the database until this method
+     * is called. This optimizes performance when user details are not needed.</p>
+     *
+     * @return The associated User entity, or null if no user is linked
      *
      * @author Philipp Borkovic
      */
@@ -332,7 +398,19 @@ public class Booking extends Model {
     /**
      * Sets the user associated with this booking.
      *
-     * @param user The user
+     * <p>Assigns a {@link User} entity as the owner or responsible party for
+     * this booking. This creates a many-to-one relationship linking the booking
+     * to a specific user account.</p>
+     *
+     * <p><strong>Relationship Management:</strong></p>
+     * <ul>
+     *   <li>Establishes foreign key reference to users table</li>
+     *   <li>User entity must exist before assignment</li>
+     *   <li>Setting to null removes the association</li>
+     *   <li>Does not cascade delete (booking persists if user deleted)</li>
+     * </ul>
+     *
+     * @param user The User entity to associate, or null to remove association
      *
      * @author Philipp Borkovic
      */
@@ -341,9 +419,13 @@ public class Booking extends Model {
     }
 
     /**
-     * Gets the note or remark.
+     * Gets the note or remark for this booking.
      *
-     * @return The note, or null if not set
+     * <p>Retrieves additional comments, observations, or important information
+     * related to this booking transaction. This field is useful for recording
+     * contextual details not captured in other structured fields.</p>
+     *
+     * @return The note text, or null if no notes recorded
      *
      * @author Philipp Borkovic
      */
@@ -352,9 +434,13 @@ public class Booking extends Model {
     }
 
     /**
-     * Sets the note or remark.
+     * Sets the note or remark for this booking.
      *
-     * @param note The note
+     * <p>Records additional comments, observations, or important information
+     * about this booking. Use this field to document context, issues, or
+     * special circumstances not captured elsewhere.</p>
+     *
+     * @param note The note text, or null to clear existing notes
      *
      * @author Philipp Borkovic
      */
@@ -365,7 +451,11 @@ public class Booking extends Model {
     /**
      * Gets the account statement page reference.
      *
-     * @return The account statement page reference, or null if not set
+     * <p>Retrieves the reference to the specific page, sheet, or section of the
+     * account statement (Kontoauszug) where this booking appears. This aids in
+     * cross-referencing bookings with physical or digital statements.</p>
+     *
+     * @return The statement page reference, or null if not documented
      *
      * @author Philipp Borkovic
      */
@@ -376,7 +466,11 @@ public class Booking extends Model {
     /**
      * Sets the account statement page reference.
      *
-     * @param accountStatementPage The account statement page reference
+     * <p>Records a reference to the specific location in the account statement
+     * where this booking appears. This facilitates cross-referencing and
+     * verification against official bank documents.</p>
+     *
+     * @param accountStatementPage The statement reference, or null to clear
      *
      * @author Philipp Borkovic
      */
@@ -385,9 +479,13 @@ public class Booking extends Model {
     }
 
     /**
-     * Gets the transaction code.
+     * Gets the transaction code or reference.
      *
-     * @return The transaction code, or null if not set
+     * <p>Retrieves a unique code, reference number, or identifier for this
+     * booking transaction. This field can store various types of transaction
+     * identifiers used for tracking and reconciliation.</p>
+     *
+     * @return The transaction code, or null if no code assigned
      *
      * @author Philipp Borkovic
      */
@@ -396,9 +494,13 @@ public class Booking extends Model {
     }
 
     /**
-     * Sets the transaction code.
+     * Sets the transaction code or reference.
      *
-     * @param code The transaction code
+     * <p>Assigns a unique code, reference number, or identifier to this booking.
+     * This code should uniquely identify the transaction and facilitate tracking
+     * across systems.</p>
+     *
+     * @param code The transaction code, or null to clear
      *
      * @author Philipp Borkovic
      */

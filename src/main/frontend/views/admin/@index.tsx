@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ViewConfig } from '@vaadin/hilla-file-router/types.js';
 import { Icon } from '@vaadin/react-components';
 import { Button } from '@/components/ui/button';
+import { AuthController } from 'Frontend/generated/endpoints';
+import type User from 'Frontend/generated/com/bunkermuseum/membermanagement/model/User';
 import UsersTab from './components/UsersTab';
 import BookingsTab from './components/BookingsTab';
 import SettingsTab from './components/SettingsTab';
@@ -33,53 +35,86 @@ export const config: ViewConfig = {
  */
 export default function AdminDashboard(): JSX.Element {
   const [selectedTab, setSelectedTab] = useState(0);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    loadCurrentUser();
+  }, []);
+
+  const loadCurrentUser = async () => {
+    try {
+      const user = await AuthController.getCurrentUser();
+      setCurrentUser(user || null);
+    } catch (err) {
+      console.error('Failed to load current user:', err);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Full Navbar */}
-      <nav className="border-b bg-white">
-        <div className="container mx-auto px-6 py-4">
+      {/* Navbar */}
+      <nav className="w-full border-b bg-white sticky top-0 z-10">
+        <div className="flex items-center justify-between px-6 py-4">
           {/* Logo/Title */}
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <Icon icon="vaadin:dashboard" className="text-primary" style={{ width: '32px', height: '32px' }} />
-            <div className="text-center">
-              <h1 className="text-2xl font-semibold">Admin Dashboard</h1>
-              <p className="text-sm text-muted-foreground">Verwaltung von Benutzern und Buchungen</p>
+          <div className="flex items-center gap-3">
+            <Icon icon="vaadin:dashboard" style={{ width: '32px', height: '32px' }} />
+            <div>
+              <h1 className="text-xl font-semibold text-black">Bunkermuseum Wurzenpass Kärnten</h1>
             </div>
           </div>
 
-          {/* Centered Tab Navigation */}
-          <div className="flex gap-2 justify-center">
-            <Button
-              variant={selectedTab === 0 ? "default" : "outline"}
+          {/* Navigation Links */}
+          <div className="flex items-center gap-8">
+            <button
               onClick={() => setSelectedTab(0)}
-              className="gap-2"
+              className={`flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors ${
+                selectedTab === 0
+                  ? 'text-black border-b-2 border-black'
+                  : 'text-gray-600 hover:text-black'
+              }`}
             >
-              <Icon icon="vaadin:users" style={{ width: '16px', height: '16px' }} />
+              <Icon icon="vaadin:users" style={{ width: '18px', height: '18px' }} />
               Benutzer
-            </Button>
-            <Button
-              variant={selectedTab === 1 ? "default" : "outline"}
+            </button>
+            <button
               onClick={() => setSelectedTab(1)}
-              className="gap-2"
+              className={`flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors ${
+                selectedTab === 1
+                  ? 'text-black border-b-2 border-black'
+                  : 'text-gray-600 hover:text-black'
+              }`}
             >
-              <Icon icon="vaadin:invoice" style={{ width: '16px', height: '16px' }} />
+              <Icon icon="vaadin:invoice" style={{ width: '18px', height: '18px' }} />
               Buchungen
-            </Button>
-            <Button
-              variant={selectedTab === 2 ? "default" : "outline"}
+            </button>
+            <button
               onClick={() => setSelectedTab(2)}
-              className="gap-2"
+              className={`flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors ${
+                selectedTab === 2
+                  ? 'text-black border-b-2 border-black'
+                  : 'text-gray-600 hover:text-black'
+              }`}
             >
-              <Icon icon="vaadin:cog" style={{ width: '16px', height: '16px' }} />
+              <Icon icon="vaadin:cog" style={{ width: '18px', height: '18px' }} />
               Einstellungen
-            </Button>
+            </button>
+          </div>
+
+          {/* Right side - User Info */}
+          <div className="flex items-center gap-3">
+            <div className="text-right">
+              <p className="text-sm font-medium text-black">{currentUser?.name || 'Loading...'}</p>
+              <p className="text-xs text-gray-600">{currentUser?.email || ''}</p>
+            </div>
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200">
+              <Icon icon="vaadin:user" style={{ width: '20px', height: '20px' }} />
+            </div>
           </div>
         </div>
       </nav>
 
       {/* Main Content */}
-      <main className="container mx-auto p-6">
+      <main className="w-full px-6 py-6">
         {selectedTab === 0 && <UsersTab />}
         {selectedTab === 1 && <BookingsTab />}
         {selectedTab === 2 && <SettingsTab />}

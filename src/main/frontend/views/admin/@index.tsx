@@ -59,7 +59,8 @@ export default function AdminDashboard(): JSX.Element {
           <div className="flex items-center gap-3">
             <Icon icon="vaadin:dashboard" style={{ width: '32px', height: '32px' }} />
             <div>
-              <h1 className="text-xl font-semibold text-black">Bunkermuseum Wurzenpass Kärnten</h1>
+              <h1 className="text-xl font-semibold text-black">Bunkermuseum Wurzenpass</h1>
+              <p className="text-sm text-gray-600">Kärnten</p>
             </div>
           </div>
 

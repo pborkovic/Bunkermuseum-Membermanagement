@@ -5,6 +5,12 @@ import { Dialog } from '@vaadin/react-components/Dialog';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Icon } from '@vaadin/react-components';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { UserController } from 'Frontend/generated/endpoints';
 import type User from 'Frontend/generated/com/bunkermuseum/membermanagement/model/User';
 
@@ -27,6 +33,8 @@ export default function UsersTab(): JSX.Element {
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -75,6 +83,46 @@ export default function UsersTab(): JSX.Element {
   const handleCloseModal = (): void => {
     setIsModalOpen(false);
     setSelectedUser(null);
+  };
+
+  /**
+   * Opens the delete confirmation modal for a specific user.
+   *
+   * @param {User} user - The user to delete
+   *
+   * @author Philipp Borkovic
+   */
+  const handleDeleteClick = (user: User): void => {
+    setUserToDelete(user);
+    setIsDeleteModalOpen(true);
+  };
+
+  /**
+   * Closes the delete confirmation modal.
+   *
+   * @author Philipp Borkovic
+   */
+  const handleCloseDeleteModal = (): void => {
+    setIsDeleteModalOpen(false);
+    setUserToDelete(null);
+  };
+
+  /**
+   * Deletes the selected user account.
+   *
+   * @author Philipp Borkovic
+   */
+  const handleConfirmDelete = async (): Promise<void> => {
+    if (!userToDelete) return;
+
+    try {
+      // TODO: Implement user deletion via UserController
+      console.log('Deleting user:', userToDelete.id);
+      handleCloseDeleteModal();
+      loadUsers(); // Reload users after deletion
+    } catch (err: any) {
+      setError(err.message || 'Fehler beim Löschen des Benutzers');
+    }
   };
 
   /**
@@ -140,15 +188,29 @@ export default function UsersTab(): JSX.Element {
               header="Aktionen"
               autoWidth
               renderer={({ item }: any) => (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleUserClick(item);
-                  }}
-                  className="p-1 hover:bg-muted rounded"
-                >
-                  <Icon icon="vaadin:ellipsis-dots-v" style={{ width: '20px', height: '20px' }} />
-                </button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      onClick={(e) => e.stopPropagation()}
+                      className="p-1 hover:bg-muted rounded"
+                    >
+                      <Icon icon="vaadin:ellipsis-dots-v" style={{ width: '20px', height: '20px' }} />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleUserClick(item)} className="text-foreground">
+                      <Icon icon="vaadin:eye" className="mr-2" style={{ width: '16px', height: '16px' }} />
+                      View Details
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleDeleteClick(item)}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <Icon icon="vaadin:trash" className="mr-2" style={{ width: '16px', height: '16px' }} />
+                      Delete Account
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
             />
           </Grid>
@@ -240,6 +302,45 @@ export default function UsersTab(): JSX.Element {
             {/* Close button */}
             <div className="flex justify-end pt-4">
               <Button onClick={handleCloseModal}>Schließen</Button>
+            </div>
+          </div>
+        )}
+      </Dialog>
+
+      {/* Delete confirmation modal */}
+      <Dialog
+        opened={isDeleteModalOpen}
+        onOpenedChanged={(e: any) => {
+          if (!e.detail.value) handleCloseDeleteModal();
+        }}
+        headerTitle="Benutzer löschen"
+      >
+        {userToDelete && (
+          <div className="space-y-4 p-4 min-w-[400px]">
+            <div className="flex justify-center">
+              <Icon icon="vaadin:warning" className="text-destructive" style={{ width: '64px', height: '64px' }} />
+            </div>
+
+            <div className="text-center space-y-2">
+              <p className="font-medium">Sind Sie sicher, dass Sie diesen Benutzer löschen möchten?</p>
+              <p className="text-sm text-muted-foreground">
+                Benutzer: <span className="font-semibold">{userToDelete.name}</span>
+              </p>
+              <p className="text-sm text-muted-foreground">
+                E-Mail: <span className="font-semibold">{userToDelete.email}</span>
+              </p>
+              <p className="text-sm text-destructive mt-4">
+                Diese Aktion kann nicht rückgängig gemacht werden.
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button variant="outline" onClick={handleCloseDeleteModal}>
+                Abbrechen
+              </Button>
+              <Button variant="destructive" onClick={handleConfirmDelete}>
+                Löschen
+              </Button>
             </div>
           </div>
         )}

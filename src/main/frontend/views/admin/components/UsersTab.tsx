@@ -229,8 +229,8 @@ export default function UsersTab(): JSX.Element {
           <div className="p-6 min-w-[800px]">
             {/* Header Section */}
             <div className="flex items-start gap-6 pb-6 border-b">
-              <div className="flex-shrink-0 bg-primary/10 rounded-full p-4">
-                <Icon icon="vaadin:user-card" className="text-primary" style={{ width: '64px', height: '64px' }} />
+              <div className="flex-shrink-0 bg-muted rounded-full p-4">
+                <Icon icon="vaadin:user-card" className="text-foreground" style={{ width: '64px', height: '64px' }} />
               </div>
               <div className="flex-1">
                 <h3 className="text-2xl font-semibold mb-1">{selectedUser.name}</h3>
@@ -239,11 +239,11 @@ export default function UsersTab(): JSX.Element {
             </div>
 
             {/* Details Grid */}
-            <div className="grid grid-cols-2 gap-6 py-6">
+            <div className="grid grid-cols-2 gap-x-8 gap-y-4 py-6">
               {/* Email Verification Status */}
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <label className="text-sm font-medium text-muted-foreground">E-Mail Status</label>
-                <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
+                <div className="flex items-center gap-2">
                   {selectedUser.emailVerifiedAt ? (
                     <>
                       <Icon icon="vaadin:check-circle" className="text-success" style={{ width: '20px', height: '20px' }} />
@@ -262,49 +262,84 @@ export default function UsersTab(): JSX.Element {
               </div>
 
               {/* Account Created */}
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <label className="text-sm font-medium text-muted-foreground">Konto erstellt</label>
-                <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
-                  <Icon icon="vaadin:calendar" className="text-primary" style={{ width: '20px', height: '20px' }} />
+                <div className="flex items-center gap-2">
+                  <Icon icon="vaadin:calendar" className="text-foreground" style={{ width: '20px', height: '20px' }} />
                   <div className="text-sm font-medium">{formatDate(selectedUser.createdAt)}</div>
                 </div>
               </div>
 
-              {/* Google Connection */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">Google Verknüpfung</label>
-                <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
-                  {selectedUser.googleId ? (
-                    <>
-                      <Icon icon="vaadin:check-circle-o" className="text-success" style={{ width: '20px', height: '20px' }} />
-                      <div className="text-sm font-medium">Verknüpft</div>
-                    </>
-                  ) : (
-                    <>
-                      <Icon icon="vaadin:minus-circle-o" className="text-muted-foreground" style={{ width: '20px', height: '20px' }} />
-                      <div className="text-sm font-medium text-muted-foreground">Nicht verknüpft</div>
-                    </>
-                  )}
+              {/* Phone */}
+              {selectedUser.phone && (
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-muted-foreground">Telefon</label>
+                  <div className="flex items-center gap-2">
+                    <Icon icon="vaadin:phone" className="text-foreground" style={{ width: '20px', height: '20px' }} />
+                    <div className="text-sm font-medium">{selectedUser.phone}</div>
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {/* Microsoft Connection */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">Microsoft Verknüpfung</label>
-                <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
-                  {selectedUser.microsoftId ? (
-                    <>
-                      <Icon icon="vaadin:check-circle-o" className="text-success" style={{ width: '20px', height: '20px' }} />
-                      <div className="text-sm font-medium">Verknüpft</div>
-                    </>
-                  ) : (
-                    <>
-                      <Icon icon="vaadin:minus-circle-o" className="text-muted-foreground" style={{ width: '20px', height: '20px' }} />
-                      <div className="text-sm font-medium text-muted-foreground">Nicht verknüpft</div>
-                    </>
-                  )}
+              {/* Birthday */}
+              {selectedUser.birthday && (
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-muted-foreground">Geburtsdatum</label>
+                  <div className="flex items-center gap-2">
+                    <Icon icon="vaadin:cake" className="text-foreground" style={{ width: '20px', height: '20px' }} />
+                    <div className="text-sm font-medium">{formatDate(selectedUser.birthday)}</div>
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* Address */}
+              {(selectedUser.street || selectedUser.city || selectedUser.postalCode) && (
+                <div className="space-y-1 col-span-2">
+                  <label className="text-sm font-medium text-muted-foreground">Adresse</label>
+                  <div className="flex items-start gap-2">
+                    <Icon icon="vaadin:home" className="text-foreground mt-0.5" style={{ width: '20px', height: '20px' }} />
+                    <div className="text-sm font-medium">
+                      {selectedUser.street && <div>{selectedUser.street}</div>}
+                      {(selectedUser.postalCode || selectedUser.city) && (
+                        <div>{selectedUser.postalCode} {selectedUser.city}</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Salutation */}
+              {selectedUser.salutation && (
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-muted-foreground">Anrede</label>
+                  <div className="flex items-center gap-2">
+                    <Icon icon="vaadin:user" className="text-foreground" style={{ width: '20px', height: '20px' }} />
+                    <div className="text-sm font-medium">{selectedUser.salutation}</div>
+                  </div>
+                </div>
+              )}
+
+              {/* Academic Title */}
+              {selectedUser.academicTitle && (
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-muted-foreground">Titel</label>
+                  <div className="flex items-center gap-2">
+                    <Icon icon="vaadin:academy-cap" className="text-foreground" style={{ width: '20px', height: '20px' }} />
+                    <div className="text-sm font-medium">{selectedUser.academicTitle}</div>
+                  </div>
+                </div>
+              )}
+
+              {/* Rank */}
+              {selectedUser.rank && (
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-muted-foreground">Rang</label>
+                  <div className="flex items-center gap-2">
+                    <Icon icon="vaadin:medal" className="text-foreground" style={{ width: '20px', height: '20px' }} />
+                    <div className="text-sm font-medium">{selectedUser.rank}</div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Last Updated */}

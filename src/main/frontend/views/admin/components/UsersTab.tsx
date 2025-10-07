@@ -226,82 +226,105 @@ export default function UsersTab(): JSX.Element {
         headerTitle="Benutzerdetails"
       >
         {selectedUser && (
-          <div className="space-y-4 p-4 min-w-[600px]">
-            {/* User icon */}
-            <div className="flex justify-center">
-              <Icon icon="vaadin:user-card" className="text-primary" style={{ width: '64px', height: '64px' }} />
+          <div className="p-6 min-w-[800px]">
+            {/* Header Section */}
+            <div className="flex items-start gap-6 pb-6 border-b">
+              <div className="flex-shrink-0 bg-primary/10 rounded-full p-4">
+                <Icon icon="vaadin:user-card" className="text-primary" style={{ width: '64px', height: '64px' }} />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-2xl font-semibold mb-1">{selectedUser.name}</h3>
+                <p className="text-muted-foreground">{selectedUser.email}</p>
+              </div>
             </div>
 
-            {/* User information */}
-            <div className="space-y-3">
-              <div className="grid grid-cols-3 gap-2">
-                <span className="font-medium">Name:</span>
-                <span className="col-span-2">{selectedUser.name}</span>
-              </div>
-
-              <div className="grid grid-cols-3 gap-2">
-                <span className="font-medium">E-Mail:</span>
-                <span className="col-span-2">{selectedUser.email}</span>
-              </div>
-
-              <div className="grid grid-cols-3 gap-2">
-                <span className="font-medium">ID:</span>
-                <span className="col-span-2 font-mono text-sm">{selectedUser.id}</span>
-              </div>
-
-              <div className="grid grid-cols-3 gap-2">
-                <span className="font-medium">E-Mail verifiziert:</span>
-                <span className="col-span-2">
+            {/* Details Grid */}
+            <div className="grid grid-cols-2 gap-6 py-6">
+              {/* Email Verification Status */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">E-Mail Status</label>
+                <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
                   {selectedUser.emailVerifiedAt ? (
-                    <span className="text-success">
-                      <Icon icon="vaadin:check-circle" className="inline mr-1" style={{ width: '16px', height: '16px' }} />
-                      {formatDate(selectedUser.emailVerifiedAt)}
-                    </span>
+                    <>
+                      <Icon icon="vaadin:check-circle" className="text-success" style={{ width: '20px', height: '20px' }} />
+                      <div>
+                        <div className="text-sm font-medium">Verifiziert</div>
+                        <div className="text-xs text-muted-foreground">{formatDate(selectedUser.emailVerifiedAt)}</div>
+                      </div>
+                    </>
                   ) : (
-                    <span className="text-destructive">
-                      <Icon icon="vaadin:close-circle" className="inline mr-1" style={{ width: '16px', height: '16px' }} />
-                      Nicht verifiziert
-                    </span>
+                    <>
+                      <Icon icon="vaadin:close-circle" className="text-destructive" style={{ width: '20px', height: '20px' }} />
+                      <div className="text-sm font-medium">Nicht verifiziert</div>
+                    </>
                   )}
-                </span>
+                </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-2">
-                <span className="font-medium">Google verknüpft:</span>
-                <span className="col-span-2">
+              {/* Account Created */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">Konto erstellt</label>
+                <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
+                  <Icon icon="vaadin:calendar" className="text-primary" style={{ width: '20px', height: '20px' }} />
+                  <div className="text-sm font-medium">{formatDate(selectedUser.createdAt)}</div>
+                </div>
+              </div>
+
+              {/* Google Connection */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">Google Verknüpfung</label>
+                <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
                   {selectedUser.googleId ? (
-                    <Icon icon="vaadin:check" className="text-success" style={{ width: '16px', height: '16px' }} />
+                    <>
+                      <Icon icon="vaadin:check-circle-o" className="text-success" style={{ width: '20px', height: '20px' }} />
+                      <div className="text-sm font-medium">Verknüpft</div>
+                    </>
                   ) : (
-                    <Icon icon="vaadin:close" className="text-muted-foreground" style={{ width: '16px', height: '16px' }} />
+                    <>
+                      <Icon icon="vaadin:minus-circle-o" className="text-muted-foreground" style={{ width: '20px', height: '20px' }} />
+                      <div className="text-sm font-medium text-muted-foreground">Nicht verknüpft</div>
+                    </>
                   )}
-                </span>
+                </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-2">
-                <span className="font-medium">Microsoft verknüpft:</span>
-                <span className="col-span-2">
+              {/* Microsoft Connection */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">Microsoft Verknüpfung</label>
+                <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
                   {selectedUser.microsoftId ? (
-                    <Icon icon="vaadin:check" className="text-success" style={{ width: '16px', height: '16px' }} />
+                    <>
+                      <Icon icon="vaadin:check-circle-o" className="text-success" style={{ width: '20px', height: '20px' }} />
+                      <div className="text-sm font-medium">Verknüpft</div>
+                    </>
                   ) : (
-                    <Icon icon="vaadin:close" className="text-muted-foreground" style={{ width: '16px', height: '16px' }} />
+                    <>
+                      <Icon icon="vaadin:minus-circle-o" className="text-muted-foreground" style={{ width: '20px', height: '20px' }} />
+                      <div className="text-sm font-medium text-muted-foreground">Nicht verknüpft</div>
+                    </>
                   )}
-                </span>
-              </div>
-
-              <div className="grid grid-cols-3 gap-2">
-                <span className="font-medium">Erstellt am:</span>
-                <span className="col-span-2">{formatDate(selectedUser.createdAt)}</span>
-              </div>
-
-              <div className="grid grid-cols-3 gap-2">
-                <span className="font-medium">Aktualisiert am:</span>
-                <span className="col-span-2">{formatDate(selectedUser.updatedAt)}</span>
+                </div>
               </div>
             </div>
 
-            {/* Close button */}
-            <div className="flex justify-end pt-4">
-              <Button onClick={handleCloseModal}>Schließen</Button>
+            {/* Last Updated */}
+            <div className="pt-4 border-t">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Icon icon="vaadin:clock" style={{ width: '16px', height: '16px' }} />
+                <span>Zuletzt aktualisiert: {formatDate(selectedUser.updatedAt)}</span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-3 pt-6 border-t mt-6">
+              <Button variant="outline" onClick={handleCloseModal}>Schließen</Button>
+              <Button variant="default" onClick={() => {
+                // TODO: Edit functionality
+                console.log('Edit user:', selectedUser.id);
+              }}>
+                <Icon icon="vaadin:edit" className="mr-2" style={{ width: '16px', height: '16px' }} />
+                Bearbeiten
+              </Button>
             </div>
           </div>
         )}

@@ -247,9 +247,9 @@ export default function UsersTab(): JSX.Element {
     <div className="space-y-4">
       {/* Header */}
       <div className="mb-4">
-        <h2 className="text-xl font-semibold">Benutzerverwaltung</h2>
+        <h2 className="text-xl font-semibold">Mitgliederverwaltung</h2>
         <p className="text-sm text-muted-foreground">
-          Übersicht aller registrierten Benutzer
+          Übersicht aller registrierten Mitglieder
         </p>
       </div>
 

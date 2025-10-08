@@ -119,4 +119,28 @@ public class UserController {
         }
     }
 
+    /**
+     * Updates comprehensive user information including all profile fields.
+     *
+     * @param userId The ID of the user to update
+     * @param userData User object containing the fields to update
+     *
+     * @return The updated User object
+     * @throws ResponseStatusException with {@link HttpStatus#BAD_REQUEST} if userId is invalid
+     *         or user not found
+     * @throws ResponseStatusException with {@link HttpStatus#INTERNAL_SERVER_ERROR} if
+     *         any unexpected error occurs during update
+     *
+     * @author Philipp Borkovic
+     */
+    public User updateUser(@Nonnull UUID userId, @Nonnull User userData) {
+        try {
+            return userService.updateUser(userId, userData);
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid data: " + exception.getMessage(), exception);
+        } catch (Exception exception) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update user", exception);
+        }
+    }
+
 }

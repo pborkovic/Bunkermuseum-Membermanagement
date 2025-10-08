@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Grid } from '@vaadin/react-components/Grid';
 import { GridColumn } from '@vaadin/react-components/GridColumn';
 import { Dialog } from '@vaadin/react-components/Dialog';
@@ -65,6 +65,18 @@ export default function UsersTab(): JSX.Element {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   /**
    * Loads all users from the backend on component mount.
@@ -252,9 +264,9 @@ export default function UsersTab(): JSX.Element {
   );
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col h-full space-y-4">
       {/* Header with Search */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex-shrink-0 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
           <h2 className="text-xl font-semibold">Mitgliederverwaltung</h2>
           <p className="text-sm text-muted-foreground">
@@ -263,7 +275,7 @@ export default function UsersTab(): JSX.Element {
         </div>
 
         {/* Search Bar */}
-        <div className="relative w-80">
+        <div className="relative w-full sm:w-64">
           <Icon
             icon="vaadin:search"
             className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
@@ -281,13 +293,13 @@ export default function UsersTab(): JSX.Element {
 
       {/* Error message */}
       {error && (
-        <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+        <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive flex-shrink-0">
           {error}
         </div>
       )}
 
       {/* Users grid */}
-      <div className="bg-white rounded-lg p-4 w-full">
+      <div className="bg-white rounded-lg p-2 sm:p-4 w-full overflow-auto flex-1 min-h-0">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
@@ -310,13 +322,15 @@ export default function UsersTab(): JSX.Element {
             className="cursor-pointer w-full"
           >
             <GridColumn path="name" header="Name" flexGrow={1} />
-            <GridColumn path="email" header="E-Mail" flexGrow={1} />
-            <GridColumn
-              path="createdAt"
-              header="Erstellt am"
-              flexGrow={1}
-              renderer={({ item }: any) => formatDate(item.createdAt)}
-            />
+            {!isMobile && <GridColumn path="email" header="E-Mail" flexGrow={1} />}
+            {!isMobile && (
+              <GridColumn
+                path="createdAt"
+                header="Erstellt am"
+                flexGrow={1}
+                renderer={({ item }: any) => formatDate(item.createdAt)}
+              />
+            )}
             <GridColumn
               header="Aktionen"
               width="80px"
@@ -359,9 +373,9 @@ export default function UsersTab(): JSX.Element {
         headerTitle="Benutzerdetails"
       >
         {selectedUser && (
-          <div className="p-6 min-w-[800px]">
+          <div className="p-4 sm:p-6 min-w-[300px] sm:min-w-[600px] lg:min-w-[800px] max-w-[95vw]">
             {/* Header Section */}
-            <div className="flex items-start gap-6 pb-6 border-b">
+            <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 pb-6 border-b">
               <div className="flex-shrink-0 bg-muted rounded-full p-4">
                 <Icon icon="vaadin:user-card" className="text-foreground" style={{ width: '64px', height: '64px' }} />
               </div>
@@ -372,7 +386,7 @@ export default function UsersTab(): JSX.Element {
             </div>
 
             {/* Details Grid */}
-            <div className="grid grid-cols-2 gap-x-8 gap-y-4 py-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 sm:gap-x-8 gap-y-4 py-6">
               {/* Email Verification Status */}
               <div className="space-y-1">
                 <label className="text-sm font-medium text-muted-foreground">E-Mail Status</label>
@@ -427,7 +441,7 @@ export default function UsersTab(): JSX.Element {
 
               {/* Address */}
               {(selectedUser.street || selectedUser.city || selectedUser.postalCode) && (
-                <div className="space-y-1 col-span-2">
+                <div className="space-y-1 sm:col-span-2">
                   <label className="text-sm font-medium text-muted-foreground">Adresse</label>
                   <div className="flex items-start gap-2">
                     <Icon icon="vaadin:home" className="text-foreground mt-0.5" style={{ width: '20px', height: '20px' }} />
@@ -484,12 +498,12 @@ export default function UsersTab(): JSX.Element {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex justify-end gap-3 pt-6 border-t mt-6">
-              <Button variant="destructive" onClick={handleCloseModal} className="text-white">
+            <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t mt-6">
+              <Button variant="destructive" onClick={handleCloseModal} className="text-white w-full sm:w-auto">
                 <Icon icon="vaadin:close" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
                 Schließen
               </Button>
-              <Button variant="outline" onClick={() => handleEditClick(selectedUser)} className="text-white bg-black hover:bg-gray-800">
+              <Button variant="outline" onClick={() => handleEditClick(selectedUser)} className="text-white bg-black hover:bg-gray-800 w-full sm:w-auto">
                 <Icon icon="vaadin:edit" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
                 Bearbeiten
               </Button>
@@ -546,12 +560,12 @@ export default function UsersTab(): JSX.Element {
         headerTitle="Benutzer bearbeiten"
       >
         {userToEdit && (
-          <div className="p-6 min-w-[700px] max-h-[80vh] overflow-y-auto">
+          <div className="p-4 sm:p-6 min-w-[300px] sm:min-w-[600px] lg:min-w-[700px] max-w-[95vw] max-h-[90vh] overflow-y-auto">
             <div className="space-y-6">
               {/* Basic Information */}
               <div>
                 <h3 className="text-sm font-semibold mb-3 text-muted-foreground">Grundinformationen</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Name *</label>
                     <input
@@ -579,7 +593,7 @@ export default function UsersTab(): JSX.Element {
               {/* Personal Information */}
               <div>
                 <h3 className="text-sm font-semibold mb-3 text-muted-foreground">Persönliche Daten</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Anrede</label>
                     <Select
@@ -660,7 +674,7 @@ export default function UsersTab(): JSX.Element {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Postleitzahl</label>
                       <input
@@ -685,12 +699,12 @@ export default function UsersTab(): JSX.Element {
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-6 border-t mt-6">
-              <Button variant="destructive" onClick={handleCloseEditModal} className="text-white">
+            <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t mt-6">
+              <Button variant="destructive" onClick={handleCloseEditModal} className="text-white w-full sm:w-auto">
                 <Icon icon="vaadin:close" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
                 Abbrechen
               </Button>
-              <Button variant="outline" onClick={handleSaveEdit} className="text-white bg-black hover:bg-gray-800">
+              <Button variant="outline" onClick={handleSaveEdit} className="text-white bg-black hover:bg-gray-800 w-full sm:w-auto">
                 <Icon icon="vaadin:check" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
                 Speichern
               </Button>

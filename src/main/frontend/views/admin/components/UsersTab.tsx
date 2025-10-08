@@ -287,7 +287,7 @@ export default function UsersTab(): JSX.Element {
       )}
 
       {/* Users grid */}
-      <div className="bg-white rounded-lg p-4">
+      <div className="bg-white rounded-lg p-4 w-full">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
@@ -307,19 +307,19 @@ export default function UsersTab(): JSX.Element {
         ) : (
           <Grid
             items={filteredUsers}
-            className="cursor-pointer"
+            className="cursor-pointer w-full"
           >
-            <GridColumn path="name" header="Name" autoWidth />
-            <GridColumn path="email" header="E-Mail" autoWidth />
+            <GridColumn path="name" header="Name" flexGrow={1} />
+            <GridColumn path="email" header="E-Mail" flexGrow={1} />
             <GridColumn
               path="createdAt"
               header="Erstellt am"
-              autoWidth
+              flexGrow={1}
               renderer={({ item }: any) => formatDate(item.createdAt)}
             />
             <GridColumn
               header="Aktionen"
-              autoWidth
+              width="80px"
               renderer={({ item }: any) => (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -327,7 +327,7 @@ export default function UsersTab(): JSX.Element {
                       onClick={(e) => e.stopPropagation()}
                       className="p-1 hover:bg-muted rounded"
                     >
-                      <Icon icon="vaadin:ellipsis-dots-v" style={{ width: '20px', height: '20px' }} />
+                      <Icon icon="vaadin:ellipsis-dots-v" style={{ width: '16px', height: '16px' }} />
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">

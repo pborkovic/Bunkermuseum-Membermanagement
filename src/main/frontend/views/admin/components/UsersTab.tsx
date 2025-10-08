@@ -337,7 +337,7 @@ export default function UsersTab(): JSX.Element {
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleUserClick(item)} className="text-foreground">
+                    <DropdownMenuItem onClick={() => handleUserClick(item)} className="text-black">
                       <Icon icon="vaadin:eye" className="mr-2" style={{ width: '16px', height: '16px' }} />
                       View Details
                     </DropdownMenuItem>

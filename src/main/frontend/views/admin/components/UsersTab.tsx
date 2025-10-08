@@ -323,14 +323,6 @@ export default function UsersTab(): JSX.Element {
           >
             <GridColumn path="name" header="Name" flexGrow={1} />
             {!isMobile && <GridColumn path="email" header="E-Mail" flexGrow={1} />}
-            {!isMobile && (
-              <GridColumn
-                path="createdAt"
-                header="Erstellt am"
-                flexGrow={1}
-                renderer={({ item }: any) => formatDate(item.createdAt)}
-              />
-            )}
             <GridColumn
               header="Aktionen"
               width="80px"

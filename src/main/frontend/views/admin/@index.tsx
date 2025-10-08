@@ -51,58 +51,58 @@ export default function AdminDashboard(): JSX.Element {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="h-screen bg-white flex flex-col overflow-hidden">
       {/* Navbar */}
-      <nav className="w-full border-b bg-white sticky top-0 z-10">
-        <div className="flex items-center justify-between px-6 py-4">
+      <nav className="w-full border-b bg-white z-10 flex-shrink-0">
+        <div className="flex flex-col px-3 py-2 gap-2 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4 sm:gap-0">
           {/* Logo/Title */}
-          <div className="flex items-center gap-3">
-            <Icon icon="vaadin:dashboard" style={{ width: '32px', height: '32px' }} />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Icon icon="vaadin:dashboard" style={{ width: '24px', height: '24px' }} className="sm:w-8 sm:h-8" />
             <div>
-              <h1 className="text-xl font-semibold text-black">Bunkermuseum Membermanagement</h1>
-              <p className="text-sm text-gray-600">Wurzenpass Kärnten</p>
+              <h1 className="text-sm sm:text-xl font-semibold text-black">Bunkermuseum Membermanagement</h1>
+              <p className="text-xs sm:text-sm text-gray-600">Wurzenpass Kärnten</p>
             </div>
           </div>
 
           {/* Navigation Links */}
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-2 sm:gap-8 overflow-x-auto">
             <button
               onClick={() => setSelectedTab(0)}
-              className={`flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors ${
+              className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
                 selectedTab === 0
                   ? 'text-black border-b-2 border-black'
                   : 'text-gray-600 hover:text-black'
               }`}
             >
-              <Icon icon="vaadin:users" style={{ width: '18px', height: '18px' }} />
-              Benutzer
+              <Icon icon="vaadin:users" style={{ width: '16px', height: '16px' }} />
+              Mitglieder
             </button>
             <button
               onClick={() => setSelectedTab(1)}
-              className={`flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors ${
+              className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
                 selectedTab === 1
                   ? 'text-black border-b-2 border-black'
                   : 'text-gray-600 hover:text-black'
               }`}
             >
-              <Icon icon="vaadin:invoice" style={{ width: '18px', height: '18px' }} />
+              <Icon icon="vaadin:invoice" style={{ width: '16px', height: '16px' }} />
               Buchungen
             </button>
             <button
               onClick={() => setSelectedTab(2)}
-              className={`flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors ${
+              className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
                 selectedTab === 2
                   ? 'text-black border-b-2 border-black'
                   : 'text-gray-600 hover:text-black'
               }`}
             >
-              <Icon icon="vaadin:cog" style={{ width: '18px', height: '18px' }} />
+              <Icon icon="vaadin:cog" style={{ width: '16px', height: '16px' }} />
               Einstellungen
             </button>
           </div>
 
           {/* Right side - User Info */}
-          <div className="flex items-center gap-3">
+          <div className="hidden sm:flex items-center gap-3">
             <div className="text-right">
               <p className="text-sm font-medium text-black">{currentUser?.name || 'Loading...'}</p>
               <p className="text-xs text-gray-600">{currentUser?.email || ''}</p>
@@ -115,7 +115,7 @@ export default function AdminDashboard(): JSX.Element {
       </nav>
 
       {/* Main Content */}
-      <main className="w-full px-6 py-6">
+      <main className="flex-1 w-full px-6 py-6 overflow-hidden">
         {selectedTab === 0 && <UsersTab />}
         {selectedTab === 1 && <BookingsTab />}
         {selectedTab === 2 && <SettingsTab />}

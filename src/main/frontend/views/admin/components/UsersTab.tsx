@@ -64,6 +64,7 @@ export default function UsersTab(): JSX.Element {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   /**
    * Loads all users from the backend on component mount.
@@ -243,14 +244,39 @@ export default function UsersTab(): JSX.Element {
     return new Date(dateString).toLocaleDateString('de-DE');
   };
 
+  // Filter users based on search query
+  const filteredUsers = users.filter(user =>
+    user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.phone?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="mb-4">
-        <h2 className="text-xl font-semibold">Mitgliederverwaltung</h2>
-        <p className="text-sm text-muted-foreground">
-          Übersicht aller registrierten Mitglieder
-        </p>
+      {/* Header with Search */}
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="text-xl font-semibold">Mitgliederverwaltung</h2>
+          <p className="text-sm text-muted-foreground">
+            Übersicht aller registrierten Mitglieder
+          </p>
+        </div>
+
+        {/* Search Bar */}
+        <div className="relative w-80">
+          <Icon
+            icon="vaadin:search"
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+            style={{ width: '16px', height: '16px' }}
+          />
+          <input
+            type="text"
+            placeholder="Suche..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-3 py-1.5 text-sm text-black border rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2"
+          />
+        </div>
       </div>
 
       {/* Error message */}
@@ -269,16 +295,18 @@ export default function UsersTab(): JSX.Element {
               <p className="text-sm text-muted-foreground">Lädt Benutzer...</p>
             </div>
           </div>
-        ) : users.length === 0 ? (
+        ) : filteredUsers.length === 0 ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
               <Icon icon="vaadin:users" className="text-muted-foreground mb-2" style={{ width: '48px', height: '48px' }} />
-              <p className="text-sm text-muted-foreground">Keine Benutzer gefunden</p>
+              <p className="text-sm text-muted-foreground">
+                {searchQuery ? 'Keine Mitglieder gefunden' : 'Keine Benutzer gefunden'}
+              </p>
             </div>
           </div>
         ) : (
           <Grid
-            items={users}
+            items={filteredUsers}
             className="cursor-pointer"
           >
             <GridColumn path="name" header="Name" autoWidth />

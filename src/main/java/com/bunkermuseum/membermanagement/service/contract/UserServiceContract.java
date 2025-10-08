@@ -212,4 +212,22 @@ public interface UserServiceContract {
      * @author Philipp Borkovic
      */
     User updateProfile(UUID userId, @Nullable String name, @Nullable String email);
+
+    /**
+     * Updates comprehensive user information.
+     *
+     * <p>This method allows updating all user profile fields including personal information,
+     * contact details, and address information. It validates the input and ensures data integrity.</p>
+     *
+     * @param userId The ID of the user to update
+     * @param userData User object containing the fields to update
+     *
+     * @return The updated User object
+     *
+     * @throws IllegalArgumentException if userId is null or user not found
+     * @throws RuntimeException if update fails
+     *
+     * @author Philipp Borkovic
+     */
+    User updateUser(UUID userId, User userData);
 }

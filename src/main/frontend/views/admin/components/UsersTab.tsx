@@ -11,8 +11,21 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DatePicker } from '@/components/ui/date-picker';
 import { UserController } from 'Frontend/generated/endpoints';
 import type User from 'Frontend/generated/com/bunkermuseum/membermanagement/model/User';
+
+/**
+ * Gender options for the Anrede (salutation) field.
+ *
+ * @author Philipp Borkovic
+ */
+const ANREDE_OPTIONS = [
+  { value: 'männlich', label: 'Männlich' },
+  { value: 'weiblich', label: 'Weiblich' },
+  { value: 'divers', label: 'Divers' },
+] as const;
 
 /**
  * UsersTab component - Displays all users in a grid with detailed modal view.
@@ -34,7 +47,21 @@ export default function UsersTab(): JSX.Element {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [userToEdit, setUserToEdit] = useState<User | null>(null);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    email: '',
+    salutation: '',
+    academicTitle: '',
+    rank: '',
+    birthday: undefined as Date | undefined,
+    phone: '',
+    street: '',
+    city: '',
+    postalCode: ''
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -122,6 +149,84 @@ export default function UsersTab(): JSX.Element {
       loadUsers(); // Reload users after deletion
     } catch (err: any) {
       setError(err.message || 'Fehler beim Löschen des Benutzers');
+    }
+  };
+
+  /**
+   * Opens the edit modal for a specific user.
+   *
+   * @param {User} user - The user to edit
+   *
+   * @author Philipp Borkovic
+   */
+  const handleEditClick = (user: User): void => {
+    setUserToEdit(user);
+    setEditForm({
+      name: user.name || '',
+      email: user.email || '',
+      salutation: user.salutation || '',
+      academicTitle: user.academicTitle || '',
+      rank: user.rank || '',
+      birthday: user.birthday ? new Date(user.birthday) : undefined,
+      phone: user.phone || '',
+      street: user.street || '',
+      city: user.city || '',
+      postalCode: user.postalCode || ''
+    });
+    setIsEditModalOpen(true);
+    setIsModalOpen(false); // Close details modal
+  };
+
+  /**
+   * Closes the edit modal.
+   *
+   * @author Philipp Borkovic
+   */
+  const handleCloseEditModal = (): void => {
+    setIsEditModalOpen(false);
+    setUserToEdit(null);
+    setEditForm({
+      name: '',
+      email: '',
+      salutation: '',
+      academicTitle: '',
+      rank: '',
+      birthday: undefined,
+      phone: '',
+      street: '',
+      city: '',
+      postalCode: ''
+    });
+  };
+
+  /**
+   * Saves the edited user information.
+   *
+   * @author Philipp Borkovic
+   */
+  const handleSaveEdit = async (): Promise<void> => {
+    if (!userToEdit) return;
+
+    try {
+      const updatedUser: User = {
+        ...userToEdit,
+        name: editForm.name,
+        email: editForm.email,
+        salutation: editForm.salutation || undefined,
+        academicTitle: editForm.academicTitle || undefined,
+        rank: editForm.rank || undefined,
+        birthday: editForm.birthday ? editForm.birthday.toISOString().split('T')[0] : undefined,
+        phone: editForm.phone || undefined,
+        street: editForm.street || undefined,
+        city: editForm.city || undefined,
+        postalCode: editForm.postalCode || undefined
+      };
+
+      await UserController.updateUser(userToEdit.id!, updatedUser);
+      handleCloseEditModal();
+      loadUsers(); // Reload users after update
+    } catch (err: any) {
+      setError(err.message || 'Fehler beim Aktualisieren des Benutzers');
     }
   };
 
@@ -352,12 +457,12 @@ export default function UsersTab(): JSX.Element {
 
             {/* Action Buttons */}
             <div className="flex justify-end gap-3 pt-6 border-t mt-6">
-              <Button variant="outline" onClick={handleCloseModal}>Schließen</Button>
-              <Button variant="default" onClick={() => {
-                // TODO: Edit functionality
-                console.log('Edit user:', selectedUser.id);
-              }}>
-                <Icon icon="vaadin:edit" className="mr-2" style={{ width: '16px', height: '16px' }} />
+              <Button variant="destructive" onClick={handleCloseModal} className="text-white">
+                <Icon icon="vaadin:close" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+                Schließen
+              </Button>
+              <Button variant="outline" onClick={() => handleEditClick(selectedUser)} className="text-white bg-black hover:bg-gray-800">
+                <Icon icon="vaadin:edit" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
                 Bearbeiten
               </Button>
             </div>
@@ -398,6 +503,168 @@ export default function UsersTab(): JSX.Element {
               </Button>
               <Button variant="destructive" onClick={handleConfirmDelete}>
                 Löschen
+              </Button>
+            </div>
+          </div>
+        )}
+      </Dialog>
+
+      {/* Edit user modal */}
+      <Dialog
+        opened={isEditModalOpen}
+        onOpenedChanged={(e: any) => {
+          if (!e.detail.value) handleCloseEditModal();
+        }}
+        headerTitle="Benutzer bearbeiten"
+      >
+        {userToEdit && (
+          <div className="p-6 min-w-[700px] max-h-[80vh] overflow-y-auto">
+            <div className="space-y-6">
+              {/* Basic Information */}
+              <div>
+                <h3 className="text-sm font-semibold mb-3 text-muted-foreground">Grundinformationen</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Name *</label>
+                    <input
+                      type="text"
+                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2"
+                      value={editForm.name}
+                      onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">E-Mail *</label>
+                    <input
+                      type="email"
+                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2"
+                      value={editForm.email}
+                      onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Personal Information */}
+              <div>
+                <h3 className="text-sm font-semibold mb-3 text-muted-foreground">Persönliche Daten</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Anrede</label>
+                    <Select
+                      value={editForm.salutation}
+                      onValueChange={(value) => setEditForm({ ...editForm, salutation: value })}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Wählen" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ANREDE_OPTIONS.map(option => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Akademischer Titel</label>
+                    <input
+                      type="text"
+                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2"
+                      value={editForm.academicTitle}
+                      onChange={(e) => setEditForm({ ...editForm, academicTitle: e.target.value })}
+                      placeholder="z.B. Dr., Prof."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Rang</label>
+                    <input
+                      type="text"
+                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2"
+                      value={editForm.rank}
+                      onChange={(e) => setEditForm({ ...editForm, rank: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Geburtsdatum</label>
+                    <DatePicker
+                      value={editForm.birthday}
+                      onChange={(date) => setEditForm({ ...editForm, birthday: date })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact Information */}
+              <div>
+                <h3 className="text-sm font-semibold mb-3 text-muted-foreground">Kontaktdaten</h3>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Telefon</label>
+                    <input
+                      type="tel"
+                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2"
+                      value={editForm.phone}
+                      onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Address Information */}
+              <div>
+                <h3 className="text-sm font-semibold mb-3 text-muted-foreground">Adresse</h3>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Straße & Hausnummer</label>
+                    <input
+                      type="text"
+                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2"
+                      value={editForm.street}
+                      onChange={(e) => setEditForm({ ...editForm, street: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Postleitzahl</label>
+                      <input
+                        type="text"
+                        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2"
+                        value={editForm.postalCode}
+                        onChange={(e) => setEditForm({ ...editForm, postalCode: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Stadt</label>
+                      <input
+                        type="text"
+                        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2"
+                        value={editForm.city}
+                        onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-6 border-t mt-6">
+              <Button variant="destructive" onClick={handleCloseEditModal} className="text-white">
+                <Icon icon="vaadin:close" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+                Abbrechen
+              </Button>
+              <Button variant="outline" onClick={handleSaveEdit} className="text-white bg-black hover:bg-gray-800">
+                <Icon icon="vaadin:check" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+                Speichern
               </Button>
             </div>
           </div>

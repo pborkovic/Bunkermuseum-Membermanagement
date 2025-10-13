@@ -62,6 +62,7 @@ export default function UsersTab(): JSX.Element {
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
   const [usersPerPage, setUsersPerPage] = useState(10);
+  const [statusFilter, setStatusFilter] = useState('active');
 
   // Detect mobile screen size
   useEffect(() => {
@@ -79,7 +80,7 @@ export default function UsersTab(): JSX.Element {
    */
   useEffect(() => {
     loadUsers();
-  }, [currentPage, searchQuery, usersPerPage]);
+  }, [currentPage, searchQuery, usersPerPage, statusFilter]);
 
   /**
    * Fetches paginated users from the UserController.
@@ -94,7 +95,8 @@ export default function UsersTab(): JSX.Element {
       const pageResponse = await (UserController as any).getUsersPage(
         currentPage - 1,
         usersPerPage,
-        searchQuery || null
+        searchQuery || null,
+        statusFilter
       );
       setUsers((pageResponse.content || []).filter((user: any): user is User => user !== undefined && user !== null));
       setTotalPages(pageResponse.totalPages || 0);
@@ -281,8 +283,29 @@ export default function UsersTab(): JSX.Element {
           </p>
         </div>
 
-        {/* Search Bar and Page Size Controls */}
+        {/* Search Bar and Controls */}
         <div className="flex flex-col sm:flex-row gap-3 sm:ml-auto">
+          {/* Status Filter */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-600 whitespace-nowrap">Status:</label>
+            <Select
+              value={statusFilter}
+              onValueChange={(value) => {
+                setStatusFilter(value);
+                setCurrentPage(1); // Reset to first page when changing filter
+              }}
+            >
+              <SelectTrigger className="w-[180px] h-9 border-black text-black [&_svg]:text-black [&_svg]:opacity-100 [&_svg]:-mt-4">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-white border-black">
+                <SelectItem value="active" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">Aktives Mitglied</SelectItem>
+                <SelectItem value="deleted" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">Inaktives Mitglied</SelectItem>
+                <SelectItem value="all" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">Alle Mitglieder</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Page Size Selector */}
           <div className="flex items-center gap-2">
             <label className="text-sm text-gray-600 whitespace-nowrap">Zeilen:</label>
@@ -297,11 +320,11 @@ export default function UsersTab(): JSX.Element {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-white border-black">
-                <SelectItem value="5" className="text-black hover:bg-gray-100 focus:bg-gray-100">5</SelectItem>
-                <SelectItem value="10" className="text-black hover:bg-gray-100 focus:bg-gray-100">10</SelectItem>
-                <SelectItem value="25" className="text-black hover:bg-gray-100 focus:bg-gray-100">25</SelectItem>
-                <SelectItem value="50" className="text-black hover:bg-gray-100 focus:bg-gray-100">50</SelectItem>
-                <SelectItem value="100" className="text-black hover:bg-gray-100 focus:bg-gray-100">100</SelectItem>
+                <SelectItem value="5" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">5</SelectItem>
+                <SelectItem value="10" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">10</SelectItem>
+                <SelectItem value="25" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">25</SelectItem>
+                <SelectItem value="50" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">50</SelectItem>
+                <SelectItem value="100" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">100</SelectItem>
               </SelectContent>
             </Select>
           </div>

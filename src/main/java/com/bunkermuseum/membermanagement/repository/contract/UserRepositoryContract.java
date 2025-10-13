@@ -2,6 +2,8 @@ package com.bunkermuseum.membermanagement.repository.contract;
 
 import com.bunkermuseum.membermanagement.model.User;
 import com.bunkermuseum.membermanagement.repository.base.contract.BaseRepositoryContract;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
 
@@ -34,4 +36,17 @@ public interface UserRepositoryContract extends BaseRepositoryContract<User> {
      * @author Philipp Borkovic
      */
     Optional<User> findByEmail(String email);
+
+    /**
+     * Finds users with pagination and optional search filtering.
+     *
+     * <p>This method provides efficient paginated access to users with case-insensitive
+     * search functionality across name, email, and phone fields.</p>
+     *
+     * @param searchQuery Optional search term to filter users (null for all users)
+     * @param pageable Pagination parameters (page number, size, sort)
+     *
+     * @return Page of users matching the search criteria
+     */
+    Page<User> findBySearchQuery(String searchQuery, Pageable pageable);
 }

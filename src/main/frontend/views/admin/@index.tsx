@@ -17,6 +17,7 @@ export const config: ViewConfig = {
   menu: { title: 'Admin Dashboard', icon: 'vaadin:dashboard' },
   route: 'admin',
   loginRequired: false,
+  flowLayout: false,
 };
 
 /**

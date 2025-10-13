@@ -223,6 +223,36 @@ public interface UserServiceContract {
     Page<User> getUsersPage(Pageable pageable, @Nullable String searchQuery);
 
     /**
+     * Retrieves users with pagination, optional search filtering, and status filter.
+     *
+     * <p>This method provides efficient paginated access to users with optional
+     * search functionality and the ability to filter by user status (active/deleted/all).
+     * It's designed for administrative interfaces where displaying all users at once
+     * would be impractical.</p>
+     *
+     * <h3>Features:</h3>
+     * <ul>
+     *   <li>Server-side pagination for better performance</li>
+     *   <li>Optional search across name, email, and phone fields</li>
+     *   <li>Status filter: active, deleted, or all users</li>
+     *   <li>Configurable page size</li>
+     *   <li>Sorted results</li>
+     * </ul>
+     *
+     * @param pageable Pagination parameters (page number, size, sort)
+     * @param searchQuery Optional search term to filter users (searches name, email, phone)
+     * @param status Filter status: "active", "deleted", or "all"
+     *
+     * @return Page of users matching the criteria
+     *
+     * @throws IllegalArgumentException if status is invalid
+     * @throws RuntimeException if retrieval fails
+     *
+     * @author Philipp Borkovic
+     */
+    Page<User> getUsersPageWithStatus(Pageable pageable, @Nullable String searchQuery, String status);
+
+    /**
      * Updates a user's profile information.
      *
      * <p>This method allows updating user profile fields such as name and email.

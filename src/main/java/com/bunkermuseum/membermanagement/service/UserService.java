@@ -596,6 +596,49 @@ public class UserService extends BaseService<User, UserRepositoryContract>
      * @author Philipp Borkovic
      */
     @Override
+    public Page<User> getUsersPageWithStatus(Pageable pageable, @Nullable String searchQuery, String status) {
+        if (pageable == null) {
+            throw new IllegalArgumentException("Pageable must not be null");
+        }
+        if (status == null || status.isBlank()) {
+            throw new IllegalArgumentException("Status must not be null or blank");
+        }
+
+        try {
+            logger.debug("Fetching users page: page={}, size={}, searchQuery='{}', status='{}'",
+                pageable.getPageNumber(), pageable.getPageSize(), searchQuery, status);
+
+            Page<User> result = repository.findBySearchQueryAndStatus(searchQuery, status, pageable);
+
+            if (result == null) {
+                logger.error("Repository returned null for getUsersPageWithStatus");
+
+                throw new RuntimeException("Failed to retrieve users: null result from repository");
+            }
+
+            logger.debug("Successfully retrieved {} users out of {} total (status: {})",
+                result.getNumberOfElements(), result.getTotalElements(), status);
+
+            return result;
+        } catch (IllegalArgumentException exception) {
+            logger.error("Invalid arguments for getUsersPageWithStatus: pageable={}, searchQuery='{}', status='{}'",
+                pageable, searchQuery, status, exception);
+
+            throw exception;
+        } catch (Exception exception) {
+            logger.error("Error retrieving users page: page={}, size={}, searchQuery='{}', status='{}'",
+                pageable.getPageNumber(), pageable.getPageSize(), searchQuery, status, exception);
+
+            throw new RuntimeException("Failed to retrieve users", exception);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @author Philipp Borkovic
+     */
+    @Override
     @Transactional
     public User updateProfile(UUID userId, @Nullable String name, @Nullable String email) {
         if (userId == null) {

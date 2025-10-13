@@ -49,4 +49,19 @@ public interface UserRepositoryContract extends BaseRepositoryContract<User> {
      * @return Page of users matching the search criteria
      */
     Page<User> findBySearchQuery(String searchQuery, Pageable pageable);
+
+    /**
+     * Finds users with pagination, optional search filtering, and status filter.
+     *
+     * <p>This method provides efficient paginated access to users with case-insensitive
+     * search functionality across name, email, and phone fields. The status parameter
+     * allows filtering between active users, deleted users, or all users.</p>
+     *
+     * @param searchQuery Optional search term to filter users (null for all users)
+     * @param status Filter status: "active", "deleted", or "all"
+     * @param pageable Pagination parameters (page number, size, sort)
+     *
+     * @return Page of users matching the search criteria and status filter
+     */
+    Page<User> findBySearchQueryAndStatus(String searchQuery, String status, Pageable pageable);
 }

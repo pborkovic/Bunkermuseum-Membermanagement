@@ -1,20 +1,12 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Grid } from '@vaadin/react-components/Grid';
-import { GridColumn } from '@vaadin/react-components/GridColumn';
+import { useState, useEffect } from 'react';
 import { Dialog } from '@vaadin/react-components/Dialog';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Icon } from '@vaadin/react-components';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
 import { UserController } from 'Frontend/generated/endpoints';
 import type User from 'Frontend/generated/com/bunkermuseum/membermanagement/model/User';
+import UsersList from './_UsersList';
 
 /**
  * Gender options for the Anrede (salutation) field.
@@ -66,6 +58,10 @@ export default function UsersTab(): JSX.Element {
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobile, setIsMobile] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const [usersPerPage, setUsersPerPage] = useState(10);
 
   // Detect mobile screen size
   useEffect(() => {
@@ -79,14 +75,14 @@ export default function UsersTab(): JSX.Element {
   }, []);
 
   /**
-   * Loads all users from the backend on component mount.
+   * Loads users from the backend with pagination.
    */
   useEffect(() => {
     loadUsers();
-  }, []);
+  }, [currentPage, searchQuery, usersPerPage]);
 
   /**
-   * Fetches all users from the UserController.
+   * Fetches paginated users from the UserController.
    *
    * @author Philipp Borkovic
    */
@@ -94,8 +90,15 @@ export default function UsersTab(): JSX.Element {
     try {
       setIsLoading(true);
       setError('');
-      const allUsers = await UserController.getAllUsers();
-      setUsers((allUsers || []).filter((user): user is User => user !== undefined));
+      // Server uses 0-indexed pages, UI uses 1-indexed
+      const pageResponse = await (UserController as any).getUsersPage(
+        currentPage - 1,
+        usersPerPage,
+        searchQuery || null
+      );
+      setUsers((pageResponse.content || []).filter((user: any): user is User => user !== undefined && user !== null));
+      setTotalPages(pageResponse.totalPages || 0);
+      setTotalElements(pageResponse.totalElements || 0);
     } catch (err: any) {
       setError(err.message || 'Fehler beim Laden der Benutzer');
     } finally {
@@ -256,38 +259,68 @@ export default function UsersTab(): JSX.Element {
     return new Date(dateString).toLocaleDateString('de-DE');
   };
 
-  // Filter users based on search query
-  const filteredUsers = users.filter(user =>
-    user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.phone?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  /**
+   * Handles page navigation with bounds checking.
+   *
+   * @param {number} page - The page number to navigate to
+   *
+   * @author Philipp Borkovic
+   */
+  const handlePageChange = (page: number): void => {
+    setCurrentPage(Math.min(Math.max(1, page), totalPages));
+  };
 
   return (
     <div className="flex flex-col h-full space-y-4">
-      {/* Header with Search */}
-      <div className="flex-shrink-0 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+      {/* Header with Search and Controls */}
+      <div className="flex-shrink-0 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold">Mitgliederverwaltung</h2>
-          <p className="text-sm text-muted-foreground">
+          <h2 className="text-2xl font-bold text-black">Mitgliederverwaltung</h2>
+          <p className="text-sm text-gray-600 mt-1">
             Übersicht aller registrierten Mitglieder
           </p>
         </div>
 
-        {/* Search Bar */}
-        <div className="relative w-full sm:w-56 sm:ml-auto">
-          <Icon
-            icon="vaadin:search"
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-            style={{ width: '16px', height: '16px' }}
-          />
-          <input
-            type="text"
-            placeholder="Suche..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 text-sm text-black border rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2"
-          />
+        {/* Search Bar and Page Size Controls */}
+        <div className="flex flex-col sm:flex-row gap-3 sm:ml-auto">
+          {/* Page Size Selector */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-600 whitespace-nowrap">Zeilen:</label>
+            <Select
+              value={usersPerPage.toString()}
+              onValueChange={(value) => {
+                setUsersPerPage(parseInt(value));
+                setCurrentPage(1); // Reset to first page when changing size
+              }}
+            >
+              <SelectTrigger className="w-[90px] h-9 border-black text-black [&_svg]:text-black [&_svg]:opacity-100 [&_svg]:-mt-4">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-white border-black">
+                <SelectItem value="5" className="text-black hover:bg-gray-100 focus:bg-gray-100">5</SelectItem>
+                <SelectItem value="10" className="text-black hover:bg-gray-100 focus:bg-gray-100">10</SelectItem>
+                <SelectItem value="25" className="text-black hover:bg-gray-100 focus:bg-gray-100">25</SelectItem>
+                <SelectItem value="50" className="text-black hover:bg-gray-100 focus:bg-gray-100">50</SelectItem>
+                <SelectItem value="100" className="text-black hover:bg-gray-100 focus:bg-gray-100">100</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Search Bar */}
+          <div className="relative w-full sm:w-48">
+            <Icon
+              icon="vaadin:search"
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              style={{ width: '18px', height: '18px' }}
+            />
+            <input
+              type="text"
+              placeholder="Suchen..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 text-sm text-black border border-black rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1 placeholder:text-gray-400"
+            />
+          </div>
         </div>
       </div>
 
@@ -298,62 +331,21 @@ export default function UsersTab(): JSX.Element {
         </div>
       )}
 
-      {/* Users grid */}
-      <div className="bg-white rounded-lg p-2 sm:p-4 w-full overflow-auto flex-1 min-h-0">
-        {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <Icon icon="vaadin:spinner" className="animate-spin text-primary mb-2" style={{ width: '32px', height: '32px' }} />
-              <p className="text-sm text-muted-foreground">Lädt Benutzer...</p>
-            </div>
-          </div>
-        ) : filteredUsers.length === 0 ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <Icon icon="vaadin:users" className="text-muted-foreground mb-2" style={{ width: '48px', height: '48px' }} />
-              <p className="text-sm text-muted-foreground">
-                {searchQuery ? 'Keine Mitglieder gefunden' : 'Keine Benutzer gefunden'}
-              </p>
-            </div>
-          </div>
-        ) : (
-          <Grid
-            items={filteredUsers}
-            className="cursor-pointer w-full"
-          >
-            <GridColumn path="name" header="Name" flexGrow={1} />
-            {!isMobile && <GridColumn path="email" header="E-Mail" flexGrow={1} />}
-            <GridColumn
-              header="Aktionen"
-              width="80px"
-              renderer={({ item }: any) => (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      onClick={(e) => e.stopPropagation()}
-                      className="p-1 hover:bg-muted rounded"
-                    >
-                      <Icon icon="vaadin:ellipsis-dots-v" style={{ width: '16px', height: '16px' }} />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleUserClick(item)} className="text-black hover:bg-gray-200 focus:bg-gray-200">
-                      <Icon icon="vaadin:eye" className="mr-2" style={{ width: '16px', height: '16px' }} />
-                      View Details
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => handleDeleteClick(item)}
-                      className="text-destructive hover:bg-gray-200 focus:bg-gray-200 focus:text-destructive"
-                    >
-                      <Icon icon="vaadin:trash" className="mr-2" style={{ width: '16px', height: '16px' }} />
-                      Delete Account
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            />
-          </Grid>
-        )}
+      {/* Users List with Pagination */}
+      <div className="bg-white rounded-lg p-4 sm:p-6 w-full flex-shrink-0">
+        <UsersList
+          users={users}
+          isLoading={isLoading}
+          searchQuery={searchQuery}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalElements={totalElements}
+          usersPerPage={usersPerPage}
+          isMobile={isMobile}
+          onUserClick={handleUserClick}
+          onDeleteClick={handleDeleteClick}
+          onPageChange={handlePageChange}
+        />
       </div>
 
       {/* User details modal */}
@@ -397,15 +389,6 @@ export default function UsersTab(): JSX.Element {
                       <div className="text-sm font-medium">Nicht verifiziert</div>
                     </>
                   )}
-                </div>
-              </div>
-
-              {/* Account Created */}
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-muted-foreground">Konto erstellt</label>
-                <div className="flex items-center gap-2">
-                  <Icon icon="vaadin:calendar" className="text-foreground" style={{ width: '20px', height: '20px' }} />
-                  <div className="text-sm font-medium">{formatDate(selectedUser.createdAt)}</div>
                 </div>
               </div>
 
@@ -479,14 +462,6 @@ export default function UsersTab(): JSX.Element {
                   </div>
                 </div>
               )}
-            </div>
-
-            {/* Last Updated */}
-            <div className="pt-4 border-t">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Icon icon="vaadin:clock" style={{ width: '16px', height: '16px' }} />
-                <span>Zuletzt aktualisiert: {formatDate(selectedUser.updatedAt)}</span>
-              </div>
             </div>
 
             {/* Action Buttons */}

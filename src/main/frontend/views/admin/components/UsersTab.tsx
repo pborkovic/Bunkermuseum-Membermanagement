@@ -337,13 +337,13 @@ export default function UsersTab(): JSX.Element {
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleUserClick(item)} className="text-black">
+                    <DropdownMenuItem onClick={() => handleUserClick(item)} className="text-black hover:bg-gray-200 focus:bg-gray-200">
                       <Icon icon="vaadin:eye" className="mr-2" style={{ width: '16px', height: '16px' }} />
                       View Details
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => handleDeleteClick(item)}
-                      className="text-destructive focus:text-destructive"
+                      className="text-destructive hover:bg-gray-200 focus:bg-gray-200 focus:text-destructive"
                     >
                       <Icon icon="vaadin:trash" className="mr-2" style={{ width: '16px', height: '16px' }} />
                       Delete Account

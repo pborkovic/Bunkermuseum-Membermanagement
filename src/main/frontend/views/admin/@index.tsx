@@ -7,6 +7,7 @@ import type User from 'Frontend/generated/com/bunkermuseum/membermanagement/mode
 import UsersTab from './components/UsersTab';
 import BookingsTab from './components/BookingsTab';
 import SettingsTab from './components/SettingsTab';
+import logo from 'Frontend/assets/images/logo_bunkermuseum.jpg';
 
 /**
  * Route configuration for the admin dashboard view.
@@ -57,10 +58,14 @@ export default function AdminDashboard(): JSX.Element {
         <div className="flex flex-col px-3 py-2 gap-2 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4 sm:gap-0">
           {/* Logo/Title */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <Icon icon="vaadin:dashboard" style={{ width: '24px', height: '24px' }} className="sm:w-8 sm:h-8" />
+            <img
+              src={logo}
+              alt="Bunkermuseum Logo"
+              className="h-8 sm:h-12 w-auto object-contain"
+            />
             <div>
-              <h1 className="text-sm sm:text-xl font-semibold text-black">Bunkermuseum Membermanagement</h1>
-              <p className="text-xs sm:text-sm text-gray-600">Wurzenpass Kärnten</p>
+              <h1 className="text-sm sm:text-xl font-semibold text-black">Membermanagement</h1>
+              <p className="text-xs sm:text-sm text-gray-600">Admin Dashboard</p>
             </div>
           </div>
 

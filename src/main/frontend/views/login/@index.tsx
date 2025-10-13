@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Icon } from '@vaadin/react-components';
 import { AuthController } from 'Frontend/generated/endpoints';
+import logo from 'Frontend/assets/images/logo_bunkermuseum.jpg';
 
 /**
  * Error messages for login failures
@@ -98,8 +99,11 @@ export default function LoginView(): JSX.Element {
         <div className="w-full max-w-sm space-y-6">
           {/* Logo */}
           <div className="flex flex-col items-center space-y-2 text-center">
-            <Icon icon="vaadin:cubes" className="text-primary" style={{ width: '48px', height: '48px' }} />
-            <h1 className="text-2xl font-semibold tracking-tight">Bunker Museum</h1>
+            <img
+              src={logo}
+              alt="Bunkermuseum Logo"
+              className="h-16 w-auto object-contain mb-2"
+            />
             <p className="text-sm text-muted-foreground">Melden Sie sich an</p>
           </div>
 

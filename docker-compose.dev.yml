@@ -45,11 +45,13 @@ services:
       - ./src/main/frontend/contexts:/app/src/main/frontend/contexts:delegated
       - ./src/main/frontend/hooks:/app/src/main/frontend/hooks:delegated
       - ./src/main/frontend/utils:/app/src/main/frontend/utils:delegated
+      - ./src/main/frontend/assets:/app/src/main/frontend/assets:delegated
 
       # Configuration files (allow npm to update package-lock.json)
       - ./package.json:/app/package.json
       - ./package-lock.json:/app/package-lock.json
       - ./tsconfig.json:/app/tsconfig.json:ro
+      - ./types.d.ts:/app/types.d.ts:ro
       - ./vite.config.ts:/app/vite.config.ts:ro
       - ./vite.generated.ts:/app/vite.generated.ts:ro
       - ./pom.xml:/app/pom.xml:ro

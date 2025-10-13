@@ -583,13 +583,87 @@ public class UserService extends BaseService<User, UserRepositoryContract>
 
             return updatedUser;
         } catch (IllegalArgumentException exception) {
-            logger.error("User not found or invalid data: {}", userId, exception);
+            logger.error("Invalid user data for profile update: {}", userId, exception);
 
             throw exception;
         } catch (Exception exception) {
-            logger.error("Error updating profile for user: {}", userId, exception);
+            logger.error("Failed to update user profile: {}", userId, exception);
 
-            throw new RuntimeException("Failed to update profile", exception);
+            throw new RuntimeException("Failed to update user profile", exception);
+        }
+    }
+
+    /**
+     * Updates comprehensive user information.
+     *
+     * @param userId The ID of the user to update
+     * @param userData User object containing the fields to update
+     * @return The updated User object
+     * @throws IllegalArgumentException if userId is null or user not found
+     *
+     * @author Philipp Borkovic
+     */
+    @Transactional
+    public User updateUser(UUID userId, User userData) {
+        if (userId == null) {
+            throw new IllegalArgumentException("User ID must not be null");
+        }
+        if (userData == null) {
+            throw new IllegalArgumentException("User data must not be null");
+        }
+
+        try {
+            Optional<User> optionalUser = repository.findById(userId);
+
+            if (optionalUser.isEmpty()) {
+                throw new IllegalArgumentException("User not found with ID: " + userId);
+            }
+
+            User user = optionalUser.get();
+
+            // Update basic fields
+            if (userData.getName() != null && !userData.getName().isBlank()) {
+                user.setName(userData.getName());
+            }
+            if (userData.getEmail() != null && !userData.getEmail().isBlank()) {
+                user.setEmail(userData.getEmail());
+            }
+
+            // Update profile fields
+            if (userData.getSalutation() != null) {
+                user.setSalutation(userData.getSalutation());
+            }
+            if (userData.getAcademicTitle() != null) {
+                user.setAcademicTitle(userData.getAcademicTitle());
+            }
+            if (userData.getRank() != null) {
+                user.setRank(userData.getRank());
+            }
+            if (userData.getBirthday() != null) {
+                user.setBirthday(userData.getBirthday());
+            }
+            if (userData.getPhone() != null) {
+                user.setPhone(userData.getPhone());
+            }
+
+            // Update address fields
+            if (userData.getStreet() != null) {
+                user.setStreet(userData.getStreet());
+            }
+            if (userData.getCity() != null) {
+                user.setCity(userData.getCity());
+            }
+            if (userData.getPostalCode() != null) {
+                user.setPostalCode(userData.getPostalCode());
+            }
+
+            return repository.update(userId, user);
+        } catch (IllegalArgumentException e) {
+            logger.error("Invalid user data for update: {}", userId, e);
+            throw e;
+        } catch (Exception e) {
+            logger.error("Failed to update user: {}", userId, e);
+            throw new RuntimeException("Failed to update user profile", e);
         }
     }
 

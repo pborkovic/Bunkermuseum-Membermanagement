@@ -6,6 +6,8 @@ import com.bunkermuseum.membermanagement.service.base.BaseService;
 import com.bunkermuseum.membermanagement.service.contract.UserServiceContract;
 import com.bunkermuseum.membermanagement.validation.PasswordValidator;
 import org.jspecify.annotations.Nullable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -544,6 +546,46 @@ public class UserService extends BaseService<User, UserRepositoryContract>
             return repository.findAll();
         } catch (Exception exception) {
             logger.error("Error retrieving all users", exception);
+            throw new RuntimeException("Failed to retrieve users", exception);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @author Philipp Borkovic
+     */
+    @Override
+    public Page<User> getUsersPage(Pageable pageable, @Nullable String searchQuery) {
+        if (pageable == null) {
+            throw new IllegalArgumentException("Pageable must not be null");
+        }
+
+        try {
+            logger.debug("Fetching users page: page={}, size={}, searchQuery='{}'",
+                pageable.getPageNumber(), pageable.getPageSize(), searchQuery);
+
+            Page<User> result = repository.findBySearchQuery(searchQuery, pageable);
+
+            if (result == null) {
+                logger.error("Repository returned null for getUsersPage");
+
+                throw new RuntimeException("Failed to retrieve users: null result from repository");
+            }
+
+            logger.debug("Successfully retrieved {} users out of {} total",
+                result.getNumberOfElements(), result.getTotalElements());
+
+            return result;
+        } catch (IllegalArgumentException exception) {
+            logger.error("Invalid arguments for getUsersPage: pageable={}, searchQuery='{}'",
+                pageable, searchQuery, exception);
+
+            throw exception;
+        } catch (Exception exception) {
+            logger.error("Error retrieving users page: page={}, size={}, searchQuery='{}'",
+                pageable.getPageNumber(), pageable.getPageSize(), searchQuery, exception);
+
             throw new RuntimeException("Failed to retrieve users", exception);
         }
     }

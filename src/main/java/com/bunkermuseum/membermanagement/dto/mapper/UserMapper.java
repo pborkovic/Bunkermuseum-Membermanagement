@@ -4,7 +4,6 @@ import com.bunkermuseum.membermanagement.dto.RoleDTO;
 import com.bunkermuseum.membermanagement.dto.UserDTO;
 import com.bunkermuseum.membermanagement.model.Role;
 import com.bunkermuseum.membermanagement.model.User;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;

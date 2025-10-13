@@ -106,4 +106,46 @@ public class UserRepository extends BaseRepository<User, UserJpaRepository>
             throw new RuntimeException("Failed to retrieve users from database", exception);
         }
     }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @author Philipp Borkovic
+     */
+    @Override
+    public Page<User> findBySearchQueryAndStatus(String searchQuery, String status, Pageable pageable) {
+        if (pageable == null) {
+            throw new IllegalArgumentException("Pageable must not be null");
+        }
+        if (status == null || status.isBlank()) {
+            throw new IllegalArgumentException("Status must not be null or blank");
+        }
+        if (!status.equals("active") && !status.equals("deleted") && !status.equals("all")) {
+            throw new IllegalArgumentException("Status must be 'active', 'deleted', or 'all'");
+        }
+
+        try {
+            if (searchQuery == null || searchQuery.isBlank()) {
+                logger.debug("Fetching all users with status '{}' and pagination: page={}, size={}",
+                        status, pageable.getPageNumber(), pageable.getPageSize());
+
+                return repository.findBySearchQueryAndStatus("", status, pageable);
+            } else {
+                logger.debug("Searching users with query '{}', status '{}': page={}, size={}",
+                        searchQuery, status, pageable.getPageNumber(), pageable.getPageSize());
+
+                return repository.findBySearchQueryAndStatus(searchQuery.trim(), status, pageable);
+            }
+        } catch (IllegalArgumentException exception) {
+            logger.error("Invalid arguments for user search: searchQuery='{}', status='{}', pageable={}",
+                searchQuery, status, pageable, exception);
+
+            throw exception;
+        } catch (Exception exception) {
+            logger.error("Database error while finding users with search query: '{}', status='{}', page={}, size={}",
+                searchQuery, status, pageable.getPageNumber(), pageable.getPageSize(), exception);
+
+            throw new RuntimeException("Failed to retrieve users from database", exception);
+        }
+    }
 }

@@ -2,6 +2,8 @@ package com.bunkermuseum.membermanagement.service.contract;
 
 import com.bunkermuseum.membermanagement.model.User;
 import org.jspecify.annotations.Nullable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.UUID;
 
@@ -193,6 +195,32 @@ public interface UserServiceContract {
      * @author Philipp Borkovic
      */
     List<User> getAllUsers();
+
+    /**
+     * Retrieves users with pagination and optional search filtering.
+     *
+     * <p>This method provides efficient paginated access to users with optional
+     * search functionality. It's designed for administrative interfaces where
+     * displaying all users at once would be impractical.</p>
+     *
+     * <h3>Features:</h3>
+     * <ul>
+     *   <li>Server-side pagination for better performance</li>
+     *   <li>Optional search across name, email, and phone fields</li>
+     *   <li>Configurable page size</li>
+     *   <li>Sorted results</li>
+     * </ul>
+     *
+     * @param pageable Pagination parameters (page number, size, sort)
+     * @param searchQuery Optional search term to filter users (searches name, email, phone)
+     *
+     * @return Page of users matching the criteria
+     *
+     * @throws RuntimeException if retrieval fails
+     *
+     * @author Philipp Borkovic
+     */
+    Page<User> getUsersPage(Pageable pageable, @Nullable String searchQuery);
 
     /**
      * Updates a user's profile information.

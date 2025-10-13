@@ -107,15 +107,16 @@ public class UserController {
     }
 
     /**
-     * Retrieves users with server-side pagination and optional search filtering.
+     * Retrieves users with server-side pagination, optional search filtering, and status filter.
      *
      * <p>This method provides efficient paginated access to users with optional
-     * search functionality. It returns UserDTOs that exclude sensitive fields
+     * search functionality and status filter. It returns UserDTOs that exclude sensitive fields
      * and prevent circular reference issues.</p>
      *
      * @param page The page number (0-indexed)
      * @param size The number of items per page
      * @param searchQuery Optional search term to filter users
+     * @param status Filter status: "active", "deleted", or "all" (defaults to "active")
      *
      * @return PageResponse containing user DTOs and pagination metadata
      * @throws ResponseStatusException with {@link HttpStatus#BAD_REQUEST} if page/size are invalid
@@ -124,7 +125,7 @@ public class UserController {
      *
      * @author Philipp Borkovic
      */
-    public PageResponse<UserDTO> getUsersPage(int page, int size, @Nullable String searchQuery) {
+    public PageResponse<UserDTO> getUsersPage(int page, int size, @Nullable String searchQuery, @Nullable String status) {
         try {
             if (page < 0) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Page number must be >= 0, received: " + page);
@@ -134,9 +135,12 @@ public class UserController {
                         "Page size must be between 1 and 100, received: " + size);
             }
 
+            // Default to "active" if status is not provided
+            String filterStatus = (status == null || status.isBlank()) ? "active" : status;
+
             Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
 
-            Page<User> userPage = userService.getUsersPage(pageable, searchQuery);
+            Page<User> userPage = userService.getUsersPageWithStatus(pageable, searchQuery, filterStatus);
 
             if (userPage == null) {
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Service returned null page response");

@@ -1,11 +1,19 @@
 package com.bunkermuseum.membermanagement.controller;
 
+import com.bunkermuseum.membermanagement.dto.PageResponse;
+import com.bunkermuseum.membermanagement.dto.UserDTO;
+import com.bunkermuseum.membermanagement.dto.mapper.UserMapper;
 import com.bunkermuseum.membermanagement.model.User;
 import com.bunkermuseum.membermanagement.service.UserService;
 import com.bunkermuseum.membermanagement.service.contract.UserServiceContract;
 import com.vaadin.hilla.Endpoint;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.security.PermitAll;
+import org.jspecify.annotations.Nullable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
@@ -75,20 +83,89 @@ public class UserController {
     /**
      * Retrieves all users from the system.
      *
-     * <p>This method fetches all registered users. It's intended for administrative
-     * purposes and should be protected by appropriate authorization checks.</p>
+     * <p>This method fetches all registered users and converts them to DTOs
+     * for secure API responses. Sensitive information like passwords and OAuth IDs
+     * are excluded from the response.</p>
      *
-     * @return List of all users in the system
+     * <p><strong>Security:</strong> Returns UserDTOs that exclude sensitive fields
+     * and prevent circular reference issues with roles.</p>
+     *
+     * @return List of all users as DTOs, safe for API responses
      * @throws ResponseStatusException with {@link HttpStatus#INTERNAL_SERVER_ERROR} if
      *         any unexpected error occurs during retrieval.
      *
      * @author Philipp Borkovic
      */
-    public List<User> getAllUsers() {
+    public List<UserDTO> getAllUsers() {
         try {
-            return userService.getAllUsers();
+            List<User> users = userService.getAllUsers();
+
+            return UserMapper.toDTOList(users);
         } catch (Exception exception) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve users", exception);
+        }
+    }
+
+    /**
+     * Retrieves users with server-side pagination and optional search filtering.
+     *
+     * <p>This method provides efficient paginated access to users with optional
+     * search functionality. It returns UserDTOs that exclude sensitive fields
+     * and prevent circular reference issues.</p>
+     *
+     * @param page The page number (0-indexed)
+     * @param size The number of items per page
+     * @param searchQuery Optional search term to filter users
+     *
+     * @return PageResponse containing user DTOs and pagination metadata
+     * @throws ResponseStatusException with {@link HttpStatus#BAD_REQUEST} if page/size are invalid
+     * @throws ResponseStatusException with {@link HttpStatus#INTERNAL_SERVER_ERROR} if
+     *         any unexpected error occurs during retrieval
+     *
+     * @author Philipp Borkovic
+     */
+    public PageResponse<UserDTO> getUsersPage(int page, int size, @Nullable String searchQuery) {
+        try {
+            if (page < 0) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Page number must be >= 0, received: " + page);
+            }
+            if (size < 1 || size > 100) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Page size must be between 1 and 100, received: " + size);
+            }
+
+            Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
+
+            Page<User> userPage = userService.getUsersPage(pageable, searchQuery);
+
+            if (userPage == null) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Service returned null page response");
+            }
+            if (userPage.getContent() == null) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Service returned null content in page response");
+            }
+
+            List<UserDTO> userDTOs = UserMapper.toDTOList(userPage.getContent());
+
+            if (userDTOs == null) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Mapper returned null DTO list");
+            }
+
+            return new PageResponse<>(
+                userDTOs,
+                userPage.getNumber(),
+                userPage.getSize(),
+                userPage.getTotalElements()
+            );
+        } catch (ResponseStatusException exception) {
+            throw exception;
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                "Invalid request parameters: " + exception.getMessage(), exception);
+        } catch (Exception exception) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                "Failed to retrieve users page", exception);
         }
     }
 

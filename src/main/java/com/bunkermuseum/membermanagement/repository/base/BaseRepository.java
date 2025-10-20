@@ -84,7 +84,7 @@ public abstract class BaseRepository<T extends Model, R extends JpaRepository<T,
         return executeWithLogging("Finding first", () -> {
             Page<T> page = repository.findAll(PageRequest.of(0, 1));
 
-            return page.hasContent() ? Optional.of(page.getContent().get(0)) : Optional.empty();
+            return page.hasContent() ? Optional.of(page.getContent().getFirst()) : Optional.empty();
         }, Optional.empty());
     }
 

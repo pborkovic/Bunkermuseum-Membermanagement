@@ -59,23 +59,18 @@ public class SecurityConfig extends VaadinWebSecurity {
      */
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.sessionManagement(session -> session
-                .sessionFixation().migrateSession()
-                .maximumSessions(1)
-                .maxSessionsPreventsLogin(false)
-            );
-
-        super.configure(http);
-
-        setLoginView(http, "/login", "/");
-
-        http.logout(logout -> logout
-            .logoutUrl("/logout")
-            .logoutSuccessUrl("/login")
-            .invalidateHttpSession(true)
-            .deleteCookies("JSESSIONID")
-            .clearAuthentication(true)
+        http.csrf(csrf -> csrf
+            .ignoringRequestMatchers("/connect/**")
         );
+
+        http.authorizeHttpRequests(auth -> auth
+            .requestMatchers("/connect/AuthController/**").permitAll()
+            .requestMatchers("/login", "/login/**").permitAll()
+            .requestMatchers("/VAADIN/**").permitAll()
+            .anyRequest().authenticated()
+        );
+
+        setLoginView(http, "/login");
     }
 
     /**

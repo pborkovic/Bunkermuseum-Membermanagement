@@ -4,7 +4,7 @@ import com.bunkermuseum.membermanagement.model.User;
 import com.bunkermuseum.membermanagement.service.contract.RoleServiceContract;
 import com.bunkermuseum.membermanagement.service.contract.UserServiceContract;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import com.vaadin.hilla.BrowserCallable;
+import com.vaadin.hilla.Endpoint;
 import jakarta.servlet.http.HttpServletRequest;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -34,7 +34,7 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
  *
  * @author Philipp Borkovic
  */
-@BrowserCallable
+@Endpoint
 @AnonymousAllowed
 public class AuthController {
 

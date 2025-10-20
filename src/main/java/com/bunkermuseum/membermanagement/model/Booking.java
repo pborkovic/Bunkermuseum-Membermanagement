@@ -57,6 +57,20 @@ public class Booking extends Model {
     }
 
     /**
+     * Public constructor for creating new booking instances.
+     *
+     * <p>This constructor creates an empty booking that can be populated
+     * with data using setter methods. Useful for migration and manual booking creation.</p>
+     *
+     * @param dummy Dummy parameter to differentiate from protected constructor (use null)
+     *
+     * @author Philipp Borkovic
+     */
+    public Booking(Object dummy) {
+        // Public constructor for manual instantiation
+    }
+
+    /**
      * The expected purpose of the transaction.
      *
      * <p>This field stores what the transaction was intended for.

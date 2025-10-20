@@ -2,6 +2,10 @@ package com.bunkermuseum.membermanagement.service.contract;
 
 import com.bunkermuseum.membermanagement.model.User;
 import org.jspecify.annotations.Nullable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Service contract interface for User entity business operations.
@@ -176,4 +180,112 @@ public interface UserServiceContract {
      * @throws RuntimeException if user not found or authentication fails
      */
     String exportUserData(String email, String password);
+
+    /**
+     * Retrieves all users from the system.
+     *
+     * <p>This method fetches all registered users from the database.
+     * It's intended for administrative purposes and should be protected
+     * by appropriate authorization checks.</p>
+     *
+     * @return List of all users in the system
+     *
+     * @throws RuntimeException if retrieval fails
+     *
+     * @author Philipp Borkovic
+     */
+    List<User> getAllUsers();
+
+    /**
+     * Retrieves users with pagination and optional search filtering.
+     *
+     * <p>This method provides efficient paginated access to users with optional
+     * search functionality. It's designed for administrative interfaces where
+     * displaying all users at once would be impractical.</p>
+     *
+     * <h3>Features:</h3>
+     * <ul>
+     *   <li>Server-side pagination for better performance</li>
+     *   <li>Optional search across name, email, and phone fields</li>
+     *   <li>Configurable page size</li>
+     *   <li>Sorted results</li>
+     * </ul>
+     *
+     * @param pageable Pagination parameters (page number, size, sort)
+     * @param searchQuery Optional search term to filter users (searches name, email, phone)
+     *
+     * @return Page of users matching the criteria
+     *
+     * @throws RuntimeException if retrieval fails
+     *
+     * @author Philipp Borkovic
+     */
+    Page<User> getUsersPage(Pageable pageable, @Nullable String searchQuery);
+
+    /**
+     * Retrieves users with pagination, optional search filtering, and status filter.
+     *
+     * <p>This method provides efficient paginated access to users with optional
+     * search functionality and the ability to filter by user status (active/deleted/all).
+     * It's designed for administrative interfaces where displaying all users at once
+     * would be impractical.</p>
+     *
+     * <h3>Features:</h3>
+     * <ul>
+     *   <li>Server-side pagination for better performance</li>
+     *   <li>Optional search across name, email, and phone fields</li>
+     *   <li>Status filter: active, deleted, or all users</li>
+     *   <li>Configurable page size</li>
+     *   <li>Sorted results</li>
+     * </ul>
+     *
+     * @param pageable Pagination parameters (page number, size, sort)
+     * @param searchQuery Optional search term to filter users (searches name, email, phone)
+     * @param status Filter status: "active", "deleted", or "all"
+     *
+     * @return Page of users matching the criteria
+     *
+     * @throws IllegalArgumentException if status is invalid
+     * @throws RuntimeException if retrieval fails
+     *
+     * @author Philipp Borkovic
+     */
+    Page<User> getUsersPageWithStatus(Pageable pageable, @Nullable String searchQuery, String status);
+
+    /**
+     * Updates a user's profile information.
+     *
+     * <p>This method allows updating user profile fields such as name and email.
+     * It validates the input and ensures data integrity.</p>
+     *
+     * @param userId The ID of the user to update
+     * @param name The new name (optional, null to keep existing)
+     * @param email The new email (optional, null to keep existing)
+     *
+     * @return The updated User object
+     *
+     * @throws IllegalArgumentException if userId is null or user not found
+     * @throws RuntimeException if update fails
+     *
+     * @author Philipp Borkovic
+     */
+    User updateProfile(UUID userId, @Nullable String name, @Nullable String email);
+
+    /**
+     * Updates comprehensive user information.
+     *
+     * <p>This method allows updating all user profile fields including personal information,
+     * contact details, and address information. It validates the input and ensures data integrity.</p>
+     *
+     * @param userId The ID of the user to update
+     * @param userData User object containing the fields to update
+     *
+     * @return The updated User object
+     *
+     * @throws IllegalArgumentException if userId is null or user not found
+     * @throws RuntimeException if update fails
+     *
+     * @author Philipp Borkovic
+     */
+    User updateUser(UUID userId, User userData);
 }

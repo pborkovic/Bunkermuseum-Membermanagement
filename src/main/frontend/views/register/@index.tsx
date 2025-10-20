@@ -10,6 +10,7 @@ import { Icon } from '@vaadin/react-components';
 import { z } from 'zod';
 import { subYears } from 'date-fns';
 import { AuthController } from 'Frontend/generated/endpoints';
+import logo from 'Frontend/assets/images/logo_bunkermuseum.jpg';
 
 /**
  * Validation constants for the registration form.
@@ -226,8 +227,11 @@ export default function RegisterView(): JSX.Element {
         <div className="w-full max-w-2xl space-y-4">
           {/* Logo */}
           <div className="flex flex-col items-center space-y-2 text-center">
-            <Icon icon="vaadin:cubes" className="text-primary" style={{ width: '48px', height: '48px' }} />
-            <h1 className="text-2xl font-semibold tracking-tight">Bunker Museum</h1>
+            <img
+              src={logo}
+              alt="Bunkermuseum Logo"
+              className="h-16 w-auto object-contain mb-2"
+            />
             <p className="text-sm text-muted-foreground">Erstellen Sie Ihr Konto</p>
           </div>
 

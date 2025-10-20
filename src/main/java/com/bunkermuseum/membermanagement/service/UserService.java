@@ -6,14 +6,17 @@ import com.bunkermuseum.membermanagement.service.base.BaseService;
 import com.bunkermuseum.membermanagement.service.contract.UserServiceContract;
 import com.bunkermuseum.membermanagement.validation.PasswordValidator;
 import org.jspecify.annotations.Nullable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -530,6 +533,223 @@ public class UserService extends BaseService<User, UserRepositoryContract>
             .replace("\n", "\\n")
             .replace("\r", "\\r")
             .replace("\t", "\\t");
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @author Philipp Borkovic
+     */
+    @Override
+    public List<User> getAllUsers() {
+        try {
+            return repository.findAll();
+        } catch (Exception exception) {
+            logger.error("Error retrieving all users", exception);
+            throw new RuntimeException("Failed to retrieve users", exception);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @author Philipp Borkovic
+     */
+    @Override
+    public Page<User> getUsersPage(Pageable pageable, @Nullable String searchQuery) {
+        if (pageable == null) {
+            throw new IllegalArgumentException("Pageable must not be null");
+        }
+
+        try {
+            logger.debug("Fetching users page: page={}, size={}, searchQuery='{}'",
+                pageable.getPageNumber(), pageable.getPageSize(), searchQuery);
+
+            Page<User> result = repository.findBySearchQuery(searchQuery, pageable);
+
+            if (result == null) {
+                logger.error("Repository returned null for getUsersPage");
+
+                throw new RuntimeException("Failed to retrieve users: null result from repository");
+            }
+
+            logger.debug("Successfully retrieved {} users out of {} total",
+                result.getNumberOfElements(), result.getTotalElements());
+
+            return result;
+        } catch (IllegalArgumentException exception) {
+            logger.error("Invalid arguments for getUsersPage: pageable={}, searchQuery='{}'",
+                pageable, searchQuery, exception);
+
+            throw exception;
+        } catch (Exception exception) {
+            logger.error("Error retrieving users page: page={}, size={}, searchQuery='{}'",
+                pageable.getPageNumber(), pageable.getPageSize(), searchQuery, exception);
+
+            throw new RuntimeException("Failed to retrieve users", exception);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @author Philipp Borkovic
+     */
+    @Override
+    public Page<User> getUsersPageWithStatus(Pageable pageable, @Nullable String searchQuery, String status) {
+        if (pageable == null) {
+            throw new IllegalArgumentException("Pageable must not be null");
+        }
+        if (status == null || status.isBlank()) {
+            throw new IllegalArgumentException("Status must not be null or blank");
+        }
+
+        try {
+            logger.debug("Fetching users page: page={}, size={}, searchQuery='{}', status='{}'",
+                pageable.getPageNumber(), pageable.getPageSize(), searchQuery, status);
+
+            Page<User> result = repository.findBySearchQueryAndStatus(searchQuery, status, pageable);
+
+            if (result == null) {
+                logger.error("Repository returned null for getUsersPageWithStatus");
+
+                throw new RuntimeException("Failed to retrieve users: null result from repository");
+            }
+
+            logger.debug("Successfully retrieved {} users out of {} total (status: {})",
+                result.getNumberOfElements(), result.getTotalElements(), status);
+
+            return result;
+        } catch (IllegalArgumentException exception) {
+            logger.error("Invalid arguments for getUsersPageWithStatus: pageable={}, searchQuery='{}', status='{}'",
+                pageable, searchQuery, status, exception);
+
+            throw exception;
+        } catch (Exception exception) {
+            logger.error("Error retrieving users page: page={}, size={}, searchQuery='{}', status='{}'",
+                pageable.getPageNumber(), pageable.getPageSize(), searchQuery, status, exception);
+
+            throw new RuntimeException("Failed to retrieve users", exception);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @author Philipp Borkovic
+     */
+    @Override
+    @Transactional
+    public User updateProfile(UUID userId, @Nullable String name, @Nullable String email) {
+        if (userId == null) {
+            throw new IllegalArgumentException("User ID must not be null");
+        }
+
+        try {
+            Optional<User> optionalUser = repository.findById(userId);
+
+            if (optionalUser.isEmpty()) {
+                throw new IllegalArgumentException("User not found with ID: " + userId);
+            }
+
+            User user = optionalUser.get();
+
+            if (name != null && !name.isBlank()) {
+                user.setName(name);
+            }
+
+            if (email != null && !email.isBlank()) {
+                user.setEmail(email);
+            }
+
+            User updatedUser = repository.update(userId, user);
+
+            logger.info("Profile updated for user: {}", userId);
+
+            return updatedUser;
+        } catch (IllegalArgumentException exception) {
+            logger.error("Invalid user data for profile update: {}", userId, exception);
+
+            throw exception;
+        } catch (Exception exception) {
+            logger.error("Failed to update user profile: {}", userId, exception);
+
+            throw new RuntimeException("Failed to update user profile", exception);
+        }
+    }
+
+    /**
+     * Updates comprehensive user information.
+     *
+     * @param userId The ID of the user to update
+     * @param userData User object containing the fields to update
+     * @return The updated User object
+     * @throws IllegalArgumentException if userId is null or user not found
+     *
+     * @author Philipp Borkovic
+     */
+    @Transactional
+    public User updateUser(UUID userId, User userData) {
+        if (userId == null) {
+            throw new IllegalArgumentException("User ID must not be null");
+        }
+        if (userData == null) {
+            throw new IllegalArgumentException("User data must not be null");
+        }
+
+        try {
+            Optional<User> optionalUser = repository.findById(userId);
+
+            if (optionalUser.isEmpty()) {
+                throw new IllegalArgumentException("User not found with ID: " + userId);
+            }
+
+            User user = optionalUser.get();
+
+            // Update basic fields
+            if (userData.getName() != null && !userData.getName().isBlank()) {
+                user.setName(userData.getName());
+            }
+            if (userData.getEmail() != null && !userData.getEmail().isBlank()) {
+                user.setEmail(userData.getEmail());
+            }
+
+            // Update profile fields
+            if (userData.getSalutation() != null) {
+                user.setSalutation(userData.getSalutation());
+            }
+            if (userData.getAcademicTitle() != null) {
+                user.setAcademicTitle(userData.getAcademicTitle());
+            }
+            if (userData.getRank() != null) {
+                user.setRank(userData.getRank());
+            }
+            if (userData.getBirthday() != null) {
+                user.setBirthday(userData.getBirthday());
+            }
+            if (userData.getPhone() != null) {
+                user.setPhone(userData.getPhone());
+            }
+
+            // Update address fields
+            if (userData.getStreet() != null) {
+                user.setStreet(userData.getStreet());
+            }
+            if (userData.getCity() != null) {
+                user.setCity(userData.getCity());
+            }
+            if (userData.getPostalCode() != null) {
+                user.setPostalCode(userData.getPostalCode());
+            }
+
+            return repository.update(userId, user);
+        } catch (IllegalArgumentException e) {
+            logger.error("Invalid user data for update: {}", userId, e);
+            throw e;
+        } catch (Exception e) {
+            logger.error("Failed to update user: {}", userId, e);
+            throw new RuntimeException("Failed to update user profile", e);
+        }
     }
 
 }

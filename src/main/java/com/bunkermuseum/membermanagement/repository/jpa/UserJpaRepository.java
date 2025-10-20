@@ -50,7 +50,7 @@ public interface UserJpaRepository extends JpaRepository<User, UUID> {
      * @return paginated list of users matching the search criteria, sorted by relevance
      */
     @Query(value = """
-        SELECT DISTINCT u.* FROM users u
+        SELECT u.* FROM users u
         WHERE u.deleted_at IS NULL
         AND (
             LOWER(u.name) = LOWER(:searchQuery)
@@ -84,7 +84,7 @@ public interface UserJpaRepository extends JpaRepository<User, UUID> {
             u.name ASC
         """,
         countQuery = """
-        SELECT COUNT(DISTINCT u.id) FROM users u
+        SELECT COUNT(u.id) FROM users u
         WHERE u.deleted_at IS NULL
         AND (
             LOWER(u.name) = LOWER(:searchQuery)
@@ -131,7 +131,7 @@ public interface UserJpaRepository extends JpaRepository<User, UUID> {
      * @author Philipp Borkovic
      */
     @Query(value = """
-        SELECT DISTINCT u.* FROM users u
+        SELECT u.* FROM users u
         WHERE (
             CASE
                 WHEN :status = 'active' THEN u.deleted_at IS NULL
@@ -171,7 +171,7 @@ public interface UserJpaRepository extends JpaRepository<User, UUID> {
             u.name ASC
         """,
         countQuery = """
-        SELECT COUNT(DISTINCT u.id) FROM users u
+        SELECT COUNT(u.id) FROM users u
         WHERE (
             CASE
                 WHEN :status = 'active' THEN u.deleted_at IS NULL

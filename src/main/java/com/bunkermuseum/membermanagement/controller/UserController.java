@@ -135,11 +135,8 @@ public class UserController {
                         "Page size must be between 1 and 100, received: " + size);
             }
 
-            // Default to "active" if status is not provided
             String filterStatus = (status == null || status.isBlank()) ? "active" : status;
-
-            Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
-
+            Pageable pageable = PageRequest.of(page, size);
             Page<User> userPage = userService.getUsersPageWithStatus(pageable, searchQuery, filterStatus);
 
             if (userPage == null) {

@@ -1,5 +1,7 @@
 package com.bunkermuseum.membermanagement.controller;
 
+import com.bunkermuseum.membermanagement.dto.UserDTO;
+import com.bunkermuseum.membermanagement.dto.mapper.UserMapper;
 import com.bunkermuseum.membermanagement.model.User;
 import com.bunkermuseum.membermanagement.service.contract.RoleServiceContract;
 import com.bunkermuseum.membermanagement.service.contract.UserServiceContract;
@@ -225,18 +227,19 @@ public class AuthController {
      * Gets the current authenticated user.
      *
      * <p>This endpoint retrieves the currently authenticated user from the security context.
-     * It's useful for displaying user profile information and checking authentication status.</p>
+     * It's useful for displaying user profile information and checking authentication status.
+     * Returns a UserDTO to avoid serialization issues with circular references.</p>
      *
-     * @return The current authenticated User object, or null if not authenticated
+     * @return The current authenticated User as DTO, or null if not authenticated
      *
      * @author Philipp Borkovic
      */
-    public @Nullable User getCurrentUser() {
+    public @Nullable UserDTO getCurrentUser() {
         try {
             Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
             if (principal instanceof User user) {
-                return user;
+                return UserMapper.toDTO(user);
             }
 
             return null;

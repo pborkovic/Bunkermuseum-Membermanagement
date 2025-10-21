@@ -371,7 +371,7 @@ export default function SettingsTab(): JSX.Element {
                     onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
                     disabled={isSaving}
                     required
-                    className="border-black"
+                    className="border-black text-black"
                   />
                 </div>
 
@@ -384,7 +384,7 @@ export default function SettingsTab(): JSX.Element {
                     onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
                     disabled={isSaving}
                     required
-                    className="border-black"
+                    className="border-black text-black"
                   />
                 </div>
               </div>
@@ -400,7 +400,7 @@ export default function SettingsTab(): JSX.Element {
                     value={profileForm.salutation || undefined}
                     onValueChange={(value) => setProfileForm({ ...profileForm, salutation: value })}
                   >
-                    <SelectTrigger className="w-full border-black">
+                    <SelectTrigger className="w-full border-black text-black">
                       <SelectValue placeholder="Keine Angabe" />
                     </SelectTrigger>
                     <SelectContent className="bg-white border-black">
@@ -426,7 +426,7 @@ export default function SettingsTab(): JSX.Element {
                     onChange={(e) => setProfileForm({ ...profileForm, academicTitle: e.target.value })}
                     disabled={isSaving}
                     placeholder="z.B. Dr., Prof."
-                    className="border-black"
+                    className="border-black text-black"
                   />
                 </div>
 
@@ -438,7 +438,7 @@ export default function SettingsTab(): JSX.Element {
                     value={profileForm.rank}
                     onChange={(e) => setProfileForm({ ...profileForm, rank: e.target.value })}
                     disabled={isSaving}
-                    className="border-black"
+                    className="border-black text-black"
                   />
                 </div>
 
@@ -464,7 +464,7 @@ export default function SettingsTab(): JSX.Element {
                     value={profileForm.phone}
                     onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
                     disabled={isSaving}
-                    className="border-black"
+                    className="border-black text-black"
                   />
                 </div>
               </div>
@@ -482,7 +482,7 @@ export default function SettingsTab(): JSX.Element {
                     value={profileForm.street}
                     onChange={(e) => setProfileForm({ ...profileForm, street: e.target.value })}
                     disabled={isSaving}
-                    className="border-black"
+                    className="border-black text-black"
                   />
                 </div>
 
@@ -495,7 +495,7 @@ export default function SettingsTab(): JSX.Element {
                       value={profileForm.postalCode}
                       onChange={(e) => setProfileForm({ ...profileForm, postalCode: e.target.value })}
                       disabled={isSaving}
-                      className="border-black"
+                      className="border-black text-black"
                     />
                   </div>
 
@@ -507,7 +507,7 @@ export default function SettingsTab(): JSX.Element {
                       value={profileForm.city}
                       onChange={(e) => setProfileForm({ ...profileForm, city: e.target.value })}
                       disabled={isSaving}
-                      className="border-black"
+                      className="border-black text-black"
                     />
                   </div>
                 </div>
@@ -544,7 +544,7 @@ export default function SettingsTab(): JSX.Element {
               onChange={(e) => setCurrentPassword(e.target.value)}
               disabled={isSaving}
               required
-              className="border-black"
+              className="border-black text-black"
             />
           </div>
 
@@ -557,7 +557,7 @@ export default function SettingsTab(): JSX.Element {
               onChange={(e) => setNewPassword(e.target.value)}
               disabled={isSaving}
               required
-              className="border-black"
+              className="border-black text-black"
             />
             <p className="text-xs text-gray-600">
               Mindestens 8 Zeichen
@@ -573,7 +573,7 @@ export default function SettingsTab(): JSX.Element {
               onChange={(e) => setConfirmPassword(e.target.value)}
               disabled={isSaving}
               required
-              className="border-black"
+              className="border-black text-black"
             />
           </div>
 

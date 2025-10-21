@@ -61,12 +61,14 @@ public class SecurityConfig extends VaadinWebSecurity {
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf
             .ignoringRequestMatchers("/connect/**")
+            .ignoringRequestMatchers("/api/upload/**")
         );
 
         http.authorizeHttpRequests(auth -> auth
             .requestMatchers("/connect/AuthController/**").permitAll()
             .requestMatchers("/login", "/login/**").permitAll()
             .requestMatchers("/VAADIN/**").permitAll()
+            .requestMatchers("/api/upload/**").authenticated()
             .anyRequest().authenticated()
         );
 

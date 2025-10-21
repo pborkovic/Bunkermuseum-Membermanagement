@@ -182,7 +182,7 @@ export default function BookingsList({
   return (
     <div>
       {/* Bookings Grid */}
-      <div className="rounded-lg overflow-hidden bg-white" style={{ minHeight: '560px' }}>
+      <div className="rounded-lg bg-white border border-gray-200" style={{ height: '560px', overflow: 'auto' }}>
         {/* Desktop Table */}
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
@@ -261,7 +261,7 @@ export default function BookingsList({
         </div>
 
         {/* Mobile Cards */}
-        <div className="md:hidden space-y-3 p-4">
+        <div className="md:hidden space-y-3 p-4 overflow-y-auto">
           {bookings.map((booking) => (
             <div
               key={booking.id}

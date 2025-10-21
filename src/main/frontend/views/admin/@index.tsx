@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { ViewConfig } from '@vaadin/hilla-file-router/types.js';
 import { Icon } from '@vaadin/react-components';
 import { Button } from '@/components/ui/button';
+import { Toaster } from '@/components/ui/sonner';
 import { AuthController } from 'Frontend/generated/endpoints';
 import type UserDTO from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/UserDTO';
 import UsersTab from './components/UsersTab';
@@ -54,6 +55,7 @@ export default function AdminDashboard(): JSX.Element {
 
   return (
     <div className="h-screen bg-white flex flex-col overflow-hidden">
+      <Toaster />
       {/* Navbar */}
       <nav className="w-full border-b bg-white z-10 flex-shrink-0">
         <div className="flex flex-col px-3 py-2 gap-2 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4 sm:gap-0">

@@ -69,7 +69,14 @@ public class FileUploadController {
                         .body(Map.of("error", "User not authenticated"));
             }
 
-            User user = (User) principal;
+            User principalUser = (User) principal;
+
+            // Fetch user from database to ensure we have a managed entity
+            User user = userService.findById(principalUser.getId()).orElse(null);
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "User not found"));
+            }
 
             // Validate file
             if (file.isEmpty()) {
@@ -108,7 +115,7 @@ public class FileUploadController {
             // Upload new file
             String objectName = minioService.uploadFile(file, "profile-pictures");
 
-            // Update user record
+            // Update user record with new avatar path
             user.setAvatarPath(objectName);
             userService.updateUser(user.getId(), user);
 

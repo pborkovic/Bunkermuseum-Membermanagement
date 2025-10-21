@@ -181,20 +181,20 @@ export default function BookingsList({
 
   return (
     <div>
-      {/* Bookings Grid */}
-      <div className="rounded-lg bg-white border border-gray-200" style={{ height: '560px', overflow: 'auto' }}>
+      {/* Bookings Grid - Fixed height for 10 entries */}
+      <div className="rounded-lg overflow-hidden bg-white" style={{ height: '560px' }}>
         {/* Desktop Table */}
-        <div className="hidden md:block overflow-x-auto">
+        <div className="hidden md:block h-full overflow-y-auto">
           <table className="w-full">
-            <thead>
+            <thead className="sticky top-0 bg-white z-10">
               <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Code</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Mitglied</th>
-                <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Erwarteter Betrag</th>
-                <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Tatsächlicher Betrag</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Empfangen am</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Erstellt am</th>
-                <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700">Aktionen</th>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 bg-white">Code</th>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 bg-white">Mitglied</th>
+                <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700 bg-white">Erwarteter Betrag</th>
+                <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700 bg-white">Tatsächlicher Betrag</th>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 bg-white">Empfangen am</th>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 bg-white">Erstellt am</th>
+                <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700 bg-white">Aktionen</th>
               </tr>
             </thead>
             <tbody>
@@ -261,7 +261,7 @@ export default function BookingsList({
         </div>
 
         {/* Mobile Cards */}
-        <div className="md:hidden space-y-3 p-4 overflow-y-auto">
+        <div className="md:hidden space-y-3 p-4 h-full overflow-y-auto">
           {bookings.map((booking) => (
             <div
               key={booking.id}

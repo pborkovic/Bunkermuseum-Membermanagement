@@ -29,8 +29,8 @@ export function DatePicker({
         <Button
           variant={"outline"}
           className={cn(
-            "w-full justify-start text-left font-normal h-9",
-            !value && "text-muted-foreground"
+            "w-full justify-start text-left font-normal h-9 bg-white text-black border-black hover:bg-gray-50",
+            !value && "text-gray-500"
           )}
           disabled={disabled}
         >
@@ -38,7 +38,7 @@ export function DatePicker({
           {value ? format(value, "PPP", { locale: de }) : <span>Datum wählen</span>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0">
+      <PopoverContent className="w-auto p-0 bg-white border-black">
         <Calendar
           mode="single"
           selected={value}

@@ -3,7 +3,7 @@ import { ViewConfig } from '@vaadin/hilla-file-router/types.js';
 import { Icon } from '@vaadin/react-components';
 import { Button } from '@/components/ui/button';
 import { AuthController } from 'Frontend/generated/endpoints';
-import type User from 'Frontend/generated/com/bunkermuseum/membermanagement/model/User';
+import type UserDTO from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/UserDTO';
 import UsersTab from './components/UsersTab';
 import BookingsTab from './components/BookingsTab';
 import SettingsTab from './components/SettingsTab';
@@ -37,7 +37,7 @@ export const config: ViewConfig = {
  */
 export default function AdminDashboard(): JSX.Element {
   const [selectedTab, setSelectedTab] = useState(0);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<UserDTO | null>(null);
 
   useEffect(() => {
     loadCurrentUser();

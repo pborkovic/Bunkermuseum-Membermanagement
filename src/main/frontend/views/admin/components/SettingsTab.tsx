@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Icon } from '@vaadin/react-components';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
+import { toast } from 'sonner';
 import { AuthController, UserController } from 'Frontend/generated/endpoints';
 import type UserDTO from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/UserDTO';
 import type User from 'Frontend/generated/com/bunkermuseum/membermanagement/model/User';
@@ -62,8 +63,6 @@ export default function SettingsTab(): JSX.Element {
 
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
   /**
    * Loads user profile information on component mount.
@@ -80,7 +79,6 @@ export default function SettingsTab(): JSX.Element {
   const loadProfile = async (): Promise<void> => {
     try {
       setIsLoading(true);
-      setError('');
       const user = await AuthController.getCurrentUser();
 
       if (user) {
@@ -112,7 +110,7 @@ export default function SettingsTab(): JSX.Element {
         }
       }
     } catch (err: any) {
-      setError(err.message || 'Fehler beim Laden des Profils');
+      toast.error('Fehler beim Laden des Profils');
     } finally {
       setIsLoading(false);
     }
@@ -131,20 +129,18 @@ export default function SettingsTab(): JSX.Element {
 
     // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
-      setError('Datei ist zu groß. Maximale Größe ist 5MB');
+      toast.error('Datei ist zu groß. Maximale Größe ist 5MB');
       return;
     }
 
     // Validate file type
     if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type)) {
-      setError('Ungültiger Dateityp. Nur JPEG, PNG und WebP sind erlaubt');
+      toast.error('Ungültiger Dateityp. Nur JPEG, PNG und WebP sind erlaubt');
       return;
     }
 
     try {
       setIsUploading(true);
-      setError('');
-      setSuccess('');
 
       const formData = new FormData();
       formData.append('file', file);
@@ -161,13 +157,13 @@ export default function SettingsTab(): JSX.Element {
 
       const data = await response.json();
       setProfilePictureUrl(data.url);
-      setSuccess('Profilbild erfolgreich hochgeladen');
+      toast.success('Profilbild erfolgreich hochgeladen');
 
       // Reload profile to get updated avatar path
       await loadProfile();
 
     } catch (err: any) {
-      setError(err.message || 'Fehler beim Hochladen des Profilbilds');
+      toast.error(err.message || 'Fehler beim Hochladen des Profilbilds');
     } finally {
       setIsUploading(false);
     }
@@ -182,8 +178,6 @@ export default function SettingsTab(): JSX.Element {
    */
   const handleUpdateProfile = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
     setIsSaving(true);
 
     try {
@@ -210,13 +204,13 @@ export default function SettingsTab(): JSX.Element {
       } as User;
 
       await UserController.updateUser(currentUser.id, updatedUser);
-      setSuccess('Profil erfolgreich aktualisiert');
+      toast.success('Profil erfolgreich aktualisiert');
 
       // Reload profile
       await loadProfile();
 
     } catch (err: any) {
-      setError(err.message || 'Fehler beim Aktualisieren des Profils');
+      toast.error(err.message || 'Fehler beim Aktualisieren des Profils');
     } finally {
       setIsSaving(false);
     }
@@ -231,18 +225,16 @@ export default function SettingsTab(): JSX.Element {
    */
   const handleChangePassword = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
 
     // Validate passwords match
     if (newPassword !== confirmPassword) {
-      setError('Die neuen Passwörter stimmen nicht überein');
+      toast.error('Die neuen Passwörter stimmen nicht überein');
       return;
     }
 
     // Validate password strength
     if (newPassword.length < 8) {
-      setError('Das neue Passwort muss mindestens 8 Zeichen lang sein');
+      toast.error('Das neue Passwort muss mindestens 8 Zeichen lang sein');
       return;
     }
 
@@ -250,12 +242,12 @@ export default function SettingsTab(): JSX.Element {
 
     try {
       await AuthController.changePassword(currentPassword, newPassword);
-      setSuccess('Passwort erfolgreich geändert');
+      toast.success('Passwort erfolgreich geändert');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (err: any) {
-      setError(err.message || 'Fehler beim Ändern des Passworts');
+      toast.error(err.message || 'Fehler beim Ändern des Passworts');
     } finally {
       setIsSaving(false);
     }
@@ -275,7 +267,7 @@ export default function SettingsTab(): JSX.Element {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6 max-w-4xl mx-auto">
       {/* Header */}
       <div>
         <h2 className="text-2xl font-bold text-black">Einstellungen</h2>
@@ -283,22 +275,6 @@ export default function SettingsTab(): JSX.Element {
           Verwalten Sie Ihre Profilinformationen und Kontoeinstellungen
         </p>
       </div>
-
-      {/* Success message */}
-      {success && (
-        <div className="rounded-md bg-green-50 border border-green-200 p-3 text-sm text-green-800">
-          <Icon icon="vaadin:check-circle" className="inline mr-2" style={{ width: '16px', height: '16px' }} />
-          {success}
-        </div>
-      )}
-
-      {/* Error message */}
-      {error && (
-        <div className="rounded-md bg-red-50 border border-red-200 p-3 text-sm text-red-800">
-          <Icon icon="vaadin:exclamation-circle" className="inline mr-2" style={{ width: '16px', height: '16px' }} />
-          {error}
-        </div>
-      )}
 
       {/* Profile Picture */}
       <div className="bg-white rounded-lg border border-gray-200 p-6">

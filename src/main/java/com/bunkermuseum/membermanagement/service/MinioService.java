@@ -1,7 +1,7 @@
 package com.bunkermuseum.membermanagement.service;
 
+import com.bunkermuseum.membermanagement.service.contract.MinioServiceContract;
 import io.minio.*;
-import io.minio.errors.*;
 import io.minio.http.Method;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;

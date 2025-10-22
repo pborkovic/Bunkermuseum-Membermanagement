@@ -33,11 +33,14 @@ const ANREDE_OPTIONS = [
  *
  * @component
  *
+ * @param {Object} props - Component props
+ * @param {() => void} props.onProfileUpdate - Callback to refresh profile in parent component
+ *
  * @returns {JSX.Element} The settings tab content
  *
  * @author Philipp Borkovic
  */
-export default function SettingsTab(): JSX.Element {
+export default function SettingsTab({ onProfileUpdate }: { onProfileUpdate?: () => void }): JSX.Element {
   const [currentUser, setCurrentUser] = useState<UserDTO | null>(null);
   const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -83,6 +86,7 @@ export default function SettingsTab(): JSX.Element {
 
       if (user) {
         setCurrentUser(user);
+
         setProfileForm({
           name: user.name || '',
           email: user.email || '',
@@ -96,17 +100,11 @@ export default function SettingsTab(): JSX.Element {
           postalCode: user.postalCode || ''
         });
 
-        // Load profile picture if exists
+        // Set profile picture URL directly if avatar path exists
         if (user.avatarPath && user.id) {
-          try {
-            const response = await fetch(`/api/upload/profile-picture/${user.id}`);
-            if (response.ok) {
-              const data = await response.json();
-              setProfilePictureUrl(data.url);
-            }
-          } catch (err) {
-            console.error('Failed to load profile picture:', err);
-          }
+          setProfilePictureUrl(`/api/upload/profile-picture/${user.id}`);
+        } else {
+          setProfilePictureUrl(null);
         }
       }
     } catch (err: any) {
@@ -156,11 +154,15 @@ export default function SettingsTab(): JSX.Element {
       }
 
       const data = await response.json();
-      setProfilePictureUrl(data.url);
       toast.success('Profilbild erfolgreich hochgeladen');
 
       // Reload profile to get updated avatar path
       await loadProfile();
+
+      // Notify parent component to refresh profile picture in navbar
+      if (onProfileUpdate) {
+        onProfileUpdate();
+      }
 
     } catch (err: any) {
       toast.error(err.message || 'Fehler beim Hochladen des Profilbilds');
@@ -208,6 +210,11 @@ export default function SettingsTab(): JSX.Element {
 
       // Reload profile
       await loadProfile();
+
+      // Notify parent component to refresh user info
+      if (onProfileUpdate) {
+        onProfileUpdate();
+      }
 
     } catch (err: any) {
       toast.error(err.message || 'Fehler beim Aktualisieren des Profils');
@@ -575,12 +582,12 @@ export default function SettingsTab(): JSX.Element {
         <div className="space-y-3 text-sm">
           <div className="grid grid-cols-3 gap-2">
             <span className="font-medium text-gray-700">Benutzer-ID:</span>
-            <span className="col-span-2 font-mono text-xs">{currentUser?.id}</span>
+            <span className="col-span-2 font-mono text-xs text-black">{currentUser?.id}</span>
           </div>
 
           <div className="grid grid-cols-3 gap-2">
             <span className="font-medium text-gray-700">E-Mail verifiziert:</span>
-            <span className="col-span-2">
+            <span className="col-span-2 text-black">
               {currentUser?.emailVerifiedAt ? (
                 <>
                   <Icon icon="vaadin:check-circle" className="inline text-green-600 mr-1" style={{ width: '16px', height: '16px' }} />
@@ -588,7 +595,6 @@ export default function SettingsTab(): JSX.Element {
                 </>
               ) : (
                 <>
-                  <Icon icon="vaadin:close-circle" className="inline text-red-600 mr-1" style={{ width: '16px', height: '16px' }} />
                   Nicht verifiziert
                 </>
               )}
@@ -598,7 +604,7 @@ export default function SettingsTab(): JSX.Element {
           {currentUser?.roles && currentUser.roles.length > 0 && (
             <div className="grid grid-cols-3 gap-2">
               <span className="font-medium text-gray-700">Rollen:</span>
-              <span className="col-span-2">
+              <span className="col-span-2 text-black">
                 {currentUser.roles.map((role) => role?.name).filter(Boolean).join(', ')}
               </span>
             </div>

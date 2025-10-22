@@ -1,7 +1,7 @@
 package com.bunkermuseum.membermanagement.controller;
 
 import com.bunkermuseum.membermanagement.model.User;
-import com.bunkermuseum.membermanagement.service.MinioService;
+import com.bunkermuseum.membermanagement.service.MinioServiceContract;
 import com.bunkermuseum.membermanagement.service.UserService;
 import jakarta.annotation.security.PermitAll;
 import org.slf4j.Logger;
@@ -34,10 +34,10 @@ public class FileUploadController {
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
     private static final String[] ALLOWED_CONTENT_TYPES = {"image/jpeg", "image/png", "image/jpg", "image/webp"};
 
-    private final MinioService minioService;
+    private final MinioServiceContract minioService;
     private final UserService userService;
 
-    public FileUploadController(MinioService minioService, UserService userService) {
+    public FileUploadController(MinioServiceContract minioService, UserService userService) {
         this.minioService = minioService;
         this.userService = userService;
     }

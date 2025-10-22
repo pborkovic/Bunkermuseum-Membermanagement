@@ -82,7 +82,8 @@ export default function SettingsTab({ onProfileUpdate }: { onProfileUpdate?: () 
 
         // Set profile picture URL directly if avatar path exists
         if (user.avatarPath && user.id) {
-          setProfilePictureUrl(`/api/upload/profile-picture/${user.id}`);
+          // Add timestamp to force reload and avoid caching issues
+          setProfilePictureUrl(`/api/upload/profile-picture/${user.id}?t=${Date.now()}`);
         } else {
           setProfilePictureUrl(null);
         }

@@ -39,6 +39,7 @@ export const config: ViewConfig = {
 export default function AdminDashboard(): JSX.Element {
   const [selectedTab, setSelectedTab] = useState(0);
   const [currentUser, setCurrentUser] = useState<UserDTO | null>(null);
+  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
 
   useEffect(() => {
     loadCurrentUser();
@@ -48,6 +49,13 @@ export default function AdminDashboard(): JSX.Element {
     try {
       const user = await AuthController.getCurrentUser();
       setCurrentUser(user || null);
+
+      // Set profile picture URL directly if avatar path exists
+      if (user?.avatarPath && user?.id) {
+        setProfilePictureUrl(`/api/upload/profile-picture/${user.id}`);
+      } else {
+        setProfilePictureUrl(null);
+      }
     } catch (err) {
       console.error('Failed to load current user:', err);
     }
@@ -115,18 +123,26 @@ export default function AdminDashboard(): JSX.Element {
               <p className="text-sm font-medium text-black">{currentUser?.name || 'Loading...'}</p>
               <p className="text-xs text-gray-600">{currentUser?.email || ''}</p>
             </div>
-            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200">
-              <Icon icon="vaadin:user" style={{ width: '20px', height: '20px' }} />
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
+              {profilePictureUrl ? (
+                <img
+                  src={profilePictureUrl}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <Icon icon="vaadin:user" style={{ width: '20px', height: '20px' }} />
+              )}
             </div>
           </div>
         </div>
       </nav>
 
       {/* Main Content */}
-      <main className="flex-1 w-full px-6 py-6 overflow-hidden">
+      <main className="flex-1 w-full px-6 py-6 overflow-y-auto">
         {selectedTab === 0 && <UsersTab />}
         {selectedTab === 1 && <BookingsTab />}
-        {selectedTab === 2 && <SettingsTab />}
+        {selectedTab === 2 && <SettingsTab onProfileUpdate={loadCurrentUser} />}
       </main>
     </div>
   );

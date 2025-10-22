@@ -147,19 +147,27 @@ public class FileUploadController {
     @GetMapping("/profile-picture/{userId}")
     public ResponseEntity<byte[]> getProfilePicture(@PathVariable UUID userId) {
         try {
+            logger.info("Fetching profile picture for user: {}", userId);
+
             User user = userService.findById(userId).orElse(null);
 
             if (user == null) {
+                logger.warn("User not found: {}", userId);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
 
             if (user.getAvatarPath() == null || user.getAvatarPath().isBlank()) {
+                logger.warn("User {} has no avatar path", userId);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
+
+            logger.info("Loading image from MinIO: {}", user.getAvatarPath());
 
             // Stream the file directly from MinIO
             try (var inputStream = minioService.downloadFile(user.getAvatarPath())) {
                 byte[] imageBytes = inputStream.readAllBytes();
+
+                logger.info("Successfully loaded image, size: {} bytes", imageBytes.length);
 
                 // Determine content type from file extension
                 String contentType = "image/jpeg"; // default
@@ -176,7 +184,7 @@ public class FileUploadController {
             }
 
         } catch (Exception e) {
-            logger.error("Error retrieving profile picture: {}", e.getMessage(), e);
+            logger.error("Error retrieving profile picture for user {}: {}", userId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

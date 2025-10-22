@@ -1,3 +1,4 @@
+import React from 'react';
 import { Icon } from '@vaadin/react-components';
 import { toast } from 'sonner';
 import type UserDTO from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/UserDTO';
@@ -28,6 +29,12 @@ export default function ProfilePictureSection({
   isUploading,
   onUpload
 }: ProfilePictureSectionProps): JSX.Element {
+  const [imageError, setImageError] = React.useState(false);
+
+  // Reset error state when URL changes
+  React.useEffect(() => {
+    setImageError(false);
+  }, [profilePictureUrl]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
     const file = e.target.files?.[0];
@@ -81,11 +88,16 @@ export default function ProfilePictureSection({
         {/* Profile Picture Preview */}
         <div className="flex-shrink-0">
           <div className="w-32 h-32 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-gray-200">
-            {profilePictureUrl ? (
+            {profilePictureUrl && !imageError ? (
               <img
                 src={profilePictureUrl}
                 alt="Profile"
                 className="w-full h-full object-cover"
+                onError={() => {
+                  console.error('Failed to load profile picture:', profilePictureUrl);
+                  setImageError(true);
+                }}
+                onLoad={() => console.log('Profile picture loaded successfully')}
               />
             ) : (
               <Icon icon="vaadin:user" className="text-gray-400" style={{ width: '64px', height: '64px' }} />

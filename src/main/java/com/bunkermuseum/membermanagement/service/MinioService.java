@@ -109,10 +109,10 @@ public class MinioService implements MinioServiceContract {
 
                 logger.info("Created MinIO bucket: {}", bucketName);
             }
-        } catch (Exception e) {
-            logger.error("Error initializing MinIO bucket: {}", e.getMessage(), e);
+        } catch (Exception exception) {
+            logger.error("Error initializing MinIO bucket: {}", exception.getMessage(), exception);
 
-            throw new RuntimeException("Failed to initialize MinIO bucket", e);
+            throw new RuntimeException("Failed to initialize MinIO bucket", exception);
         }
     }
 
@@ -148,10 +148,10 @@ public class MinioService implements MinioServiceContract {
             logger.info("Uploaded file to MinIO: {}", objectName);
 
             return objectName;
-        } catch (Exception e) {
-            logger.error("Error uploading file to MinIO: {}", e.getMessage(), e);
+        } catch (Exception exception) {
+            logger.error("Error uploading file to MinIO: {}", exception.getMessage(), exception);
 
-            throw new RuntimeException("Failed to upload file to MinIO", e);
+            throw new RuntimeException("Failed to upload file to MinIO", exception);
         }
     }
 
@@ -171,10 +171,10 @@ public class MinioService implements MinioServiceContract {
                             .expiry(expirySeconds, TimeUnit.SECONDS)
                             .build()
             );
-        } catch (Exception e) {
-            logger.error("Error generating presigned URL: {}", e.getMessage(), e);
+        } catch (Exception exception) {
+            logger.error("Error generating presigned URL: {}", exception.getMessage(), exception);
 
-            throw new RuntimeException("Failed to generate presigned URL", e);
+            throw new RuntimeException("Failed to generate presigned URL", exception);
         }
     }
 
@@ -198,10 +198,10 @@ public class MinioService implements MinioServiceContract {
             );
 
             logger.info("Deleted file from MinIO: {}", objectName);
-        } catch (Exception e) {
-            logger.error("Error deleting file from MinIO: {}", e.getMessage(), e);
+        } catch (Exception exception) {
+            logger.error("Error deleting file from MinIO: {}", exception.getMessage(), exception);
 
-            throw new RuntimeException("Failed to delete file from MinIO", e);
+            throw new RuntimeException("Failed to delete file from MinIO", exception);
         }
     }
 
@@ -219,10 +219,10 @@ public class MinioService implements MinioServiceContract {
                             .object(objectName)
                             .build()
             );
-        } catch (Exception e) {
-            logger.error("Error downloading file from MinIO: {}", e.getMessage(), e);
+        } catch (Exception exception) {
+            logger.error("Error downloading file from MinIO: {}", exception.getMessage(), exception);
 
-            throw new RuntimeException("Failed to download file from MinIO", e);
+            throw new RuntimeException("Failed to download file from MinIO", exception);
         }
     }
 }

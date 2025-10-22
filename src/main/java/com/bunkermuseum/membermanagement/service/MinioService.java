@@ -18,15 +18,31 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Service for managing file operations with MinIO object storage.
+ * MinIO implementation of the MinioServiceContract.
  *
- * <p>Handles file uploads, downloads, deletions, and URL generation for
- * profile pictures and other binary data storage.</p>
+ * <p>Provides object storage capabilities using MinIO, an S3-compatible
+ * storage system. Handles file uploads, downloads, deletions, and URL
+ * generation for profile pictures and other binary data storage.</p>
  *
- * @author Philipp Borkovic
+ * <h3>Configuration:</h3>
+ * <ul>
+ *     <li><strong>minio.bucket-name:</strong> Storage bucket name (default: "bunkermuseum")</li>
+ *     <li><strong>minio.expiry-seconds:</strong> Presigned URL expiry (default: 3600s / 1h)</li>
+ * </ul>
+ *
+ * <h3>Features:</h3>
+ * <ul>
+ *     <li>Automatic bucket initialization on startup</li>
+ *     <li>UUID-based unique file naming</li>
+ *     <li>Configurable presigned URL expiry</li>
+ *     <li>Comprehensive error logging</li>
+ *     <li>Thread-safe operations</li>
+ * </ul>
+ *
+ * @see MinioServiceContract
  */
 @Service
-public class MinioService {
+public class MinioService implements MinioServiceContract {
 
     private static final Logger logger = LoggerFactory.getLogger(MinioService.class);
 
@@ -43,8 +59,42 @@ public class MinioService {
     }
 
     /**
-     * Initializes the MinIO bucket if it doesn't exist.
-     * Called after dependency injection is complete.
+     * Initializes the MinIO bucket during application startup.
+     *
+     * <p>This method is automatically invoked by Spring after all dependency injection
+     * is complete and all {@code @Value} properties have been resolved. It ensures that
+     * the configured MinIO bucket exists before any file operations are attempted.</p>
+     *
+     * <h3>Initialization Process:</h3>
+     * <ol>
+     *     <li>Checks if the configured bucket exists using {@link MinioClient#bucketExists}</li>
+     *     <li>If the bucket does not exist, creates it using {@link MinioClient#makeBucket}</li>
+     *     <li>Logs successful bucket creation or skips if already exists</li>
+     *     <li>Throws RuntimeException if initialization fails, preventing application startup</li>
+     * </ol>
+     *
+     * <h3>Error Handling:</h3>
+     * <p>If bucket initialization fails, a {@code RuntimeException} is thrown, which:</p>
+     * <ul>
+     *     <li>Prevents the application from starting with broken storage</li>
+     *     <li>Makes configuration errors immediately visible</li>
+     *     <li>Fails fast rather than allowing silent errors during runtime</li>
+     * </ul>
+     *
+     * <h3>Configuration Requirements:</h3>
+     * <p>Requires the following application properties to be set:</p>
+     * <ul>
+     *     <li>{@code minio.bucket-name} - The bucket name to initialize (default: "bunkermuseum")</li>
+     *     <li>MinIO server must be accessible and credentials must be valid</li>
+     * </ul>
+     *
+     * @throws RuntimeException if bucket existence check fails, bucket creation fails,
+     *                          or MinIO server is unreachable. This exception will
+     *                          prevent application startup, ensuring fail-fast behavior.
+     *
+     * @see PostConstruct
+     * @see MinioClient#bucketExists(BucketExistsArgs)
+     * @see MinioClient#makeBucket(MakeBucketArgs)
      *
      * @author Philipp Borkovic
      */
@@ -59,32 +109,27 @@ public class MinioService {
                 minioClient.makeBucket(
                         MakeBucketArgs.builder().bucket(bucketName).build()
                 );
+
                 logger.info("Created MinIO bucket: {}", bucketName);
             }
         } catch (Exception e) {
             logger.error("Error initializing MinIO bucket: {}", e.getMessage(), e);
+
             throw new RuntimeException("Failed to initialize MinIO bucket", e);
         }
     }
 
     /**
-     * Uploads a file to MinIO and returns the object name.
-     *
-     * @param file The multipart file to upload
-     * @param folder The folder/prefix within the bucket (e.g., "profile-pictures")
-     * @return The object name (path) of the uploaded file
-     *
-     * @throws IOException if file reading fails
-     * @throws RuntimeException if upload fails
+     * {@inheritDoc}
      *
      * @author Philipp Borkovic
      */
+    @Override
     public String uploadFile(MultipartFile file, String folder) throws IOException {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("File cannot be null or empty");
         }
 
-        // Generate unique filename
         String originalFilename = file.getOriginalFilename();
         String extension = "";
         if (originalFilename != null && originalFilename.contains(".")) {
@@ -104,24 +149,21 @@ public class MinioService {
             );
 
             logger.info("Uploaded file to MinIO: {}", objectName);
-            return objectName;
 
+            return objectName;
         } catch (Exception e) {
             logger.error("Error uploading file to MinIO: {}", e.getMessage(), e);
+
             throw new RuntimeException("Failed to upload file to MinIO", e);
         }
     }
 
     /**
-     * Generates a presigned URL for accessing a file.
-     *
-     * @param objectName The object name (path) in MinIO
-     * @return Presigned URL valid for configured expiry time
-     *
-     * @throws RuntimeException if URL generation fails
+     * {@inheritDoc}
      *
      * @author Philipp Borkovic
      */
+    @Override
     public String getPresignedUrl(String objectName) {
         try {
             return minioClient.getPresignedObjectUrl(
@@ -134,19 +176,17 @@ public class MinioService {
             );
         } catch (Exception e) {
             logger.error("Error generating presigned URL: {}", e.getMessage(), e);
+
             throw new RuntimeException("Failed to generate presigned URL", e);
         }
     }
 
     /**
-     * Deletes a file from MinIO.
-     *
-     * @param objectName The object name (path) to delete
-     *
-     * @throws RuntimeException if deletion fails
+     * {@inheritDoc}
      *
      * @author Philipp Borkovic
      */
+    @Override
     public void deleteFile(String objectName) {
         if (objectName == null || objectName.isBlank()) {
             return;
@@ -161,23 +201,19 @@ public class MinioService {
             );
 
             logger.info("Deleted file from MinIO: {}", objectName);
-
         } catch (Exception e) {
             logger.error("Error deleting file from MinIO: {}", e.getMessage(), e);
+
             throw new RuntimeException("Failed to delete file from MinIO", e);
         }
     }
 
     /**
-     * Downloads a file from MinIO.
-     *
-     * @param objectName The object name (path) to download
-     * @return InputStream of the file
-     *
-     * @throws RuntimeException if download fails
+     * {@inheritDoc}
      *
      * @author Philipp Borkovic
      */
+    @Override
     public InputStream downloadFile(String objectName) {
         try {
             return minioClient.getObject(
@@ -188,6 +224,7 @@ public class MinioService {
             );
         } catch (Exception e) {
             logger.error("Error downloading file from MinIO: {}", e.getMessage(), e);
+
             throw new RuntimeException("Failed to download file from MinIO", e);
         }
     }

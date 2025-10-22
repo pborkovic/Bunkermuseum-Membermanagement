@@ -1,7 +1,7 @@
 package com.bunkermuseum.membermanagement.controller;
 
 import com.bunkermuseum.membermanagement.model.User;
-import com.bunkermuseum.membermanagement.service.MinioServiceContract;
+import com.bunkermuseum.membermanagement.service.contract.MinioServiceContract;
 import com.bunkermuseum.membermanagement.service.UserService;
 import jakarta.annotation.security.PermitAll;
 import org.slf4j.Logger;

@@ -145,28 +145,39 @@ public class FileUploadController {
      * @author Philipp Borkovic
      */
     @GetMapping("/profile-picture/{userId}")
-    public ResponseEntity<Map<String, String>> getProfilePictureUrl(@PathVariable UUID userId) {
+    public ResponseEntity<byte[]> getProfilePicture(@PathVariable UUID userId) {
         try {
             User user = userService.findById(userId).orElse(null);
 
             if (user == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(Map.of("error", "User not found"));
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
 
             if (user.getAvatarPath() == null || user.getAvatarPath().isBlank()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(Map.of("error", "User has no profile picture"));
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
 
-            String url = minioService.getPresignedUrl(user.getAvatarPath());
+            // Stream the file directly from MinIO
+            try (var inputStream = minioService.downloadFile(user.getAvatarPath())) {
+                byte[] imageBytes = inputStream.readAllBytes();
 
-            return ResponseEntity.ok(Map.of("url", url));
+                // Determine content type from file extension
+                String contentType = "image/jpeg"; // default
+                if (user.getAvatarPath().toLowerCase().endsWith(".png")) {
+                    contentType = "image/png";
+                } else if (user.getAvatarPath().toLowerCase().endsWith(".webp")) {
+                    contentType = "image/webp";
+                }
+
+                return ResponseEntity.ok()
+                        .header("Content-Type", contentType)
+                        .header("Cache-Control", "max-age=3600")
+                        .body(imageBytes);
+            }
 
         } catch (Exception e) {
-            logger.error("Error retrieving profile picture URL: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Failed to retrieve profile picture URL"));
+            logger.error("Error retrieving profile picture: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

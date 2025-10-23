@@ -1,284 +1,197 @@
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card } from '@/components/ui/card';
-import { Icon } from '@vaadin/react-components';
+import { toast } from 'sonner';
 import { AuthController, UserController } from 'Frontend/generated/endpoints';
+import type UserDTO from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/UserDTO';
+import type User from 'Frontend/generated/com/bunkermuseum/membermanagement/model/User';
+import ProfilePictureSection from './_ProfilePictureSection';
+import ProfileInformationForm, { type ProfileFormData } from './_ProfileInformationForm';
+import PasswordChangeForm from './_PasswordChangeForm';
+import AccountInformation from './_AccountInformation';
 
 /**
- * SettingsTab component - Admin profile and account settings.
+ * SettingsTab component - Comprehensive user profile and account settings.
  *
  * Features:
- * - View and edit admin profile information
+ * - Profile picture upload to MinIO
+ * - Edit all profile fields (name, email, salutation, title, rank, birthday, phone, address)
  * - Change password
- * - Account management
+ * - Account information display
  * - Loading and error states
  *
  * @component
+ *
+ * @param {Object} props - Component props
+ * @param {() => void} props.onProfileUpdate - Callback to refresh profile in parent component
  *
  * @returns {JSX.Element} The settings tab content
  *
  * @author Philipp Borkovic
  */
-export default function SettingsTab(): JSX.Element {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+export default function SettingsTab({ onProfileUpdate }: { onProfileUpdate?: () => void }): JSX.Element {
+  const [currentUser, setCurrentUser] = useState<UserDTO | null>(null);
+  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  // Profile form state
+  const [profileForm, setProfileForm] = useState<ProfileFormData>({
+    name: '',
+    email: '',
+    salutation: '',
+    academicTitle: '',
+    rank: '',
+    birthday: undefined,
+    phone: '',
+    street: '',
+    city: '',
+    postalCode: ''
+  });
+
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
   /**
-   * Loads admin profile information on component mount.
+   * Loads user profile information on component mount.
    */
   useEffect(() => {
     loadProfile();
   }, []);
 
   /**
-   * Fetches the current admin user profile.
-   *
-   * @author Philipp Borkovic
+   * Fetches the current user profile and profile picture.
    */
   const loadProfile = async (): Promise<void> => {
     try {
       setIsLoading(true);
-      setError('');
       const user = await AuthController.getCurrentUser();
+
       if (user) {
-        setName(user.name || '');
-        setEmail(user.email || '');
+        setCurrentUser(user);
+
+        setProfileForm({
+          name: user.name || '',
+          email: user.email || '',
+          salutation: user.salutation || '',
+          academicTitle: user.academicTitle || '',
+          rank: user.rank || '',
+          birthday: user.birthday ? new Date(user.birthday) : undefined,
+          phone: user.phone || '',
+          street: user.street || '',
+          city: user.city || '',
+          postalCode: user.postalCode || ''
+        });
+
+        // Set profile picture URL directly if avatar path exists
+        if (user.avatarPath && user.id) {
+          // Add timestamp to force reload and avoid caching issues
+          setProfilePictureUrl(`/api/upload/profile-picture/${user.id}?t=${Date.now()}`);
+        } else {
+          setProfilePictureUrl(null);
+        }
       }
     } catch (err: any) {
-      setError(err.message || 'Fehler beim Laden des Profils');
+      toast.error('Fehler beim Laden des Profils');
     } finally {
       setIsLoading(false);
     }
   };
 
   /**
-   * Handles profile information update.
-   *
-   * @param {React.FormEvent} e - The form submission event
-   *
-   * @author Philipp Borkovic
+   * Handles profile picture upload completion.
    */
-  const handleUpdateProfile = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
-    setIsSaving(true);
-
+  const handleProfilePictureUpload = async (): Promise<void> => {
+    setIsUploading(true);
     try {
-      const user = await AuthController.getCurrentUser();
-      if (user && user.id) {
-        await UserController.updateProfile(user.id, name, email);
-        setSuccess('Profil erfolgreich aktualisiert');
+      await loadProfile();
+
+      // Notify parent component to refresh profile picture in navbar
+      if (onProfileUpdate) {
+        onProfileUpdate();
       }
-    } catch (err: any) {
-      setError(err.message || 'Fehler beim Aktualisieren des Profils');
     } finally {
-      setIsSaving(false);
+      setIsUploading(false);
     }
   };
 
   /**
-   * Handles password change.
-   *
-   * @param {React.FormEvent} e - The form submission event
-   *
-   * @author Philipp Borkovic
+   * Handles profile information update.
    */
-  const handleChangePassword = async (e: React.FormEvent): Promise<void> => {
+  const handleUpdateProfile = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
-
-    // Validate passwords match
-    if (newPassword !== confirmPassword) {
-      setError('Die neuen Passwörter stimmen nicht überein');
-      return;
-    }
-
-    // Validate password strength
-    if (newPassword.length < 8) {
-      setError('Das neue Passwort muss mindestens 8 Zeichen lang sein');
-      return;
-    }
-
     setIsSaving(true);
 
     try {
-      await AuthController.changePassword(currentPassword, newPassword);
-      setSuccess('Passwort erfolgreich geändert');
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
+      if (!currentUser || !currentUser.id) {
+        throw new Error('Benutzer nicht gefunden');
+      }
+
+      // Create a User object with the fields we want to update
+      const updatedUser: User = {
+        id: currentUser.id,
+        name: profileForm.name,
+        email: profileForm.email,
+        salutation: profileForm.salutation || undefined,
+        academicTitle: profileForm.academicTitle || undefined,
+        rank: profileForm.rank || undefined,
+        birthday: profileForm.birthday ? profileForm.birthday.toISOString().split('T')[0] : undefined,
+        phone: profileForm.phone || undefined,
+        street: profileForm.street || undefined,
+        city: profileForm.city || undefined,
+        postalCode: profileForm.postalCode || undefined,
+        avatarPath: currentUser.avatarPath,
+        emailVerifiedAt: currentUser.emailVerifiedAt,
+        roles: currentUser.roles
+      } as User;
+
+      await UserController.updateUser(currentUser.id, updatedUser);
+      toast.success('Profil erfolgreich aktualisiert');
+
+      // Reload profile
+      await loadProfile();
+
+      // Notify parent component to refresh user info
+      if (onProfileUpdate) {
+        onProfileUpdate();
+      }
+
     } catch (err: any) {
-      setError(err.message || 'Fehler beim Ändern des Passworts');
+      toast.error(err.message || 'Fehler beim Aktualisieren des Profils');
     } finally {
       setIsSaving(false);
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-4xl mx-auto">
       {/* Header */}
       <div>
-        <h2 className="text-xl font-semibold">Einstellungen</h2>
-        <p className="text-sm text-muted-foreground">
+        <h2 className="text-2xl font-bold text-black">Einstellungen</h2>
+        <p className="text-sm text-gray-600 mt-1">
           Verwalten Sie Ihre Profilinformationen und Kontoeinstellungen
         </p>
       </div>
 
-      {/* Success message */}
-      {success && (
-        <div className="rounded-md bg-success/10 p-3 text-sm text-success border border-success/20">
-          <Icon icon="vaadin:check-circle" className="inline mr-2" style={{ width: '16px', height: '16px' }} />
-          {success}
-        </div>
-      )}
+      {/* Profile Picture */}
+      <ProfilePictureSection
+        currentUser={currentUser}
+        profilePictureUrl={profilePictureUrl}
+        isUploading={isUploading}
+        onUpload={handleProfilePictureUpload}
+      />
 
-      {/* Error message */}
-      {error && (
-        <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-          <Icon icon="vaadin:exclamation-circle" className="inline mr-2" style={{ width: '16px', height: '16px' }} />
-          {error}
-        </div>
-      )}
+      {/* Profile Information */}
+      <ProfileInformationForm
+        formData={profileForm}
+        onChange={setProfileForm}
+        onSubmit={handleUpdateProfile}
+        isLoading={isLoading}
+        isSaving={isSaving}
+      />
 
-      {/* Profile information */}
-      <div className="bg-white rounded-lg border p-6">
-        <div className="mb-4 flex items-center space-x-3">
-          <Icon icon="vaadin:user" className="text-primary" style={{ width: '24px', height: '24px' }} />
-          <h3 className="text-lg font-semibold">Profilinformationen</h3>
-        </div>
+      {/* Change Password */}
+      <PasswordChangeForm />
 
-        {isLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <Icon icon="vaadin:spinner" className="animate-spin text-primary" style={{ width: '32px', height: '32px' }} />
-          </div>
-        ) : (
-          <form onSubmit={handleUpdateProfile} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                disabled={isSaving}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email">E-Mail</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isSaving}
-                required
-              />
-            </div>
-
-            <div className="flex justify-end">
-              <Button type="submit" disabled={isSaving}>
-                {isSaving ? 'Speichern...' : 'Profil aktualisieren'}
-              </Button>
-            </div>
-          </form>
-        )}
-      </div>
-
-      {/* Change password */}
-      <div className="bg-white rounded-lg border p-6">
-        <div className="mb-4 flex items-center space-x-3">
-          <Icon icon="vaadin:lock" className="text-primary" style={{ width: '24px', height: '24px' }} />
-          <h3 className="text-lg font-semibold">Passwort ändern</h3>
-        </div>
-
-        <form onSubmit={handleChangePassword} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="currentPassword">Aktuelles Passwort</Label>
-            <Input
-              id="currentPassword"
-              type="password"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              disabled={isSaving}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="newPassword">Neues Passwort</Label>
-            <Input
-              id="newPassword"
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              disabled={isSaving}
-              required
-            />
-            <p className="text-xs text-muted-foreground">
-              Mindestens 8 Zeichen
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Neues Passwort bestätigen</Label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              disabled={isSaving}
-              required
-            />
-          </div>
-
-          <div className="flex justify-end">
-            <Button type="submit" disabled={isSaving}>
-              {isSaving ? 'Ändern...' : 'Passwort ändern'}
-            </Button>
-          </div>
-        </form>
-      </div>
-
-      {/* Account information */}
-      <div className="bg-white rounded-lg border p-6">
-        <div className="mb-4 flex items-center space-x-3">
-          <Icon icon="vaadin:info-circle" className="text-primary" style={{ width: '24px', height: '24px' }} />
-          <h3 className="text-lg font-semibold">Kontoinformationen</h3>
-        </div>
-
-        <div className="space-y-3 text-sm">
-          <div className="grid grid-cols-3 gap-2">
-            <span className="font-medium">Rolle:</span>
-            <span className="col-span-2">Administrator</span>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2">
-            <span className="font-medium">E-Mail verifiziert:</span>
-            <span className="col-span-2">
-              <Icon icon="vaadin:check-circle" className="inline text-success mr-1" style={{ width: '16px', height: '16px' }} />
-              Verifiziert
-            </span>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2">
-            <span className="font-medium">Konto erstellt:</span>
-            <span className="col-span-2">{new Date().toLocaleDateString('de-DE')}</span>
-          </div>
-        </div>
-      </div>
+      {/* Account Information */}
+      <AccountInformation currentUser={currentUser} />
     </div>
   );
 }

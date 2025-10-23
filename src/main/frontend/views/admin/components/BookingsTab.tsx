@@ -1,18 +1,22 @@
 import { useState, useEffect } from 'react';
-import { Grid } from '@vaadin/react-components/Grid';
-import { GridColumn } from '@vaadin/react-components/GridColumn';
-import { Dialog } from '@vaadin/react-components/Dialog';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Icon } from '@vaadin/react-components';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BookingController } from 'Frontend/generated/endpoints';
 import type Booking from 'Frontend/generated/com/bunkermuseum/membermanagement/model/Booking';
+import BookingsList from './_BookingsList';
+import BookingDetailsModal from './_BookingDetailsModal';
+import DeleteBookingModal from './_DeleteBookingModal';
+import BookingsDateRangeFilter, { DATE_RANGE_PRESETS } from './_BookingsDateRangeFilter';
 
 /**
- * BookingsTab component - Displays all bookings in a grid with detailed modal view.
+ * BookingsTab component - Displays all bookings with pagination, search, and date filtering.
  *
  * Features:
- * - Grid view of all bookings
+ * - Table view of all bookings (similar to UsersTab)
+ * - Date range filter with predefined options
+ * - Custom date range selection
+ * - Pagination support
+ * - Search functionality
  * - Click to open detailed booking information modal
  * - Loading and error states
  * - Responsive layout
@@ -26,10 +30,31 @@ import type Booking from 'Frontend/generated/com/bunkermuseum/membermanagement/m
  */
 export default function BookingsTab(): JSX.Element {
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [bookingToDelete, setBookingToDelete] = useState<Booking | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isMobile, setIsMobile] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [bookingsPerPage, setBookingsPerPage] = useState(10);
+  const [dateRangePreset, setDateRangePreset] = useState('1month');
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   /**
    * Loads all bookings from the backend on component mount.
@@ -37,6 +62,29 @@ export default function BookingsTab(): JSX.Element {
   useEffect(() => {
     loadBookings();
   }, []);
+
+  /**
+   * Apply filters whenever bookings, search query, or date range changes
+   */
+  useEffect(() => {
+    applyFilters();
+  }, [bookings, searchQuery, dateRangePreset, startDate, endDate]);
+
+  /**
+   * Update date range based on preset selection
+   */
+  useEffect(() => {
+    if (dateRangePreset !== 'custom') {
+      const preset = DATE_RANGE_PRESETS.find(p => p.value === dateRangePreset);
+      if (preset && preset.days > 0) {
+        const end = new Date();
+        const start = new Date();
+        start.setDate(start.getDate() - preset.days);
+        setStartDate(start);
+        setEndDate(end);
+      }
+    }
+  }, [dateRangePreset]);
 
   /**
    * Fetches all bookings from the BookingController.
@@ -54,6 +102,40 @@ export default function BookingsTab(): JSX.Element {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  /**
+   * Applies search and date range filters to bookings
+   *
+   * @author Philipp Borkovic
+   */
+  const applyFilters = (): void => {
+    let filtered = [...bookings];
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(booking =>
+        (booking.code?.toLowerCase().includes(query)) ||
+        (booking.ofMG?.toLowerCase().includes(query)) ||
+        (booking.expectedPurpose?.toLowerCase().includes(query)) ||
+        (booking.actualPurpose?.toLowerCase().includes(query)) ||
+        (booking.expectedAmount?.toString().includes(query)) ||
+        (booking.actualAmount?.toString().includes(query))
+      );
+    }
+
+    // Apply date range filter
+    if (startDate && endDate) {
+      filtered = filtered.filter(booking => {
+        if (!booking.receivedAt) return false;
+        const receivedDate = new Date(booking.receivedAt);
+        return receivedDate >= startDate && receivedDate <= endDate;
+      });
+    }
+
+    setFilteredBookings(filtered);
+    setCurrentPage(1); // Reset to first page when filters change
   };
 
   /**
@@ -79,206 +161,168 @@ export default function BookingsTab(): JSX.Element {
   };
 
   /**
-   * Formats a date to German locale string.
+   * Opens the delete confirmation modal for a specific booking.
    *
-   * @param {string | null | undefined} dateString - The date string to format
-   * @returns {string} Formatted date or 'N/A'
+   * @param {Booking} booking - The booking to delete
    *
    * @author Philipp Borkovic
    */
-  const formatDate = (dateString: string | null | undefined): string => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('de-DE');
+  const handleDeleteClick = (booking: Booking): void => {
+    setBookingToDelete(booking);
+    setIsDeleteModalOpen(true);
   };
 
   /**
-   * Formats a number as currency in EUR.
-   *
-   * @param {number | null | undefined} amount - The amount to format
-   * @returns {string} Formatted currency or 'N/A'
+   * Closes the delete confirmation modal.
    *
    * @author Philipp Borkovic
    */
-  const formatCurrency = (amount: number | null | undefined): string => {
-    if (amount === null || amount === undefined) return 'N/A';
-    return new Intl.NumberFormat('de-DE', {
-      style: 'currency',
-      currency: 'EUR',
-    }).format(amount);
+  const handleCloseDeleteModal = (): void => {
+    setIsDeleteModalOpen(false);
+    setBookingToDelete(null);
   };
 
+  /**
+   * Deletes the selected booking.
+   *
+   * @author Philipp Borkovic
+   */
+  const handleConfirmDelete = async (): Promise<void> => {
+    if (!bookingToDelete) return;
+
+    try {
+      // TODO: Implement booking deletion via BookingController
+      console.log('Deleting booking:', bookingToDelete.id);
+      handleCloseDeleteModal();
+      loadBookings(); // Reload bookings after deletion
+    } catch (err: any) {
+      setError(err.message || 'Fehler beim Löschen der Buchung');
+    }
+  };
+
+  /**
+   * Handles page navigation with bounds checking.
+   *
+   * @param {number} page - The page number to navigate to
+   *
+   * @author Philipp Borkovic
+   */
+  const handlePageChange = (page: number): void => {
+    const totalPages = Math.ceil(filteredBookings.length / bookingsPerPage);
+    setCurrentPage(Math.min(Math.max(1, page), totalPages));
+  };
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredBookings.length / bookingsPerPage);
+  const startIndexZeroBased = (currentPage - 1) * bookingsPerPage;
+  const endIndexZeroBased = startIndexZeroBased + bookingsPerPage;
+  const currentBookings = filteredBookings.slice(startIndexZeroBased, endIndexZeroBased);
+
+  // Check if filters are active
+  const hasActiveFilters = !!(searchQuery || (startDate && endDate));
+
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="mb-4">
-        <h2 className="text-xl font-semibold">Buchungsverwaltung</h2>
-        <p className="text-sm text-muted-foreground">
-          Übersicht aller Buchungen und Transaktionen
-        </p>
+    <div className="flex flex-col h-full space-y-4">
+      {/* Header with Search and Controls */}
+      <div className="flex-shrink-0 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-black">Buchungsverwaltung</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Übersicht aller Buchungen und Transaktionen
+          </p>
+        </div>
+
+        {/* Search Bar and Controls */}
+        <div className="flex flex-col sm:flex-row gap-3 sm:ml-auto">
+          {/* Page Size Selector */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-600 whitespace-nowrap">Zeilen:</label>
+            <Select
+              value={bookingsPerPage.toString()}
+              onValueChange={(value) => {
+                setBookingsPerPage(parseInt(value));
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="w-[90px] h-9 border-black text-black [&_svg]:text-black [&_svg]:opacity-100 [&_svg]:-mt-4">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-white border-black">
+                <SelectItem value="5" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">5</SelectItem>
+                <SelectItem value="10" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">10</SelectItem>
+                <SelectItem value="25" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">25</SelectItem>
+                <SelectItem value="50" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">50</SelectItem>
+                <SelectItem value="100" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">100</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Search Bar */}
+          <div className="relative w-full sm:w-48">
+            <Icon
+              icon="vaadin:search"
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              style={{ width: '18px', height: '18px' }}
+            />
+            <input
+              type="text"
+              placeholder="Suchen..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 text-sm text-black border border-black rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1 placeholder:text-gray-400"
+            />
+          </div>
+        </div>
       </div>
+
+      {/* Date Range Filter */}
+      <BookingsDateRangeFilter
+        dateRangePreset={dateRangePreset}
+        startDate={startDate}
+        endDate={endDate}
+        onPresetChange={setDateRangePreset}
+        onStartDateChange={setStartDate}
+        onEndDateChange={setEndDate}
+      />
 
       {/* Error message */}
       {error && (
-        <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+        <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive flex-shrink-0">
           {error}
         </div>
       )}
 
-      {/* Bookings grid */}
-      <div className="bg-white rounded-lg p-4">
-        {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <Icon icon="vaadin:spinner" className="animate-spin text-primary mb-2" style={{ width: '32px', height: '32px' }} />
-              <p className="text-sm text-muted-foreground">Lädt Buchungen...</p>
-            </div>
-          </div>
-        ) : bookings.length === 0 ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <Icon icon="vaadin:invoice" className="text-muted-foreground mb-2" style={{ width: '48px', height: '48px' }} />
-              <p className="text-sm text-muted-foreground">Keine Buchungen gefunden</p>
-            </div>
-          </div>
-        ) : (
-          <Grid
-            items={bookings}
-            onActiveItemChanged={(e: any) => {
-              const booking = e.detail.value;
-              if (booking) handleBookingClick(booking);
-            }}
-            className="cursor-pointer"
-          >
-            <GridColumn
-              path="code"
-              header="Code"
-              autoWidth
-            />
-            <GridColumn
-              path="ofMG"
-              header="Mitglied"
-              autoWidth
-            />
-            <GridColumn
-              header="Erwarteter Betrag"
-              autoWidth
-              renderer={({ item }: any) => formatCurrency(item.expectedAmount)}
-            />
-            <GridColumn
-              header="Tatsächlicher Betrag"
-              autoWidth
-              renderer={({ item }: any) => formatCurrency(item.actualAmount)}
-            />
-            <GridColumn
-              path="receivedAt"
-              header="Empfangen am"
-              autoWidth
-              renderer={({ item }: any) => formatDate(item.receivedAt)}
-            />
-            <GridColumn
-              path="createdAt"
-              header="Erstellt am"
-              autoWidth
-              renderer={({ item }: any) => formatDate(item.createdAt)}
-            />
-          </Grid>
-        )}
+      {/* Bookings List */}
+      <div className="bg-white rounded-lg p-4 sm:p-6 w-full flex-shrink-0">
+        <BookingsList
+          bookings={currentBookings}
+          isLoading={isLoading}
+          searchQuery={searchQuery}
+          hasActiveFilters={hasActiveFilters}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalElements={filteredBookings.length}
+          bookingsPerPage={bookingsPerPage}
+          isMobile={isMobile}
+          onBookingClick={handleBookingClick}
+          onDeleteClick={handleDeleteClick}
+          onPageChange={handlePageChange}
+        />
       </div>
 
-      {/* Booking details modal */}
-      <Dialog
-        opened={isModalOpen}
-        onOpenedChanged={(e: any) => {
-          if (!e.detail.value) handleCloseModal();
-        }}
-        headerTitle="Buchungsdetails"
-      >
-        {selectedBooking && (
-          <div className="space-y-4 p-4 min-w-[600px]">
-            {/* Booking icon */}
-            <div className="flex justify-center">
-              <Icon icon="vaadin:invoice" className="text-primary" style={{ width: '64px', height: '64px' }} />
-            </div>
+      {/* Modals */}
+      <DeleteBookingModal
+        booking={bookingToDelete}
+        isOpen={isDeleteModalOpen}
+        onClose={handleCloseDeleteModal}
+        onConfirm={handleConfirmDelete}
+      />
 
-            {/* Booking information */}
-            <div className="space-y-3">
-              <div className="grid grid-cols-3 gap-2">
-                <span className="font-medium">ID:</span>
-                <span className="col-span-2 font-mono text-sm">{selectedBooking.id}</span>
-              </div>
-
-              <div className="grid grid-cols-3 gap-2">
-                <span className="font-medium">Code:</span>
-                <span className="col-span-2 font-mono">{selectedBooking.code || 'N/A'}</span>
-              </div>
-
-              <div className="grid grid-cols-3 gap-2">
-                <span className="font-medium">Mitglied:</span>
-                <span className="col-span-2">{selectedBooking.ofMG || 'N/A'}</span>
-              </div>
-
-              <div className="grid grid-cols-3 gap-2">
-                <span className="font-medium">Benutzer-ID:</span>
-                <span className="col-span-2 font-mono text-sm">{selectedBooking.user?.id || 'N/A'}</span>
-              </div>
-
-              <div className="border-t pt-3">
-                <h3 className="font-medium mb-2">Erwartete Werte</h3>
-
-                <div className="grid grid-cols-3 gap-2">
-                  <span className="text-sm">Betrag:</span>
-                  <span className="col-span-2 text-sm font-semibold">
-                    {formatCurrency(selectedBooking.expectedAmount)}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-3 gap-2 mt-2">
-                  <span className="text-sm">Verwendungszweck:</span>
-                  <span className="col-span-2 text-sm">{selectedBooking.expectedPurpose || 'N/A'}</span>
-                </div>
-              </div>
-
-              <div className="border-t pt-3">
-                <h3 className="font-medium mb-2">Tatsächliche Werte</h3>
-
-                <div className="grid grid-cols-3 gap-2">
-                  <span className="text-sm">Betrag:</span>
-                  <span className="col-span-2 text-sm font-semibold">
-                    {formatCurrency(selectedBooking.actualAmount)}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-3 gap-2 mt-2">
-                  <span className="text-sm">Verwendungszweck:</span>
-                  <span className="col-span-2 text-sm">{selectedBooking.actualPurpose || 'N/A'}</span>
-                </div>
-
-                <div className="grid grid-cols-3 gap-2 mt-2">
-                  <span className="text-sm">Empfangen am:</span>
-                  <span className="col-span-2 text-sm">{formatDate(selectedBooking.receivedAt)}</span>
-                </div>
-              </div>
-
-              <div className="border-t pt-3">
-                <div className="grid grid-cols-3 gap-2">
-                  <span className="text-sm">Erstellt am:</span>
-                  <span className="col-span-2 text-sm">{formatDate(selectedBooking.createdAt)}</span>
-                </div>
-
-                <div className="grid grid-cols-3 gap-2 mt-2">
-                  <span className="text-sm">Aktualisiert am:</span>
-                  <span className="col-span-2 text-sm">{formatDate(selectedBooking.updatedAt)}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Close button */}
-            <div className="flex justify-end pt-4">
-              <Button onClick={handleCloseModal}>Schließen</Button>
-            </div>
-          </div>
-        )}
-      </Dialog>
+      <BookingDetailsModal
+        booking={selectedBooking}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 }

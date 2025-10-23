@@ -32,10 +32,12 @@
     "date-fns": "^2.30.0",
     "lit": "3.3.0",
     "lucide-react": "^0.544.0",
+    "next-themes": "^0.4.6",
     "react": "18.3.1",
     "react-day-picker": "^8.10.1",
     "react-dom": "18.3.1",
     "react-router": "7.6.1",
+    "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
     "tw-animate-css": "^1.4.0",
     "zod": "^4.1.11"
@@ -138,7 +140,7 @@
       "workbox-core": "7.3.0",
       "workbox-precaching": "7.3.0"
     },
-    "hash": "8832f88b4a887378d0fdaeed38f2ca31804bc0fd4ae32557fd3a4f3fc7934273"
+    "hash": "51de7e8f44b9161267688464b92fbec4ec69c4498d40a41e9481b033b0366084"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
@@ -235,6 +237,8 @@
     "@radix-ui/react-popover": "$@radix-ui/react-popover",
     "react-day-picker": "$react-day-picker",
     "zod": "$zod",
-    "@radix-ui/react-dropdown-menu": "$@radix-ui/react-dropdown-menu"
+    "@radix-ui/react-dropdown-menu": "$@radix-ui/react-dropdown-menu",
+    "next-themes": "$next-themes",
+    "sonner": "$sonner"
   }
 }

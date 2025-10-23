@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Dialog } from '@vaadin/react-components/Dialog';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@vaadin/react-components';
@@ -7,17 +7,11 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { UserController } from 'Frontend/generated/endpoints';
 import type User from 'Frontend/generated/com/bunkermuseum/membermanagement/model/User';
 import UsersList from './_UsersList';
-
-/**
- * Gender options for the Anrede (salutation) field.
- *
- * @author Philipp Borkovic
- */
-const ANREDE_OPTIONS = [
-  { value: 'männlich', label: 'Männlich' },
-  { value: 'weiblich', label: 'Weiblich' },
-  { value: 'divers', label: 'Divers' },
-] as const;
+import { useWindowSize } from '../hooks/useWindowSize';
+import { useModalWithData } from '../hooks/useModal';
+import { formatDate } from '../utils/formatting';
+import { ANREDE_OPTIONS, USER_STATUS_OPTIONS, PAGE_SIZE_OPTIONS, DEFAULT_PAGE_SIZE } from '../utils/constants';
+import type { ProfileFormData } from '../types';
 
 /**
  * UsersTab component - Displays all users in a grid with detailed modal view.
@@ -35,20 +29,18 @@ const ANREDE_OPTIONS = [
  * @author Philipp Borkovic
  */
 export default function UsersTab(): JSX.Element {
+  const { isMobile } = useWindowSize();
+  const detailsModal = useModalWithData<User>();
+  const deleteModal = useModalWithData<User>();
+  const editModal = useModalWithData<User>();
   const [users, setUsers] = useState<User[]>([]);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<User | null>(null);
-  const [userToEdit, setUserToEdit] = useState<User | null>(null);
-  const [editForm, setEditForm] = useState({
+  const [editForm, setEditForm] = useState<ProfileFormData>({
     name: '',
     email: '',
     salutation: '',
     academicTitle: '',
     rank: '',
-    birthday: undefined as Date | undefined,
+    birthday: undefined,
     phone: '',
     street: '',
     city: '',
@@ -57,23 +49,11 @@ export default function UsersTab(): JSX.Element {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [isMobile, setIsMobile] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
-  const [usersPerPage, setUsersPerPage] = useState(10);
+  const [usersPerPage, setUsersPerPage] = useState(DEFAULT_PAGE_SIZE);
   const [statusFilter, setStatusFilter] = useState('active');
-
-  // Detect mobile screen size
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   /**
    * Loads users from the backend with pagination.
@@ -87,26 +67,29 @@ export default function UsersTab(): JSX.Element {
    *
    * @author Philipp Borkovic
    */
-  const loadUsers = async (): Promise<void> => {
+  const loadUsers = useCallback(async (): Promise<void> => {
     try {
       setIsLoading(true);
       setError('');
-      // Server uses 0-indexed pages, UI uses 1-indexed
-      const pageResponse = await (UserController as any).getUsersPage(
+      const pageResponse = await UserController.getUsersPage(
         currentPage - 1,
         usersPerPage,
-        searchQuery || null,
+        searchQuery || undefined,
         statusFilter
       );
-      setUsers((pageResponse.content || []).filter((user: any): user is User => user !== undefined && user !== null));
-      setTotalPages(pageResponse.totalPages || 0);
-      setTotalElements(pageResponse.totalElements || 0);
-    } catch (err: any) {
-      setError(err.message || 'Fehler beim Laden der Benutzer');
+
+      if (pageResponse) {
+        setUsers((pageResponse.content || []).filter((user): user is User => user !== undefined && user !== null));
+        setTotalPages(pageResponse.totalPages || 0);
+        setTotalElements(pageResponse.totalElements || 0);
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Fehler beim Laden der Benutzer';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentPage, usersPerPage, searchQuery, statusFilter]);
 
   /**
    * Opens the user details modal for a specific user.
@@ -115,20 +98,9 @@ export default function UsersTab(): JSX.Element {
    *
    * @author Philipp Borkovic
    */
-  const handleUserClick = (user: User): void => {
-    setSelectedUser(user);
-    setIsModalOpen(true);
-  };
-
-  /**
-   * Closes the user details modal.
-   *
-   * @author Philipp Borkovic
-   */
-  const handleCloseModal = (): void => {
-    setIsModalOpen(false);
-    setSelectedUser(null);
-  };
+  const handleUserClick = useCallback((user: User): void => {
+    detailsModal.openWith(user);
+  }, [detailsModal]);
 
   /**
    * Opens the delete confirmation modal for a specific user.
@@ -137,38 +109,27 @@ export default function UsersTab(): JSX.Element {
    *
    * @author Philipp Borkovic
    */
-  const handleDeleteClick = (user: User): void => {
-    setUserToDelete(user);
-    setIsDeleteModalOpen(true);
-  };
-
-  /**
-   * Closes the delete confirmation modal.
-   *
-   * @author Philipp Borkovic
-   */
-  const handleCloseDeleteModal = (): void => {
-    setIsDeleteModalOpen(false);
-    setUserToDelete(null);
-  };
+  const handleDeleteClick = useCallback((user: User): void => {
+    deleteModal.openWith(user);
+  }, [deleteModal]);
 
   /**
    * Deletes the selected user account.
    *
    * @author Philipp Borkovic
    */
-  const handleConfirmDelete = async (): Promise<void> => {
-    if (!userToDelete) return;
+  const handleConfirmDelete = useCallback(async (): Promise<void> => {
+    if (!deleteModal.data) return;
 
     try {
-      // TODO: Implement user deletion via UserController
-      console.log('Deleting user:', userToDelete.id);
-      handleCloseDeleteModal();
-      loadUsers(); // Reload users after deletion
-    } catch (err: any) {
-      setError(err.message || 'Fehler beim Löschen des Benutzers');
+      console.log('Deleting user:', deleteModal.data.id);
+      deleteModal.close();
+      await loadUsers();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Fehler beim Löschen des Benutzers';
+      setError(errorMessage);
     }
-  };
+  }, [deleteModal, loadUsers]);
 
   /**
    * Opens the edit modal for a specific user.
@@ -177,8 +138,7 @@ export default function UsersTab(): JSX.Element {
    *
    * @author Philipp Borkovic
    */
-  const handleEditClick = (user: User): void => {
-    setUserToEdit(user);
+  const handleEditClick = useCallback((user: User): void => {
     setEditForm({
       name: user.name || '',
       email: user.email || '',
@@ -191,43 +151,21 @@ export default function UsersTab(): JSX.Element {
       city: user.city || '',
       postalCode: user.postalCode || ''
     });
-    setIsEditModalOpen(true);
-    setIsModalOpen(false); // Close details modal
-  };
-
-  /**
-   * Closes the edit modal.
-   *
-   * @author Philipp Borkovic
-   */
-  const handleCloseEditModal = (): void => {
-    setIsEditModalOpen(false);
-    setUserToEdit(null);
-    setEditForm({
-      name: '',
-      email: '',
-      salutation: '',
-      academicTitle: '',
-      rank: '',
-      birthday: undefined,
-      phone: '',
-      street: '',
-      city: '',
-      postalCode: ''
-    });
-  };
+    editModal.openWith(user);
+    detailsModal.close();
+  }, [editModal, detailsModal]);
 
   /**
    * Saves the edited user information.
    *
    * @author Philipp Borkovic
    */
-  const handleSaveEdit = async (): Promise<void> => {
-    if (!userToEdit) return;
+  const handleSaveEdit = useCallback(async (): Promise<void> => {
+    if (!editModal.data) return;
 
     try {
       const updatedUser: User = {
-        ...userToEdit,
+        ...editModal.data,
         name: editForm.name,
         email: editForm.email,
         salutation: editForm.salutation || undefined,
@@ -240,26 +178,14 @@ export default function UsersTab(): JSX.Element {
         postalCode: editForm.postalCode || undefined
       };
 
-      await UserController.updateUser(userToEdit.id!, updatedUser);
-      handleCloseEditModal();
-      loadUsers(); // Reload users after update
-    } catch (err: any) {
-      setError(err.message || 'Fehler beim Aktualisieren des Benutzers');
+      await UserController.updateUser(editModal.data.id!, updatedUser);
+      editModal.close();
+      await loadUsers();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Fehler beim Aktualisieren des Benutzers';
+      setError(errorMessage);
     }
-  };
-
-  /**
-   * Formats a date to German locale string.
-   *
-   * @param {string | null | undefined} dateString - The date string to format
-   * @returns {string} Formatted date or 'N/A'
-   *
-   * @author Philipp Borkovic
-   */
-  const formatDate = (dateString: string | null | undefined): string => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('de-DE');
-  };
+  }, [editModal, editForm, loadUsers]);
 
   /**
    * Handles page navigation with bounds checking.
@@ -299,9 +225,15 @@ export default function UsersTab(): JSX.Element {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-white border-black">
-                <SelectItem value="active" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">Aktives Mitglied</SelectItem>
-                <SelectItem value="deleted" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">Inaktives Mitglied</SelectItem>
-                <SelectItem value="all" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">Alle Mitglieder</SelectItem>
+                {USER_STATUS_OPTIONS.map((option) => (
+                  <SelectItem
+                    key={option.value}
+                    value={option.value}
+                    className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black"
+                  >
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -320,11 +252,15 @@ export default function UsersTab(): JSX.Element {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-white border-black">
-                <SelectItem value="5" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">5</SelectItem>
-                <SelectItem value="10" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">10</SelectItem>
-                <SelectItem value="25" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">25</SelectItem>
-                <SelectItem value="50" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">50</SelectItem>
-                <SelectItem value="100" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">100</SelectItem>
+                {PAGE_SIZE_OPTIONS.map((size) => (
+                  <SelectItem
+                    key={size}
+                    value={size.toString()}
+                    className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black"
+                  >
+                    {size}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -373,13 +309,13 @@ export default function UsersTab(): JSX.Element {
 
       {/* User details modal */}
       <Dialog
-        opened={isModalOpen}
+        opened={detailsModal.isOpen}
         onOpenedChanged={(e: any) => {
-          if (!e.detail.value) handleCloseModal();
+          if (!e.detail.value) detailsModal.close();
         }}
         headerTitle="Benutzerdetails"
       >
-        {selectedUser && (
+        {detailsModal.data && (
           <div className="p-4 sm:p-6 min-w-[300px] sm:min-w-[600px] lg:min-w-[800px] max-w-[95vw]">
             {/* Header Section */}
             <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 pb-6 border-b">
@@ -387,8 +323,8 @@ export default function UsersTab(): JSX.Element {
                 <Icon icon="vaadin:user-card" className="text-foreground" style={{ width: '64px', height: '64px' }} />
               </div>
               <div className="flex-1">
-                <h3 className="text-2xl font-semibold mb-1">{selectedUser.name}</h3>
-                <p className="text-muted-foreground">{selectedUser.email}</p>
+                <h3 className="text-2xl font-semibold mb-1">{detailsModal.data.name}</h3>
+                <p className="text-muted-foreground">{detailsModal.data.email}</p>
               </div>
             </div>
 
@@ -398,12 +334,12 @@ export default function UsersTab(): JSX.Element {
               <div className="space-y-1">
                 <label className="text-sm font-medium text-muted-foreground">E-Mail Status</label>
                 <div className="flex items-center gap-2">
-                  {selectedUser.emailVerifiedAt ? (
+                  {detailsModal.data.emailVerifiedAt ? (
                     <>
                       <Icon icon="vaadin:check-circle" className="text-success" style={{ width: '20px', height: '20px' }} />
                       <div>
                         <div className="text-sm font-medium">Verifiziert</div>
-                        <div className="text-xs text-muted-foreground">{formatDate(selectedUser.emailVerifiedAt)}</div>
+                        <div className="text-xs text-muted-foreground">{formatDate(detailsModal.data.emailVerifiedAt)}</div>
                       </div>
                     </>
                   ) : (
@@ -416,37 +352,37 @@ export default function UsersTab(): JSX.Element {
               </div>
 
               {/* Phone */}
-              {selectedUser.phone && (
+              {detailsModal.data.phone && (
                 <div className="space-y-1">
                   <label className="text-sm font-medium text-muted-foreground">Telefon</label>
                   <div className="flex items-center gap-2">
                     <Icon icon="vaadin:phone" className="text-foreground" style={{ width: '20px', height: '20px' }} />
-                    <div className="text-sm font-medium">{selectedUser.phone}</div>
+                    <div className="text-sm font-medium">{detailsModal.data.phone}</div>
                   </div>
                 </div>
               )}
 
               {/* Birthday */}
-              {selectedUser.birthday && (
+              {detailsModal.data.birthday && (
                 <div className="space-y-1">
                   <label className="text-sm font-medium text-muted-foreground">Geburtsdatum</label>
                   <div className="flex items-center gap-2">
                     <Icon icon="vaadin:cake" className="text-foreground" style={{ width: '20px', height: '20px' }} />
-                    <div className="text-sm font-medium">{formatDate(selectedUser.birthday)}</div>
+                    <div className="text-sm font-medium">{formatDate(detailsModal.data.birthday)}</div>
                   </div>
                 </div>
               )}
 
               {/* Address */}
-              {(selectedUser.street || selectedUser.city || selectedUser.postalCode) && (
+              {(detailsModal.data.street || detailsModal.data.city || detailsModal.data.postalCode) && (
                 <div className="space-y-1 sm:col-span-2">
                   <label className="text-sm font-medium text-muted-foreground">Adresse</label>
                   <div className="flex items-start gap-2">
                     <Icon icon="vaadin:home" className="text-foreground mt-0.5" style={{ width: '20px', height: '20px' }} />
                     <div className="text-sm font-medium">
-                      {selectedUser.street && <div>{selectedUser.street}</div>}
-                      {(selectedUser.postalCode || selectedUser.city) && (
-                        <div>{selectedUser.postalCode} {selectedUser.city}</div>
+                      {detailsModal.data.street && <div>{detailsModal.data.street}</div>}
+                      {(detailsModal.data.postalCode || detailsModal.data.city) && (
+                        <div>{detailsModal.data.postalCode} {detailsModal.data.city}</div>
                       )}
                     </div>
                   </div>
@@ -454,34 +390,34 @@ export default function UsersTab(): JSX.Element {
               )}
 
               {/* Salutation */}
-              {selectedUser.salutation && (
+              {detailsModal.data.salutation && (
                 <div className="space-y-1">
                   <label className="text-sm font-medium text-muted-foreground">Anrede</label>
                   <div className="flex items-center gap-2">
                     <Icon icon="vaadin:user" className="text-foreground" style={{ width: '20px', height: '20px' }} />
-                    <div className="text-sm font-medium">{selectedUser.salutation}</div>
+                    <div className="text-sm font-medium">{detailsModal.data.salutation}</div>
                   </div>
                 </div>
               )}
 
               {/* Academic Title */}
-              {selectedUser.academicTitle && (
+              {detailsModal.data.academicTitle && (
                 <div className="space-y-1">
                   <label className="text-sm font-medium text-muted-foreground">Titel</label>
                   <div className="flex items-center gap-2">
                     <Icon icon="vaadin:academy-cap" className="text-foreground" style={{ width: '20px', height: '20px' }} />
-                    <div className="text-sm font-medium">{selectedUser.academicTitle}</div>
+                    <div className="text-sm font-medium">{detailsModal.data.academicTitle}</div>
                   </div>
                 </div>
               )}
 
               {/* Rank */}
-              {selectedUser.rank && (
+              {detailsModal.data.rank && (
                 <div className="space-y-1">
                   <label className="text-sm font-medium text-muted-foreground">Rang</label>
                   <div className="flex items-center gap-2">
                     <Icon icon="vaadin:medal" className="text-foreground" style={{ width: '20px', height: '20px' }} />
-                    <div className="text-sm font-medium">{selectedUser.rank}</div>
+                    <div className="text-sm font-medium">{detailsModal.data.rank}</div>
                   </div>
                 </div>
               )}
@@ -489,11 +425,11 @@ export default function UsersTab(): JSX.Element {
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t mt-6">
-              <Button variant="destructive" onClick={handleCloseModal} className="text-white w-full sm:w-auto">
+              <Button variant="destructive" onClick={detailsModal.close} className="text-white w-full sm:w-auto">
                 <Icon icon="vaadin:close" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
                 Schließen
               </Button>
-              <Button variant="outline" onClick={() => handleEditClick(selectedUser)} className="text-white bg-black hover:bg-gray-800 w-full sm:w-auto">
+              <Button variant="outline" onClick={() => handleEditClick(detailsModal.data!)} className="text-white bg-black hover:bg-gray-800 w-full sm:w-auto">
                 <Icon icon="vaadin:edit" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
                 Bearbeiten
               </Button>
@@ -504,13 +440,13 @@ export default function UsersTab(): JSX.Element {
 
       {/* Delete confirmation modal */}
       <Dialog
-        opened={isDeleteModalOpen}
+        opened={deleteModal.isOpen}
         onOpenedChanged={(e: any) => {
-          if (!e.detail.value) handleCloseDeleteModal();
+          if (!e.detail.value) deleteModal.close();
         }}
         headerTitle="Benutzer löschen"
       >
-        {userToDelete && (
+        {deleteModal.data && (
           <div className="space-y-4 p-4 min-w-[400px]">
             <div className="flex justify-center">
               <Icon icon="vaadin:warning" className="text-destructive" style={{ width: '64px', height: '64px' }} />
@@ -519,10 +455,10 @@ export default function UsersTab(): JSX.Element {
             <div className="text-center space-y-2">
               <p className="font-medium">Sind Sie sicher, dass Sie diesen Benutzer löschen möchten?</p>
               <p className="text-sm text-muted-foreground">
-                Benutzer: <span className="font-semibold">{userToDelete.name}</span>
+                Benutzer: <span className="font-semibold">{deleteModal.data.name}</span>
               </p>
               <p className="text-sm text-muted-foreground">
-                E-Mail: <span className="font-semibold">{userToDelete.email}</span>
+                E-Mail: <span className="font-semibold">{deleteModal.data.email}</span>
               </p>
               <p className="text-sm text-destructive mt-4">
                 Diese Aktion kann nicht rückgängig gemacht werden.
@@ -530,7 +466,7 @@ export default function UsersTab(): JSX.Element {
             </div>
 
             <div className="flex justify-end gap-2 pt-4">
-              <Button variant="outline" onClick={handleCloseDeleteModal}>
+              <Button variant="outline" onClick={deleteModal.close}>
                 Abbrechen
               </Button>
               <Button variant="destructive" onClick={handleConfirmDelete}>
@@ -543,13 +479,13 @@ export default function UsersTab(): JSX.Element {
 
       {/* Edit user modal */}
       <Dialog
-        opened={isEditModalOpen}
+        opened={editModal.isOpen}
         onOpenedChanged={(e: any) => {
-          if (!e.detail.value) handleCloseEditModal();
+          if (!e.detail.value) editModal.close();
         }}
         headerTitle="Benutzer bearbeiten"
       >
-        {userToEdit && (
+        {editModal.data && (
           <div className="p-4 sm:p-6 min-w-[300px] sm:min-w-[600px] lg:min-w-[700px] max-w-[95vw] max-h-[90vh] overflow-y-auto">
             <div className="space-y-6">
               {/* Basic Information */}
@@ -690,7 +626,7 @@ export default function UsersTab(): JSX.Element {
             </div>
 
             <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t mt-6">
-              <Button variant="destructive" onClick={handleCloseEditModal} className="text-white w-full sm:w-auto">
+              <Button variant="destructive" onClick={editModal.close} className="text-white w-full sm:w-auto">
                 <Icon icon="vaadin:close" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
                 Abbrechen
               </Button>

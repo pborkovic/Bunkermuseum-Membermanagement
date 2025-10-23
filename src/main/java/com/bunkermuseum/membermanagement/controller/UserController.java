@@ -179,7 +179,7 @@ public class UserController {
      * @param name The new name (optional, null to keep existing)
      * @param email The new email (optional, null to keep existing)
      *
-     * @return The updated User object
+     * @return The updated User as DTO (excludes sensitive fields and prevents circular references)
      * @throws ResponseStatusException with {@link HttpStatus#BAD_REQUEST} if userId is invalid
      *         or user not found
      * @throws ResponseStatusException with {@link HttpStatus#INTERNAL_SERVER_ERROR} if
@@ -187,9 +187,10 @@ public class UserController {
      *
      * @author Philipp Borkovic
      */
-    public User updateProfile(@Nonnull UUID userId, String name, String email) {
+    public UserDTO updateProfile(@Nonnull UUID userId, String name, String email) {
         try {
-            return userService.updateProfile(userId, name, email);
+            User updatedUser = userService.updateProfile(userId, name, email);
+            return UserMapper.toDTO(updatedUser);
         } catch (IllegalArgumentException exception) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid data: " + exception.getMessage(), exception);
         } catch (Exception exception) {
@@ -203,7 +204,7 @@ public class UserController {
      * @param userId The ID of the user to update
      * @param userData User object containing the fields to update
      *
-     * @return The updated User object
+     * @return The updated User as DTO (excludes sensitive fields and prevents circular references)
      * @throws ResponseStatusException with {@link HttpStatus#BAD_REQUEST} if userId is invalid
      *         or user not found
      * @throws ResponseStatusException with {@link HttpStatus#INTERNAL_SERVER_ERROR} if
@@ -211,9 +212,10 @@ public class UserController {
      *
      * @author Philipp Borkovic
      */
-    public User updateUser(@Nonnull UUID userId, @Nonnull User userData) {
+    public UserDTO updateUser(@Nonnull UUID userId, @Nonnull User userData) {
         try {
-            return userService.updateUser(userId, userData);
+            User updatedUser = userService.updateUser(userId, userData);
+            return UserMapper.toDTO(updatedUser);
         } catch (IllegalArgumentException exception) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid data: " + exception.getMessage(), exception);
         } catch (Exception exception) {

@@ -1,5 +1,5 @@
+import { memo, useMemo } from 'react';
 import { Icon } from '@vaadin/react-components';
-import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,57 +7,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import type Booking from 'Frontend/generated/com/bunkermuseum/membermanagement/model/Booking';
-
-/**
- * Pagination component props.
- */
-interface PaginationProps {
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
-}
-
-/**
- * Pagination component - Simple previous/current/next design.
- *
- * @author Philipp Borkovic
- */
-function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
-  if (totalPages <= 1) return null;
-
-  return (
-    <div className="flex items-center justify-center gap-2">
-      {/* Previous Button */}
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-        className="h-9 w-9 p-0 border-black hover:bg-black hover:text-white disabled:opacity-30 disabled:border-gray-300"
-      >
-        <Icon icon="vaadin:angle-left" style={{ width: '18px', height: '18px' }} />
-      </Button>
-
-      {/* Current Page Display */}
-      <div className="flex items-center gap-2 px-4 py-2 min-w-[80px] justify-center">
-        <span className="text-sm font-medium text-black">
-          {currentPage} / {totalPages}
-        </span>
-      </div>
-
-      {/* Next Button */}
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-        className="h-9 w-9 p-0 border-black hover:bg-black hover:text-white disabled:opacity-30 disabled:border-gray-300"
-      >
-        <Icon icon="vaadin:angle-right" style={{ width: '18px', height: '18px' }} />
-      </Button>
-    </div>
-  );
-}
+import Pagination from './shared/_Pagination';
+import PaginationInfo from './shared/_PaginationInfo';
+import LoadingState from './shared/_LoadingState';
+import EmptyState from './shared/_EmptyState';
+import { formatDate, formatCurrency } from '../utils/formatting';
+import { LIST_CONTAINER_HEIGHT } from '../utils/constants';
 
 /**
  * BookingsList component props.
@@ -77,34 +32,6 @@ interface BookingsListProps {
   onPageChange: (page: number) => void;
 }
 
-/**
- * Formats a date to German locale string.
- *
- * @param {string | null | undefined} dateString - The date string to format
- * @returns {string} Formatted date or 'N/A'
- *
- * @author Philipp Borkovic
- */
-const formatDate = (dateString: string | null | undefined): string => {
-  if (!dateString) return 'N/A';
-  return new Date(dateString).toLocaleDateString('de-DE');
-};
-
-/**
- * Formats a number as currency in EUR.
- *
- * @param {number | null | undefined} amount - The amount to format
- * @returns {string} Formatted currency or 'N/A'
- *
- * @author Philipp Borkovic
- */
-const formatCurrency = (amount: number | null | undefined): string => {
-  if (amount === null || amount === undefined) return 'N/A';
-  return new Intl.NumberFormat('de-DE', {
-    style: 'currency',
-    currency: 'EUR',
-  }).format(amount);
-};
 
 /**
  * BookingsList component - Displays bookings in a table/cards with pagination.
@@ -117,12 +44,13 @@ const formatCurrency = (amount: number | null | undefined): string => {
  * - Action menu per booking
  * - Loading and empty states
  * - Search result indicators
+ * - Memoized for performance optimization
  *
  * @component
  *
  * @author Philipp Borkovic
  */
-export default function BookingsList({
+function BookingsList({
   bookings,
   isLoading,
   searchQuery,
@@ -136,46 +64,37 @@ export default function BookingsList({
   onDeleteClick,
   onPageChange,
 }: BookingsListProps): JSX.Element {
-  // Calculate display range
-  const startIndex = (currentPage - 1) * bookingsPerPage + 1;
-  const endIndex = Math.min(currentPage * bookingsPerPage, totalElements);
+  /**
+   * Calculate display range for pagination info.
+   * Memoized to prevent unnecessary recalculations.
+   */
+  const { startIndex, endIndex } = useMemo(() => ({
+    startIndex: (currentPage - 1) * bookingsPerPage + 1,
+    endIndex: Math.min(currentPage * bookingsPerPage, totalElements),
+  }), [currentPage, bookingsPerPage, totalElements]);
+
+  /**
+   * Determine empty state message based on filters.
+   */
+  const emptyStateMessage = useMemo(() => ({
+    title: hasActiveFilters ? 'Keine Ergebnisse gefunden' : 'Keine Buchungen vorhanden',
+    description: hasActiveFilters
+      ? 'Keine Buchungen entsprechen den aktuellen Filtern'
+      : 'Es wurden noch keine Buchungen erstellt',
+  }), [hasActiveFilters]);
 
   if (isLoading) {
-    return (
-      <div className="rounded-lg bg-white flex items-center justify-center" style={{ height: '560px' }}>
-        <div className="text-center space-y-3">
-          <Icon
-            icon="vaadin:spinner"
-            className="animate-spin text-black mx-auto"
-            style={{ width: '40px', height: '40px' }}
-          />
-          <p className="text-sm text-gray-600">Lädt Buchungen...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Lädt Buchungen..." className={`h-[${LIST_CONTAINER_HEIGHT}px]`} />;
   }
 
   if (bookings.length === 0) {
     return (
-      <div className="rounded-lg bg-white flex items-center justify-center" style={{ height: '560px' }}>
-        <div className="text-center space-y-4">
-          <Icon
-            icon="vaadin:invoice"
-            className="text-gray-300 mx-auto"
-            style={{ width: '64px', height: '64px' }}
-          />
-          <div>
-            <p className="text-base font-medium text-gray-900">
-              {hasActiveFilters ? 'Keine Ergebnisse gefunden' : 'Keine Buchungen vorhanden'}
-            </p>
-            <p className="text-sm text-gray-500 mt-1">
-              {hasActiveFilters
-                ? 'Keine Buchungen entsprechen den aktuellen Filtern'
-                : 'Es wurden noch keine Buchungen erstellt'}
-            </p>
-          </div>
-        </div>
-      </div>
+      <EmptyState
+        icon="vaadin:invoice"
+        title={emptyStateMessage.title}
+        description={emptyStateMessage.description}
+        className={`h-[${LIST_CONTAINER_HEIGHT}px]`}
+      />
     );
   }
 
@@ -333,26 +252,27 @@ export default function BookingsList({
       {/* Pagination Footer */}
       <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-4 px-1 pt-4">
         {/* Results Info - Left side */}
-        <div className="text-sm text-gray-600 flex-shrink-0">
-          Zeige <span className="font-medium text-black">{startIndex}</span> bis{' '}
-          <span className="font-medium text-black">{endIndex}</span> von{' '}
-          <span className="font-medium text-black">{totalElements}</span> Buchungen
-          {hasActiveFilters && (
-            <span className="text-gray-500"> (gefiltert)</span>
-          )}
-        </div>
+        <PaginationInfo
+          startIndex={startIndex}
+          endIndex={endIndex}
+          totalElements={totalElements}
+          itemLabel="Buchungen"
+          isFiltered={hasActiveFilters}
+        />
 
         {/* Pagination Controls - Right side */}
-        {totalPages > 1 && (
-          <div className="flex-shrink-0">
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={onPageChange}
-            />
-          </div>
-        )}
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+        />
       </div>
     </div>
   );
 }
+
+/**
+ * Memoized version of BookingsList component.
+ * Only re-renders when props change.
+ */
+export default memo(BookingsList);

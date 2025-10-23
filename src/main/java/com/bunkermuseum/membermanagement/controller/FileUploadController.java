@@ -43,7 +43,7 @@ import java.util.UUID;
 @PermitAll
 public class FileUploadController {
     private static final Logger logger = LoggerFactory.getLogger(FileUploadController.class);
-    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
     private static final String[] ALLOWED_CONTENT_TYPES = {
         "image/jpeg",
         "image/png",

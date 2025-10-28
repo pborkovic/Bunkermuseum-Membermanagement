@@ -1,13 +1,13 @@
 import { Dialog } from '@vaadin/react-components/Dialog';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@vaadin/react-components';
-import type Booking from 'Frontend/generated/com/bunkermuseum/membermanagement/model/Booking';
+import type BookingDTO from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/BookingDTO';
 
 /**
  * BookingDetailsModal component props.
  */
 interface BookingDetailsModalProps {
-  booking: Booking | null;
+  booking: BookingDTO | null;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -86,10 +86,10 @@ export default function BookingDetailsModal({
             </div>
 
             {/* User ID */}
-            {booking.user?.id && (
+            {booking.userId && (
               <div className="space-y-1">
                 <label className="text-sm font-medium text-muted-foreground">Benutzer-ID</label>
-                <div className="text-sm font-mono">{booking.user.id}</div>
+                <div className="text-sm font-mono">{booking.userId}</div>
               </div>
             )}
 
@@ -147,14 +147,6 @@ export default function BookingDetailsModal({
                     <div className="text-sm">{booking.accountStatementPage}</div>
                   </div>
                 )}
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Erstellt am</label>
-                  <div className="text-sm">{formatDate(booking.createdAt)}</div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Aktualisiert am</label>
-                  <div className="text-sm">{formatDate(booking.updatedAt)}</div>
-                </div>
               </div>
             </div>
           </div>

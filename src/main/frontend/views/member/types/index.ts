@@ -29,14 +29,14 @@ export enum TabId {
 export interface ProfileFormData {
   name: string;
   email: string;
-  salutation: string;
-  academicTitle: string;
-  rank: string;
-  birthday: Date | undefined;
-  phone: string;
-  street: string;
-  city: string;
-  postalCode: string;
+  salutation?: string;
+  academicTitle?: string;
+  rank?: string;
+  birthday?: Date;
+  phone?: string;
+  street?: string;
+  city?: string;
+  postalCode?: string;
 }
 
 /**

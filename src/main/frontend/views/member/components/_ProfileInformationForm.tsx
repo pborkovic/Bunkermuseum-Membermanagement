@@ -1,4 +1,14 @@
-import { useState } from 'react';
+/**
+ * @fileoverview Profile Information Form component for member settings.
+ *
+ * This component provides a comprehensive form for users to edit their
+ * personal information with real-time Zod validation.
+ *
+ * @module views/member/components/ProfileInformationForm
+ * @author Philipp Borkovic
+ */
+
+import { useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -6,43 +16,14 @@ import { Icon } from '@vaadin/react-components';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
 import { profileFormSchema } from '../schemas/validation';
+import { useFormValidation } from '../hooks';
+import { SALUTATION_OPTIONS, UI_TEXT } from '../constants';
+import type { ProfileFormData } from '../types';
 
 /**
- * Gender options for the Anrede (salutation) field.
- */
-const ANREDE_OPTIONS = [
-  { value: 'männlich', label: 'Männlich' },
-  { value: 'weiblich', label: 'Weiblich' },
-  { value: 'divers', label: 'Divers' },
-] as const;
-
-/**
- * Profile form data interface.
- */
-export interface ProfileFormData {
-  name: string;
-  email: string;
-  salutation: string;
-  academicTitle: string;
-  rank: string;
-  birthday: Date | undefined;
-  phone: string;
-  street: string;
-  city: string;
-  postalCode: string;
-}
-
-/**
- * ProfileInformationForm component - Edit user profile information.
+ * Props for the ProfileInformationForm component.
  *
- * @component
- *
- * @param {Object} props - Component props
- * @param {ProfileFormData} props.formData - Current form data
- * @param {(data: ProfileFormData) => void} props.onChange - Form data change handler
- * @param {(e: React.FormEvent) => Promise<void>} props.onSubmit - Form submission handler
- * @param {boolean} props.isLoading - Loading state
- * @param {boolean} props.isSaving - Saving state
+ * @interface ProfileInformationFormProps
  *
  * @author Philipp Borkovic
  */
@@ -54,281 +35,279 @@ interface ProfileInformationFormProps {
   isSaving: boolean;
 }
 
+/**
+ * ProfileInformationForm Component.
+ *
+ * Provides comprehensive profile editing functionality with:
+ * - Real-time Zod validation
+ * - Organized sections (Basic, Personal, Contact, Address)
+ * - Field-specific error messages
+ * - Loading and saving states
+ * - Type-safe form handling (no `any` types)
+ * - Responsive grid layout
+ *
+ * **Form Sections:**
+ * - Basic Information: Name, Email
+ * - Personal Data: Salutation, Academic Title, Rank, Birthday
+ * - Contact: Phone
+ * - Address: Street, Postal Code, City
+ *
+ * @component
+ * @param {ProfileInformationFormProps} props - Component props
+ *
+ * @returns {JSX.Element} The rendered profile form
+ *
+ * @author Philipp Borkovic
+ */
 export default function ProfileInformationForm({
   formData,
   onChange,
   onSubmit,
   isLoading,
-  isSaving
+  isSaving,
 }: ProfileInformationFormProps): JSX.Element {
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const { errors, validate, clearError } = useFormValidation<ProfileFormData>(profileFormSchema);
 
   /**
-   * Validates the form data using Zod schema.
-   * Returns true if valid, false otherwise.
-   * Sets error messages for invalid fields.
+   * Updates a single field in the form data.
+   *
+   * @param {keyof ProfileFormData} field - The field to update
+   * @param {string | Date | undefined} value - The new value
    */
-  const validateForm = (): boolean => {
-    const result = profileFormSchema.safeParse(formData);
-
-    if (!result.success) {
-      const fieldErrors: Record<string, string> = {};
-      result.error.issues.forEach((issue) => {
-        const path = issue.path[0]?.toString();
-        if (path) {
-          fieldErrors[path] = issue.message;
-        }
-      });
-      setErrors(fieldErrors);
-      return false;
-    }
-
-    setErrors({});
-    return true;
-  };
+  const updateField = useCallback(
+    (field: keyof ProfileFormData, value: string | Date | undefined): void => {
+      onChange({ ...formData, [field]: value });
+      clearError(field);
+    },
+      [formData, onChange, clearError]
+  );
 
   /**
    * Handles form submission with validation.
+   *
+   * @param {React.FormEvent} e - The form submit event
    */
-  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault();
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent): Promise<void> => {
+      e.preventDefault();
 
-    // Validate before submitting
-    if (!validateForm()) {
-      return;
-    }
+      if (!validate(formData)) {
+        return;
+      }
 
-    // Clear errors and proceed with original onSubmit
-    setErrors({});
-    await onSubmit(e);
-  };
+      await onSubmit(e);
+    },
+    [formData, validate, onSubmit]
+  );
+
+  /**
+   * Renders a text input field with error handling.
+   *
+   * @param {Object} params - Field parameters
+   * @returns {JSX.Element} The rendered input field
+   */
+  const renderTextField = useCallback(
+    ({
+      id,
+      label,
+      field,
+      type = 'text',
+      required = false,
+      placeholder,
+    }: {
+      id: string;
+      label: string;
+      field: keyof ProfileFormData;
+      type?: string;
+      required?: boolean;
+      placeholder?: string;
+    }): JSX.Element => {
+      const value = formData[field];
+      const hasError = Boolean(errors[field]);
+
+      return (
+        <div className="space-y-2">
+          <Label htmlFor={id}>
+            {label} {required && '*'}
+          </Label>
+          <Input
+            id={id}
+            type={type}
+            value={typeof value === 'string' ? value : ''}
+            onChange={(e) => updateField(field, e.target.value)}
+            disabled={isSaving}
+            required={required}
+            placeholder={placeholder}
+            className={`border-black text-black ${hasError ? 'border-red-500' : ''}`}
+          />
+          {hasError && <p className="text-xs text-red-600 mt-1">{errors[field]}</p>}
+        </div>
+      );
+    },
+    [formData, errors, isSaving, updateField]
+  );
+
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="mb-4 flex items-center space-x-3">
+          <Icon
+            icon="vaadin:user-card"
+            className="text-black"
+            style={{ width: '24px', height: '24px' }}
+          />
+          <h3 className="text-lg font-semibold text-black">
+            {UI_TEXT.PROFILE_INFO_LABEL}
+          </h3>
+        </div>
+        <div className="flex items-center justify-center py-8">
+          <Icon
+            icon="vaadin:spinner"
+            className="animate-spin text-black"
+            style={{ width: '32px', height: '32px' }}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6">
       <div className="mb-4 flex items-center space-x-3">
-        <Icon icon="vaadin:user-card" className="text-black" style={{ width: '24px', height: '24px' }} />
-        <h3 className="text-lg font-semibold text-black">Profilinformationen</h3>
+        <Icon
+          icon="vaadin:user-card"
+          className="text-black"
+          style={{ width: '24px', height: '24px' }}
+        />
+        <h3 className="text-lg font-semibold text-black">
+          {UI_TEXT.PROFILE_INFO_LABEL}
+        </h3>
       </div>
 
-      {isLoading ? (
-        <div className="flex items-center justify-center py-8">
-          <Icon icon="vaadin:spinner" className="animate-spin text-black" style={{ width: '32px', height: '32px' }} />
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Basic Information */}
+        <div>
+          <h4 className="text-sm font-semibold mb-3 text-gray-700">Grundinformationen</h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {renderTextField({
+              id: 'name',
+              label: 'Name',
+              field: 'name',
+              required: true,
+            })}
+            {renderTextField({
+              id: 'email',
+              label: 'E-Mail',
+              field: 'email',
+              type: 'email',
+              required: true,
+            })}
+          </div>
         </div>
-      ) : (
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Information */}
-          <div>
-            <h4 className="text-sm font-semibold mb-3 text-gray-700">Grundinformationen</h4>
+
+        {/* Personal Information */}
+        <div>
+          <h4 className="text-sm font-semibold mb-3 text-gray-700">Persönliche Daten</h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="salutation">Anrede</Label>
+              <Select
+                value={formData.salutation || undefined}
+                onValueChange={(value) => updateField('salutation', value)}
+              >
+                <SelectTrigger className="w-full border-black text-black">
+                  <SelectValue placeholder="Keine Angabe" />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-black">
+                  {SALUTATION_OPTIONS.map((option) => (
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                      className="text-black hover:bg-gray-100 focus:bg-gray-100"
+                    >
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {renderTextField({
+              id: 'academicTitle',
+              label: 'Akademischer Titel',
+              field: 'academicTitle',
+              placeholder: 'z.B. Dr., Prof.',
+            })}
+
+            {renderTextField({
+              id: 'rank',
+              label: 'Rang',
+              field: 'rank',
+            })}
+
+            <div className="space-y-2">
+              <Label htmlFor="birthday">Geburtsdatum</Label>
+              <DatePicker
+                value={formData.birthday}
+                onChange={(date) => updateField('birthday', date)}
+              />
+              {errors.birthday && (
+                <p className="text-xs text-red-600 mt-1">{errors.birthday}</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Contact Information */}
+        <div>
+          <h4 className="text-sm font-semibold mb-3 text-gray-700">Kontaktdaten</h4>
+          <div className="space-y-4">
+            {renderTextField({
+              id: 'phone',
+              label: 'Telefon',
+              field: 'phone',
+              type: 'tel',
+            })}
+          </div>
+        </div>
+
+        {/* Address Information */}
+        <div>
+          <h4 className="text-sm font-semibold mb-3 text-gray-700">Adresse</h4>
+          <div className="space-y-4">
+            {renderTextField({
+              id: 'street',
+              label: 'Straße & Hausnummer',
+              field: 'street',
+            })}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name *</Label>
-                <Input
-                  id="name"
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => {
-                    onChange({ ...formData, name: e.target.value });
-                    // Clear error on change
-                    if (errors.name) {
-                      setErrors({ ...errors, name: '' });
-                    }
-                  }}
-                  disabled={isSaving}
-                  required
-                  className={`border-black text-black ${errors.name ? 'border-red-500' : ''}`}
-                />
-                {errors.name && (
-                  <p className="text-xs text-red-600 mt-1">{errors.name}</p>
-                )}
-              </div>
+              {renderTextField({
+                id: 'postalCode',
+                label: 'Postleitzahl',
+                field: 'postalCode',
+                placeholder: 'z.B. 1234 oder 12345',
+              })}
 
-              <div className="space-y-2">
-                <Label htmlFor="email">E-Mail *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => {
-                    onChange({ ...formData, email: e.target.value });
-                    // Clear error on change
-                    if (errors.email) {
-                      setErrors({ ...errors, email: '' });
-                    }
-                  }}
-                  disabled={isSaving}
-                  required
-                  className={`border-black text-black ${errors.email ? 'border-red-500' : ''}`}
-                />
-                {errors.email && (
-                  <p className="text-xs text-red-600 mt-1">{errors.email}</p>
-                )}
-              </div>
+              {renderTextField({
+                id: 'city',
+                label: 'Stadt',
+                field: 'city',
+              })}
             </div>
           </div>
+        </div>
 
-          {/* Personal Information */}
-          <div>
-            <h4 className="text-sm font-semibold mb-3 text-gray-700">Persönliche Daten</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="salutation">Anrede</Label>
-                <Select
-                  value={formData.salutation || undefined}
-                  onValueChange={(value) => onChange({ ...formData, salutation: value })}
-                >
-                  <SelectTrigger className="w-full border-black text-black">
-                    <SelectValue placeholder="Keine Angabe" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white border-black">
-                    {ANREDE_OPTIONS.map(option => (
-                      <SelectItem
-                        key={option.value}
-                        value={option.value}
-                        className="text-black hover:bg-gray-100 focus:bg-gray-100"
-                      >
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="academicTitle">Akademischer Titel</Label>
-                <Input
-                  id="academicTitle"
-                  type="text"
-                  value={formData.academicTitle}
-                  onChange={(e) => onChange({ ...formData, academicTitle: e.target.value })}
-                  disabled={isSaving}
-                  placeholder="z.B. Dr., Prof."
-                  className="border-black text-black"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="rank">Rang</Label>
-                <Input
-                  id="rank"
-                  type="text"
-                  value={formData.rank}
-                  onChange={(e) => onChange({ ...formData, rank: e.target.value })}
-                  disabled={isSaving}
-                  className="border-black text-black"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="birthday">Geburtsdatum</Label>
-                <DatePicker
-                  value={formData.birthday}
-                  onChange={(date) => {
-                    onChange({ ...formData, birthday: date });
-                    // Clear error on change
-                    if (errors.birthday) {
-                      setErrors({ ...errors, birthday: '' });
-                    }
-                  }}
-                />
-                {errors.birthday && (
-                  <p className="text-xs text-red-600 mt-1">{errors.birthday}</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Contact Information */}
-          <div>
-            <h4 className="text-sm font-semibold mb-3 text-gray-700">Kontaktdaten</h4>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="phone">Telefon</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => {
-                    onChange({ ...formData, phone: e.target.value });
-                    // Clear error on change
-                    if (errors.phone) {
-                      setErrors({ ...errors, phone: '' });
-                    }
-                  }}
-                  disabled={isSaving}
-                  className={`border-black text-black ${errors.phone ? 'border-red-500' : ''}`}
-                />
-                {errors.phone && (
-                  <p className="text-xs text-red-600 mt-1">{errors.phone}</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Address Information */}
-          <div>
-            <h4 className="text-sm font-semibold mb-3 text-gray-700">Adresse</h4>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="street">Straße & Hausnummer</Label>
-                <Input
-                  id="street"
-                  type="text"
-                  value={formData.street}
-                  onChange={(e) => onChange({ ...formData, street: e.target.value })}
-                  disabled={isSaving}
-                  className="border-black text-black"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="postalCode">Postleitzahl</Label>
-                  <Input
-                    id="postalCode"
-                    type="text"
-                    value={formData.postalCode}
-                    onChange={(e) => {
-                      onChange({ ...formData, postalCode: e.target.value });
-                      // Clear error on change
-                      if (errors.postalCode) {
-                        setErrors({ ...errors, postalCode: '' });
-                      }
-                    }}
-                    disabled={isSaving}
-                    className={`border-black text-black ${errors.postalCode ? 'border-red-500' : ''}`}
-                    placeholder="z.B. 1234 oder 12345"
-                  />
-                  {errors.postalCode && (
-                    <p className="text-xs text-red-600 mt-1">{errors.postalCode}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="city">Stadt</Label>
-                  <Input
-                    id="city"
-                    type="text"
-                    value={formData.city}
-                    onChange={(e) => onChange({ ...formData, city: e.target.value })}
-                    disabled={isSaving}
-                    className="border-black text-black"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex justify-end pt-4 border-t">
-            <Button
-              type="submit"
-              disabled={isSaving}
-              className="bg-black text-white hover:bg-gray-800"
-            >
-              {isSaving ? 'Speichern...' : 'Profil aktualisieren'}
-            </Button>
-          </div>
-        </form>
-      )}
+        <div className="flex justify-end pt-4 border-t">
+          <Button
+            type="submit"
+            disabled={isSaving}
+            className="bg-black text-white hover:bg-gray-800"
+          >
+            {isSaving ? `${UI_TEXT.SAVING}..` : UI_TEXT.UPDATE_PROFILE}
+          </Button>
+        </div>
+      </form>
     </div>
   );
 }

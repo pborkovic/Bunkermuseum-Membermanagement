@@ -352,6 +352,20 @@ public class User extends Model {
     private String postalCode;
 
     /**
+     * Indicates whether the user is an officer member.
+     *
+     * <p>This boolean flag marks users who hold officer membership status
+     * or specific organizational affiliation.</p>
+     *
+     * <p><strong>Database Mapping:</strong> Maps to 'of_mg' column</p>
+     * <p><strong>Constraints:</strong> NOT NULL, BOOLEAN, DEFAULT FALSE</p>
+     *
+     * @author Philipp Borkovic
+     */
+    @Column(name = "of_mg", nullable = false)
+    private Boolean ofMg = false;
+
+    /**
      * The roles assigned to this user.
      *
      * <p>This represents the many-to-many relationship between users and roles.
@@ -761,6 +775,28 @@ public class User extends Model {
      */
     public void setPostalCode(String postalCode) {
         this.postalCode = postalCode;
+    }
+
+    /**
+     * Gets the officer member status.
+     *
+     * @return True if the user is an officer member, false otherwise
+     *
+     * @author Philipp Borkovic
+     */
+    public Boolean getOfMg() {
+        return ofMg;
+    }
+
+    /**
+     * Sets the officer member status.
+     *
+     * @param ofMg True to mark as officer member, false otherwise
+     *
+     * @author Philipp Borkovic
+     */
+    public void setOfMg(Boolean ofMg) {
+        this.ofMg = ofMg;
     }
 
     /**

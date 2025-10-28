@@ -77,8 +77,17 @@ public class BookingService extends BaseService<Booking, BookingRepositoryContra
     /**
      * {@inheritDoc}
      *
-     * <p>Simplified version that filters users by member type (role).
-     * Supports "ORDENTLICHE_MITGLIEDER" and "FÖRDERNDE_MITGLIEDER" member types.</p>
+     * <p>Assigns a booking to all users of a specified member type. Uses type-safe
+     * {@link com.bunkermuseum.membermanagement.dto.MemberType} enum for filtering.</p>
+     *
+     * <p>The method performs validation, filters users by role, creates booking entities,
+     * and persists them in a single transaction. If no users match the member type,
+     * the operation completes successfully but returns 0.</p>
+     *
+     * @param request The validated booking assignment request
+     * @return The number of bookings created (number of users targeted)
+     * @throws IllegalArgumentException if member type is null or invalid
+     * @throws RuntimeException if database operation fails
      *
      * @author Philipp Borkovic
      */
@@ -87,38 +96,35 @@ public class BookingService extends BaseService<Booking, BookingRepositoryContra
     public int assignBookingToUsers(AssignBookingRequest request) {
         try {
             // Validate member type
-            if (request.getMemberType() == null || request.getMemberType().trim().isEmpty()) {
+            if (request.getMemberType() == null) {
                 throw new IllegalArgumentException("Mitgliedstyp ist erforderlich");
             }
 
-            String memberType = request.getMemberType().trim();
-            if (!memberType.equals("ORDENTLICHE_MITGLIEDER") && !memberType.equals("FÖRDERNDE_MITGLIEDER")) {
-                throw new IllegalArgumentException("Ungültiger Mitgliedstyp: " + memberType);
-            }
+            // Resolve target users by member type (using enum's roleName)
+            String roleName = request.getMemberType().getRoleName();
+            List<User> targets = resolveUsersByMemberType(roleName);
 
-            // Resolve target users by member type
-            List<User> targets = resolveUsersByMemberType(memberType);
             if (targets.isEmpty()) {
-                logger.warn("No users found with member type: {}", memberType);
+                logger.warn("No users found with member type: {}", request.getMemberType());
                 return 0;
             }
 
-            // Prepare bookings to create (simplified - only 3 fields)
+            // Prepare bookings to create
             List<Booking> toCreate = targets.stream().map(user -> {
-                Booking b = new Booking(null);
-                b.setUser(user);
-                b.setExpectedAmount(request.getExpectedAmount());
-                b.setActualAmount(request.getActualAmount());
-                b.setActualPurpose(request.getActualPurpose());
-                return b;
+                Booking booking = new Booking(null);
+                booking.setUser(user);
+                booking.setExpectedAmount(request.getExpectedAmount());
+                booking.setActualAmount(request.getActualAmount());
+                booking.setActualPurpose(request.getActualPurpose());
+                return booking;
             }).collect(Collectors.toList());
 
             repository.createAll(toCreate);
             logger.info("Successfully assigned booking to {} users with member type: {}",
-                toCreate.size(), memberType);
+                toCreate.size(), request.getMemberType());
             return toCreate.size();
         } catch (IllegalArgumentException e) {
-            logger.error("Validation error assigning booking to users", e);
+            logger.error("Validation error assigning booking to users: {}", e.getMessage());
             throw e;
         } catch (Exception e) {
             logger.error("Error assigning booking to users", e);
@@ -157,52 +163,6 @@ public class BookingService extends BaseService<Booking, BookingRepositoryContra
             .collect(Collectors.toList());
     }
 
-    /**
-     * @deprecated Use {@link #resolveUsersByMemberType(String)} instead.
-     */
-    @Deprecated(forRemoval = true)
-    private List<User> resolveTargetUsers(AssignBookingRequest request) {
-        // Fallback: if userRepository is not available (e.g., unit tests), return empty list
-        if (userRepository == null) {
-            logger.warn("UserRepositoryContract not injected; cannot resolve target users");
-            return Collections.emptyList();
-        }
-
-        Set<User> result = new LinkedHashSet<>();
-
-        if (request.isAllUsersAssigned() != null && request.isAllUsersAssigned()) {
-            result.addAll(userRepository.findAll());
-        } else {
-            if (request.getUserIds() != null && !request.getUserIds().isEmpty()) {
-                // Use repository batch method to minimize queries
-                result.addAll(userRepository.findAllById(new ArrayList<>(request.getUserIds())));
-            }
-            if (request.getRoleNames() != null && !request.getRoleNames().isEmpty()) {
-                // Filter users by roles in-memory as minimal viable implementation
-                List<User> all = userRepository.findAll();
-                Set<String> roleNamesLc = request.getRoleNames().stream()
-                    .filter(Objects::nonNull)
-                    .map(String::trim)
-                    .filter(s -> !s.isEmpty())
-                    .map(String::toLowerCase)
-                    .collect(Collectors.toSet());
-
-                for (User u : all) {
-                    if (u.getRoles() == null) continue;
-                    boolean match = u.getRoles().stream()
-                        .map(Role::getName)
-                        .filter(Objects::nonNull)
-                        .map(String::toLowerCase)
-                        .anyMatch(roleNamesLc::contains);
-                    if (match) {
-                        result.add(u);
-                    }
-                }
-            }
-        }
-
-        return new ArrayList<>(result);
-    }
 
     /**
      * Converts a Booking entity to a BookingDTO.

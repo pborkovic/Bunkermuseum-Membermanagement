@@ -68,14 +68,6 @@ export default function SettingsTab({ onProfileUpdate }: SettingsTabProps): JSX.
   const [profileForm, setProfileForm] = useState<ProfileFormData>({
     name: '',
     email: '',
-    salutation: '',
-    academicTitle: '',
-    rank: '',
-    birthday: undefined,
-    phone: '',
-    street: '',
-    city: '',
-    postalCode: '',
   });
 
   /**

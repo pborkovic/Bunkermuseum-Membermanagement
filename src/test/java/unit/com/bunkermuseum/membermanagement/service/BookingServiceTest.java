@@ -1,5 +1,6 @@
 package unit.com.bunkermuseum.membermanagement.service;
 
+import com.bunkermuseum.membermanagement.dto.BookingDTO;
 import com.bunkermuseum.membermanagement.model.Booking;
 import com.bunkermuseum.membermanagement.repository.contract.BookingRepositoryContract;
 import com.bunkermuseum.membermanagement.service.BookingService;
@@ -82,7 +83,7 @@ class BookingServiceTest {
         when(bookingRepository.findAll()).thenReturn(bookings);
 
         // Act
-        List<Booking> result = bookingService.getAllBookings();
+        List<BookingDTO> result = bookingService.getAllBookings();
 
         // Assert
         assertNotNull(result);
@@ -110,7 +111,7 @@ class BookingServiceTest {
         when(bookingRepository.findAll()).thenReturn(List.of());
 
         // Act
-        List<Booking> result = bookingService.getAllBookings();
+        List<BookingDTO> result = bookingService.getAllBookings();
 
         // Assert
         assertNotNull(result);
@@ -171,7 +172,7 @@ class BookingServiceTest {
         when(bookingRepository.findAll()).thenReturn(bookings);
 
         // Act
-        List<Booking> result = bookingService.getAllBookings();
+        List<BookingDTO> result = bookingService.getAllBookings();
 
         // Assert
         assertNotNull(result);
@@ -195,16 +196,15 @@ class BookingServiceTest {
      * @author Philipp Borkovic
      */
     @Test
-    @DisplayName("Should return null when repository returns null")
-    void testGetAllBookings_RepositoryReturnsNull_ReturnsNull() {
+    @DisplayName("Should throw exception when repository returns null")
+    void testGetAllBookings_RepositoryReturnsNull_ThrowsException() {
         // Arrange
         when(bookingRepository.findAll()).thenReturn(null);
 
-        // Act
-        List<Booking> result = bookingService.getAllBookings();
-
-        // Assert
-        assertNull(result);
+        // Act & Assert
+        assertThrows(RuntimeException.class, () -> {
+            bookingService.getAllBookings();
+        });
         verify(bookingRepository).findAll();
     }
 }

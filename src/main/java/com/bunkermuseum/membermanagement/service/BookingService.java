@@ -10,6 +10,8 @@ import com.bunkermuseum.membermanagement.repository.contract.UserRepositoryContr
 import com.bunkermuseum.membermanagement.service.base.BaseService;
 import com.bunkermuseum.membermanagement.service.contract.BookingServiceContract;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,7 +37,6 @@ import java.util.stream.Collectors;
 public class BookingService extends BaseService<Booking, BookingRepositoryContract>
         implements BookingServiceContract {
 
-    // Injected lazily to avoid breaking existing tests that instantiate the service manually
     @Autowired(required = false)
     private UserRepositoryContract userRepository;
 
@@ -77,58 +78,49 @@ public class BookingService extends BaseService<Booking, BookingRepositoryContra
     /**
      * {@inheritDoc}
      *
-     * <p>Assigns a booking to all users of a specified member type. Uses type-safe
-     * {@link com.bunkermuseum.membermanagement.dto.MemberType} enum for filtering.</p>
-     *
-     * <p>The method performs validation, filters users by role, creates booking entities,
-     * and persists them in a single transaction. If no users match the member type,
-     * the operation completes successfully but returns 0.</p>
-     *
-     * @param request The validated booking assignment request
-     * @return The number of bookings created (number of users targeted)
-     * @throws IllegalArgumentException if member type is null or invalid
-     * @throws RuntimeException if database operation fails
-     *
      * @author Philipp Borkovic
      */
     @Override
     @Transactional
     public int assignBookingToUsers(AssignBookingRequest request) {
         try {
-            // Validate member type
             if (request.getMemberType() == null) {
-                throw new IllegalArgumentException("Mitgliedstyp ist erforderlich");
+                throw new IllegalArgumentException("Member type is required");
             }
 
-            // Resolve target users by member type (using enum's roleName)
             String roleName = request.getMemberType().getRoleName();
             List<User> targets = resolveUsersByMemberType(roleName);
 
             if (targets.isEmpty()) {
                 logger.warn("No users found with member type: {}", request.getMemberType());
+
                 return 0;
             }
 
-            // Prepare bookings to create
             List<Booking> toCreate = targets.stream().map(user -> {
                 Booking booking = new Booking(null);
                 booking.setUser(user);
                 booking.setExpectedAmount(request.getExpectedAmount());
                 booking.setActualAmount(request.getActualAmount());
                 booking.setActualPurpose(request.getActualPurpose());
+
                 return booking;
             }).collect(Collectors.toList());
 
             repository.createAll(toCreate);
+
             logger.info("Successfully assigned booking to {} users with member type: {}",
-                toCreate.size(), request.getMemberType());
+                    toCreate.size(), request.getMemberType());
+
             return toCreate.size();
-        } catch (IllegalArgumentException e) {
-            logger.error("Validation error assigning booking to users: {}", e.getMessage());
-            throw e;
-        } catch (Exception e) {
-            logger.error("Error assigning booking to users", e);
-            throw new RuntimeException("Fehler beim Zuweisen der Buchung zu Benutzern", e);
+        } catch (IllegalArgumentException exception) {
+            logger.error("Validation error assigning booking to users: {}", exception.getMessage());
+
+            throw exception;
+        } catch (Exception exception) {
+            logger.error("Error assigning booking to users", exception);
+
+            throw new RuntimeException("Failed to assign booking to users", exception);
         }
     }
 
@@ -144,12 +136,6 @@ public class BookingService extends BaseService<Booking, BookingRepositoryContra
      * @author Philipp Borkovic
      */
     private List<User> resolveUsersByMemberType(String memberType) {
-        // Fallback: if userRepository is not available (e.g., unit tests), return empty list
-        if (userRepository == null) {
-            logger.warn("UserRepositoryContract not injected; cannot resolve users by member type");
-            return Collections.emptyList();
-        }
-
         List<User> allUsers = userRepository.findAll();
         String memberTypeLowerCase = memberType.toLowerCase();
 
@@ -163,6 +149,96 @@ public class BookingService extends BaseService<Booking, BookingRepositoryContra
             .collect(Collectors.toList());
     }
 
+
+    /**
+     * {@inheritDoc}
+     *
+     * @author Philipp Borkovic
+     */
+    @Override
+    public List<BookingDTO> getCurrentUserBookings() {
+        try {
+            UUID currentUserId = getCurrentAuthenticatedUserId();
+
+            if (currentUserId == null) {
+                logger.warn("Cannot retrieve bookings: User is not authenticated or has no valid ID");
+
+                return Collections.emptyList();
+            }
+
+            List<Booking> userBookings = filterBookingsByUserId(currentUserId);
+
+            return userBookings.stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+        } catch (Exception exception) {
+            logger.error("Unexpected error retrieving bookings for current user", exception);
+            throw new RuntimeException("Failed to retrieve user bookings", exception);
+        }
+    }
+
+    /**
+     * Extracts the authenticated user's ID from Spring Security context with validation.
+     *
+     * @return The user's UUID, or {@code null} if not authenticated or principal is invalid
+     *
+     * @author Philipp Borkovic
+     */
+    private UUID getCurrentAuthenticatedUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null) {
+            logger.debug("No authentication found in security context");
+
+            return null;
+        }
+
+        Object principal = authentication.getPrincipal();
+        if (principal == null) {
+            logger.debug("Authentication principal is null");
+
+            return null;
+        }
+
+        if (!(principal instanceof User currentUser)) {
+            logger.warn("Authentication principal is not a User instance. Found: {}",
+                principal.getClass().getName());
+
+            return null;
+        }
+
+        UUID userId = currentUser.getId();
+        if (userId == null) {
+            logger.warn("Authenticated user has no ID. User: {}", currentUser.getEmail());
+
+            return null;
+        }
+
+        return userId;
+    }
+
+    /**
+     * Filters bookings by user ID using in-memory stream filtering.
+     *
+     * @param userId The user's UUID
+     * @return List of bookings for the user, empty if none exist
+     *
+     * @throws IllegalArgumentException if userId is null
+     *
+     * @author Philipp Borkovic
+     */
+    private List<Booking> filterBookingsByUserId(UUID userId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("User ID cannot be null");
+        }
+
+        List<Booking> allBookings = repository.findAll();
+
+        return allBookings.stream()
+            .filter(booking -> booking.getUser() != null)
+            .filter(booking -> userId.equals(booking.getUser().getId()))
+            .collect(Collectors.toList());
+    }
 
     /**
      * Converts a Booking entity to a BookingDTO.

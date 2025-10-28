@@ -50,8 +50,8 @@ public class BookingController {
     public java.util.List<BookingDTO> getAllBookings() {
         try {
             return bookingService.getAllBookings();
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve bookings", e);
+        } catch (Exception exception) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve bookings", exception);
         }
     }
 
@@ -78,11 +78,52 @@ public class BookingController {
     public int assignBookingToUsers(@Valid AssignBookingRequest request) {
         try {
             return bookingService.assignBookingToUsers(request);
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
-        } catch (Exception e) {
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage(), exception);
+        } catch (Exception exception) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                "Fehler beim Zuweisen der Buchung", e);
+                "Failed to assign booking", exception);
+        }
+    }
+
+    /**
+     * Retrieves all bookings associated with the currently authenticated user.
+     *
+     * <p>This Hilla endpoint provides secure, authenticated access to a user's personal
+     * booking history. It is designed for use in member dashboards and self-service portals
+     * where users need to view their transaction history and payment status.</p>
+     *
+     * @return Immutable list of {@link BookingDTO} objects representing the authenticated user's
+     *         bookings. Returns an empty list if the user has no bookings or is not authenticated.
+     *         Never returns {@code null}.
+     *
+     * @throws ResponseStatusException with {@link HttpStatus#INTERNAL_SERVER_ERROR} if:
+     *         <ul>
+     *           <li>Database connection fails</li>
+     *           <li>An unexpected error occurs during data retrieval</li>
+     *           <li>DTO conversion fails</li>
+     *         </ul>
+     *
+     * @see BookingDTO
+     * @see com.bunkermuseum.membermanagement.service.BookingService#getCurrentUserBookings()
+     *
+     * @author Philipp Borkovic
+     */
+    public java.util.List<BookingDTO> getCurrentUserBookings() {
+        try {
+            return bookingService.getCurrentUserBookings();
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Invalid request when retrieving bookings",
+                exception
+            );
+        } catch (Exception exception) {
+            throw new ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Failed to retrieve bookings",
+                exception
+            );
         }
     }
 }

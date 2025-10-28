@@ -240,7 +240,7 @@ export default function BookingsTab(): JSX.Element {
         <div className="flex flex-col sm:flex-row gap-3 sm:ml-auto items-stretch sm:items-center">
           {/* Assign Button */}
           <div className="flex">
-            <Button onClick={() => setIsAssignModalOpen(true)} className="text-white whitespace-nowrap">
+            <Button onClick={() => setIsAssignModalOpen(true)} className="bg-black text-white hover:bg-gray-800 whitespace-nowrap">
               <Icon icon="vaadin:plus" className="mr-2" style={{ width: 16, height: 16, color: 'white' }} />
               Neue Buchung zuweisen
             </Button>

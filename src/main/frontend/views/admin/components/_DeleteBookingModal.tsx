@@ -1,13 +1,13 @@
 import { Dialog } from '@vaadin/react-components/Dialog';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@vaadin/react-components';
-import type Booking from 'Frontend/generated/com/bunkermuseum/membermanagement/model/Booking';
+import type BookingDTO from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/BookingDTO';
 
 /**
  * DeleteBookingModal component props.
  */
 interface DeleteBookingModalProps {
-  booking: Booking | null;
+  booking: BookingDTO | null;
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;

@@ -133,7 +133,7 @@ export default function ProfileInformationForm({
           <Input
             id={id}
             type={type}
-            value={typeof value === 'string' ? value : ''}
+            value={typeof value === 'string' ? value : (value === undefined ? '' : String(value))}
             onChange={(e) => updateField(field, e.target.value)}
             disabled={isSaving}
             required={required}

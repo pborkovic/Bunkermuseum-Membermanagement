@@ -50,8 +50,8 @@ public class BookingController {
     public java.util.List<BookingDTO> getAllBookings() {
         try {
             return bookingService.getAllBookings();
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve bookings", e);
+        } catch (Exception exception) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve bookings", exception);
         }
     }
 
@@ -78,11 +78,11 @@ public class BookingController {
     public int assignBookingToUsers(@Valid AssignBookingRequest request) {
         try {
             return bookingService.assignBookingToUsers(request);
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
-        } catch (Exception e) {
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage(), exception);
+        } catch (Exception exception) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                "Failed to assign booking", e);
+                "Failed to assign booking", exception);
         }
     }
 
@@ -112,17 +112,17 @@ public class BookingController {
     public java.util.List<BookingDTO> getCurrentUserBookings() {
         try {
             return bookingService.getCurrentUserBookings();
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException exception) {
             throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
                 "Invalid request when retrieving bookings",
-                e
+                exception
             );
-        } catch (Exception e) {
+        } catch (Exception exception) {
             throw new ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "Failed to retrieve bookings",
-                e
+                exception
             );
         }
     }

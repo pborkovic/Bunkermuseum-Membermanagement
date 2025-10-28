@@ -5,6 +5,7 @@ import com.bunkermuseum.membermanagement.dto.BookingDTO;
 import com.bunkermuseum.membermanagement.service.contract.BookingServiceContract;
 import com.vaadin.hilla.Endpoint;
 import jakarta.annotation.security.PermitAll;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -55,18 +56,33 @@ public class BookingController {
     }
 
     /**
-     * Assigns/creates a booking for selected users and/or roles, or all users by default.
+     * Assigns a booking to all users of a specified member type.
      *
-     * @param request Targeting information and booking details
-     * @return Number of bookings created
+     * <p>This endpoint validates the request using Jakarta Bean Validation and creates
+     * bookings for all users matching the specified member type. The validation ensures:</p>
+     * <ul>
+     *   <li>Member type is specified and valid</li>
+     *   <li>Amounts are positive numbers greater than zero</li>
+     *   <li>Purpose text is not blank and within size limits</li>
+     * </ul>
+     *
+     * @param request The validated booking assignment request with member type and booking details
+     * @return The number of bookings created (equals the number of targeted users)
+     * @throws ResponseStatusException with {@link HttpStatus#BAD_REQUEST} if validation fails
+     *         or member type is invalid
+     * @throws ResponseStatusException with {@link HttpStatus#INTERNAL_SERVER_ERROR} if
+     *         database operation fails
+     *
+     * @author Philipp Borkovic
      */
-    public int assignBookingToUsers(AssignBookingRequest request) {
+    public int assignBookingToUsers(@Valid AssignBookingRequest request) {
         try {
             return bookingService.assignBookingToUsers(request);
         } catch (IllegalArgumentException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to assign booking to users", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                "Fehler beim Zuweisen der Buchung", e);
         }
     }
 }

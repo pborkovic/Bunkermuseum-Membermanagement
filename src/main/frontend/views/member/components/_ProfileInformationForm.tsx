@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Icon } from '@vaadin/react-components';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
+import { profileFormSchema } from '../schemas/validation';
 
 /**
  * Gender options for the Anrede (salutation) field.
@@ -59,6 +61,47 @@ export default function ProfileInformationForm({
   isLoading,
   isSaving
 }: ProfileInformationFormProps): JSX.Element {
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  /**
+   * Validates the form data using Zod schema.
+   * Returns true if valid, false otherwise.
+   * Sets error messages for invalid fields.
+   */
+  const validateForm = (): boolean => {
+    const result = profileFormSchema.safeParse(formData);
+
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.issues.forEach((issue) => {
+        const path = issue.path[0]?.toString();
+        if (path) {
+          fieldErrors[path] = issue.message;
+        }
+      });
+      setErrors(fieldErrors);
+      return false;
+    }
+
+    setErrors({});
+    return true;
+  };
+
+  /**
+   * Handles form submission with validation.
+   */
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
+    e.preventDefault();
+
+    // Validate before submitting
+    if (!validateForm()) {
+      return;
+    }
+
+    // Clear errors and proceed with original onSubmit
+    setErrors({});
+    await onSubmit(e);
+  };
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -72,7 +115,7 @@ export default function ProfileInformationForm({
           <Icon icon="vaadin:spinner" className="animate-spin text-black" style={{ width: '32px', height: '32px' }} />
         </div>
       ) : (
-        <form onSubmit={onSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Information */}
           <div>
             <h4 className="text-sm font-semibold mb-3 text-gray-700">Grundinformationen</h4>
@@ -83,11 +126,20 @@ export default function ProfileInformationForm({
                   id="name"
                   type="text"
                   value={formData.name}
-                  onChange={(e) => onChange({ ...formData, name: e.target.value })}
+                  onChange={(e) => {
+                    onChange({ ...formData, name: e.target.value });
+                    // Clear error on change
+                    if (errors.name) {
+                      setErrors({ ...errors, name: '' });
+                    }
+                  }}
                   disabled={isSaving}
                   required
-                  className="border-black text-black"
+                  className={`border-black text-black ${errors.name ? 'border-red-500' : ''}`}
                 />
+                {errors.name && (
+                  <p className="text-xs text-red-600 mt-1">{errors.name}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -96,11 +148,20 @@ export default function ProfileInformationForm({
                   id="email"
                   type="email"
                   value={formData.email}
-                  onChange={(e) => onChange({ ...formData, email: e.target.value })}
+                  onChange={(e) => {
+                    onChange({ ...formData, email: e.target.value });
+                    // Clear error on change
+                    if (errors.email) {
+                      setErrors({ ...errors, email: '' });
+                    }
+                  }}
                   disabled={isSaving}
                   required
-                  className="border-black text-black"
+                  className={`border-black text-black ${errors.email ? 'border-red-500' : ''}`}
                 />
+                {errors.email && (
+                  <p className="text-xs text-red-600 mt-1">{errors.email}</p>
+                )}
               </div>
             </div>
           </div>
@@ -161,8 +222,17 @@ export default function ProfileInformationForm({
                 <Label htmlFor="birthday">Geburtsdatum</Label>
                 <DatePicker
                   value={formData.birthday}
-                  onChange={(date) => onChange({ ...formData, birthday: date })}
+                  onChange={(date) => {
+                    onChange({ ...formData, birthday: date });
+                    // Clear error on change
+                    if (errors.birthday) {
+                      setErrors({ ...errors, birthday: '' });
+                    }
+                  }}
                 />
+                {errors.birthday && (
+                  <p className="text-xs text-red-600 mt-1">{errors.birthday}</p>
+                )}
               </div>
             </div>
           </div>
@@ -177,10 +247,19 @@ export default function ProfileInformationForm({
                   id="phone"
                   type="tel"
                   value={formData.phone}
-                  onChange={(e) => onChange({ ...formData, phone: e.target.value })}
+                  onChange={(e) => {
+                    onChange({ ...formData, phone: e.target.value });
+                    // Clear error on change
+                    if (errors.phone) {
+                      setErrors({ ...errors, phone: '' });
+                    }
+                  }}
                   disabled={isSaving}
-                  className="border-black text-black"
+                  className={`border-black text-black ${errors.phone ? 'border-red-500' : ''}`}
                 />
+                {errors.phone && (
+                  <p className="text-xs text-red-600 mt-1">{errors.phone}</p>
+                )}
               </div>
             </div>
           </div>
@@ -208,10 +287,20 @@ export default function ProfileInformationForm({
                     id="postalCode"
                     type="text"
                     value={formData.postalCode}
-                    onChange={(e) => onChange({ ...formData, postalCode: e.target.value })}
+                    onChange={(e) => {
+                      onChange({ ...formData, postalCode: e.target.value });
+                      // Clear error on change
+                      if (errors.postalCode) {
+                        setErrors({ ...errors, postalCode: '' });
+                      }
+                    }}
                     disabled={isSaving}
-                    className="border-black text-black"
+                    className={`border-black text-black ${errors.postalCode ? 'border-red-500' : ''}`}
+                    placeholder="z.B. 1234 oder 12345"
                   />
+                  {errors.postalCode && (
+                    <p className="text-xs text-red-600 mt-1">{errors.postalCode}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">

@@ -82,7 +82,7 @@ public class BookingController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                "Fehler beim Zuweisen der Buchung", e);
+                "Failed to assign booking", e);
         }
     }
 
@@ -115,13 +115,13 @@ public class BookingController {
         } catch (IllegalArgumentException e) {
             throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
-                "Ungültige Anforderung beim Abrufen der Buchungen",
+                "Invalid request when retrieving bookings",
                 e
             );
         } catch (Exception e) {
             throw new ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
-                "Fehler beim Abrufen der Buchungen. Bitte versuchen Sie es später erneut.",
+                "Failed to retrieve bookings",
                 e
             );
         }

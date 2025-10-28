@@ -45,7 +45,11 @@ export default function BookingsTab(): JSX.Element {
     []
   );
 
-  const { finished, pending, total } = useCategorizedBookings(bookings || []);
+  const validBookings = (bookings || []).filter(
+    (booking): booking is BookingDTO => booking !== undefined
+  );
+
+  const { finished, pending, total } = useCategorizedBookings(validBookings);
 
   /**
    * Renders a single booking card with all relevant information.
@@ -254,7 +258,7 @@ export default function BookingsTab(): JSX.Element {
   /**
    * Renders empty state when no bookings exist.
    */
-  if (!bookings || bookings.length === 0) {
+  if (validBookings.length === 0) {
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
         <div className="flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 mx-auto mb-4">

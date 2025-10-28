@@ -85,4 +85,45 @@ public class BookingController {
                 "Fehler beim Zuweisen der Buchung", e);
         }
     }
+
+    /**
+     * Retrieves all bookings associated with the currently authenticated user.
+     *
+     * <p>This Hilla endpoint provides secure, authenticated access to a user's personal
+     * booking history. It is designed for use in member dashboards and self-service portals
+     * where users need to view their transaction history and payment status.</p>
+     *
+     * @return Immutable list of {@link BookingDTO} objects representing the authenticated user's
+     *         bookings. Returns an empty list if the user has no bookings or is not authenticated.
+     *         Never returns {@code null}.
+     *
+     * @throws ResponseStatusException with {@link HttpStatus#INTERNAL_SERVER_ERROR} if:
+     *         <ul>
+     *           <li>Database connection fails</li>
+     *           <li>An unexpected error occurs during data retrieval</li>
+     *           <li>DTO conversion fails</li>
+     *         </ul>
+     *
+     * @see BookingDTO
+     * @see com.bunkermuseum.membermanagement.service.BookingService#getCurrentUserBookings()
+     *
+     * @author Philipp Borkovic
+     */
+    public java.util.List<BookingDTO> getCurrentUserBookings() {
+        try {
+            return bookingService.getCurrentUserBookings();
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Ungültige Anforderung beim Abrufen der Buchungen",
+                e
+            );
+        } catch (Exception e) {
+            throw new ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Fehler beim Abrufen der Buchungen. Bitte versuchen Sie es später erneut.",
+                e
+            );
+        }
+    }
 }

@@ -6,7 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import type Booking from 'Frontend/generated/com/bunkermuseum/membermanagement/model/Booking';
+import type BookingDTO from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/BookingDTO';
 import Pagination from './shared/_Pagination';
 import PaginationInfo from './shared/_PaginationInfo';
 import LoadingState from './shared/_LoadingState';
@@ -18,7 +18,7 @@ import { LIST_CONTAINER_HEIGHT } from '../utils/constants';
  * BookingsList component props.
  */
 interface BookingsListProps {
-  bookings: Booking[];
+  bookings: BookingDTO[];
   isLoading: boolean;
   searchQuery: string;
   hasActiveFilters: boolean;
@@ -27,8 +27,8 @@ interface BookingsListProps {
   totalElements: number;
   bookingsPerPage: number;
   isMobile: boolean;
-  onBookingClick: (booking: Booking) => void;
-  onDeleteClick: (booking: Booking) => void;
+  onBookingClick: (booking: BookingDTO) => void;
+  onDeleteClick: (booking: BookingDTO) => void;
   onPageChange: (page: number) => void;
 }
 
@@ -112,7 +112,7 @@ function BookingsList({
                 <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700 bg-white">Erwarteter Betrag</th>
                 <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700 bg-white">Tatsächlicher Betrag</th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 bg-white">Empfangen am</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 bg-white">Erstellt am</th>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 bg-white">Zweck</th>
                 <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700 bg-white">Aktionen</th>
               </tr>
             </thead>
@@ -131,7 +131,7 @@ function BookingsList({
                     {formatCurrency(booking.actualAmount)}
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-600">{formatDate(booking.receivedAt)}</td>
-                  <td className="py-3 px-4 text-sm text-gray-600">{formatDate(booking.createdAt)}</td>
+                  <td className="py-3 px-4 text-sm text-gray-600">{booking.code || 'N/A'}</td>
                   <td className="py-3 px-4 text-center">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>

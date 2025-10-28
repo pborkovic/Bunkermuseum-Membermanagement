@@ -1,7 +1,7 @@
 package unit.com.bunkermuseum.membermanagement.controller;
 
 import com.bunkermuseum.membermanagement.controller.BookingController;
-import com.bunkermuseum.membermanagement.model.Booking;
+import com.bunkermuseum.membermanagement.dto.BookingDTO;
 import com.bunkermuseum.membermanagement.service.contract.BookingServiceContract;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -75,15 +75,15 @@ class BookingControllerTest {
     @DisplayName("Should successfully retrieve all bookings")
     void testGetAllBookings_Success_ReturnsBookings() {
         // Arrange
-        Booking booking1 = mock(Booking.class);
-        Booking booking2 = mock(Booking.class);
+        BookingDTO booking1 = mock(BookingDTO.class);
+        BookingDTO booking2 = mock(BookingDTO.class);
 
-        List<Booking> bookings = List.of(booking1, booking2);
+        List<BookingDTO> bookings = List.of(booking1, booking2);
 
         when(bookingService.getAllBookings()).thenReturn(bookings);
 
         // Act
-        List<Booking> result = bookingController.getAllBookings();
+        List<BookingDTO> result = bookingController.getAllBookings();
 
         // Assert
         assertNotNull(result);
@@ -110,7 +110,7 @@ class BookingControllerTest {
         when(bookingService.getAllBookings()).thenReturn(List.of());
 
         // Act
-        List<Booking> result = bookingController.getAllBookings();
+        List<BookingDTO> result = bookingController.getAllBookings();
 
         // Assert
         assertNotNull(result);
@@ -163,16 +163,16 @@ class BookingControllerTest {
     @DisplayName("Should handle large number of bookings")
     void testGetAllBookings_LargeDataset_ReturnsAllBookings() {
         // Arrange
-        List<Booking> bookings = new ArrayList<>();
+        List<BookingDTO> bookings = new ArrayList<>();
 
         for (int i = 0; i < 100; i++) {
-            bookings.add(mock(Booking.class));
+            bookings.add(mock(BookingDTO.class));
         }
 
         when(bookingService.getAllBookings()).thenReturn(bookings);
 
         // Act
-        List<Booking> result = bookingController.getAllBookings();
+        List<BookingDTO> result = bookingController.getAllBookings();
 
         // Assert
         assertNotNull(result);
@@ -201,7 +201,7 @@ class BookingControllerTest {
         when(bookingService.getAllBookings()).thenReturn(null);
 
         // Act
-        List<Booking> result = bookingController.getAllBookings();
+        List<BookingDTO> result = bookingController.getAllBookings();
 
         // Assert
         assertNull(result);

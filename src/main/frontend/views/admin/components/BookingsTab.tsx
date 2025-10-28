@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Icon } from '@vaadin/react-components';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 import { BookingController } from 'Frontend/generated/endpoints';
-import type Booking from 'Frontend/generated/com/bunkermuseum/membermanagement/model/Booking';
+import type BookingDTO from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/BookingDTO';
 import BookingsList from './_BookingsList';
 import BookingDetailsModal from './_BookingDetailsModal';
 import DeleteBookingModal from './_DeleteBookingModal';
+import AssignBookingModal from './_AssignBookingModal';
 import BookingsDateRangeFilter, { DATE_RANGE_PRESETS } from './_BookingsDateRangeFilter';
 
 /**
@@ -29,14 +31,15 @@ import BookingsDateRangeFilter, { DATE_RANGE_PRESETS } from './_BookingsDateRang
  * @author Philipp Borkovic
  */
 export default function BookingsTab(): JSX.Element {
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [bookings, setBookings] = useState<BookingDTO[]>([]);
+  const [filteredBookings, setFilteredBookings] = useState<BookingDTO[]>([]);
+  const [selectedBooking, setSelectedBooking] = useState<BookingDTO | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [bookingToDelete, setBookingToDelete] = useState<Booking | null>(null);
+  const [bookingToDelete, setBookingToDelete] = useState<BookingDTO | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobile, setIsMobile] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -44,6 +47,7 @@ export default function BookingsTab(): JSX.Element {
   const [dateRangePreset, setDateRangePreset] = useState('1month');
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
 
   // Detect mobile screen size
   useEffect(() => {
@@ -96,7 +100,7 @@ export default function BookingsTab(): JSX.Element {
       setIsLoading(true);
       setError('');
       const allBookings = await BookingController.getAllBookings();
-      setBookings((allBookings || []).filter((booking): booking is Booking => booking !== undefined));
+      setBookings((allBookings || []).filter((booking): booking is BookingDTO => booking !== undefined));
     } catch (err: any) {
       setError(err.message || 'Fehler beim Laden der Buchungen');
     } finally {
@@ -141,11 +145,11 @@ export default function BookingsTab(): JSX.Element {
   /**
    * Opens the booking details modal for a specific booking.
    *
-   * @param {Booking} booking - The booking to display
+   * @param {BookingDTO} booking - The booking to display
    *
    * @author Philipp Borkovic
    */
-  const handleBookingClick = (booking: Booking): void => {
+  const handleBookingClick = (booking: BookingDTO): void => {
     setSelectedBooking(booking);
     setIsModalOpen(true);
   };
@@ -163,11 +167,11 @@ export default function BookingsTab(): JSX.Element {
   /**
    * Opens the delete confirmation modal for a specific booking.
    *
-   * @param {Booking} booking - The booking to delete
+   * @param {BookingDTO} booking - The booking to delete
    *
    * @author Philipp Borkovic
    */
-  const handleDeleteClick = (booking: Booking): void => {
+  const handleDeleteClick = (booking: BookingDTO): void => {
     setBookingToDelete(booking);
     setIsDeleteModalOpen(true);
   };
@@ -233,7 +237,15 @@ export default function BookingsTab(): JSX.Element {
         </div>
 
         {/* Search Bar and Controls */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:ml-auto">
+        <div className="flex flex-col sm:flex-row gap-3 sm:ml-auto items-stretch sm:items-center">
+          {/* Assign Button */}
+          <div className="flex">
+            <Button onClick={() => setIsAssignModalOpen(true)} className="text-white whitespace-nowrap">
+              <Icon icon="vaadin:plus" className="mr-2" style={{ width: 16, height: 16, color: 'white' }} />
+              Neue Buchung zuweisen
+            </Button>
+          </div>
+
           {/* Page Size Selector */}
           <div className="flex items-center gap-2">
             <label className="text-sm text-gray-600 whitespace-nowrap">Zeilen:</label>
@@ -291,6 +303,12 @@ export default function BookingsTab(): JSX.Element {
           {error}
         </div>
       )}
+      {/* Success message */}
+      {success && (
+        <div className="rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800 p-3 text-sm flex-shrink-0">
+          {success}
+        </div>
+      )}
 
       {/* Bookings List */}
       <div className="bg-white rounded-lg p-4 sm:p-6 w-full flex-shrink-0">
@@ -322,6 +340,16 @@ export default function BookingsTab(): JSX.Element {
         booking={selectedBooking}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
+      />
+
+      <AssignBookingModal
+        isOpen={isAssignModalOpen}
+        onClose={() => setIsAssignModalOpen(false)}
+        onAssigned={(count) => {
+          setSuccess(`Buchung für ${count} Benutzer zugewiesen.`);
+          setTimeout(() => setSuccess(''), 4000);
+          loadBookings();
+        }}
       />
     </div>
   );

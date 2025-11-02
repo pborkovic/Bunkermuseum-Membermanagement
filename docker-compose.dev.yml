@@ -32,6 +32,10 @@ services:
       - MINIO_ACCESS_KEY=minioadmin
       - MINIO_SECRET_KEY=minioadmin123
       - MINIO_BUCKET_NAME=bunkermuseum-dev-files
+      - SPRING_MAIL_HOST=mailpit-dev
+      - SPRING_MAIL_PORT=1025
+      - SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH=false
+      - SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE=false
     volumes:
       # Mount Java source code for hot reload
       - ./src/main/java:/app/src/main/java:delegated
@@ -66,6 +70,7 @@ services:
       - postgres-dev
       - redis-dev
       - minio-dev
+      - mailpit-dev
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s
@@ -128,12 +133,33 @@ services:
       retries: 3
       start_period: 60s
 
+  mailpit-dev:
+    image: axllent/mailpit:latest
+    ports:
+      - "8025:8025"  # Web UI
+      - "1025:1025"  # SMTP server
+    environment:
+      - MP_MAX_MESSAGES=5000
+      - MP_DATA_FILE=/data/mailpit.db
+      - MP_SMTP_AUTH_ACCEPT_ANY=true
+      - MP_SMTP_AUTH_ALLOW_INSECURE=true
+    volumes:
+      - mailpit_dev_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8025/api/v1/info"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
 volumes:
   maven_cache:
   vaadin_cache:
   postgres_dev_data:
   redis_dev_data:
   minio_dev_data:
+  mailpit_dev_data:
 
 networks:
   default:

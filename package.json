@@ -52,7 +52,6 @@
     "@types/node": "^24.6.2",
     "@types/react": "18.3.23",
     "@types/react-dom": "18.3.7",
-    "@types/react-quill": "^1.3.10",
     "@vaadin/hilla-generator-cli": "24.8.8",
     "@vaadin/hilla-generator-core": "24.8.8",
     "@vaadin/hilla-generator-plugin-backbone": "24.8.8",
@@ -142,7 +141,7 @@
       "workbox-core": "7.3.0",
       "workbox-precaching": "7.3.0"
     },
-    "hash": "51de7e8f44b9161267688464b92fbec4ec69c4498d40a41e9481b033b0366084"
+    "hash": "1b4472c7a214e3fbd58e73254ce1a80eca681ad1936c76ec4b96e90f8c190179"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
@@ -241,6 +240,7 @@
     "zod": "$zod",
     "@radix-ui/react-dropdown-menu": "$@radix-ui/react-dropdown-menu",
     "next-themes": "$next-themes",
-    "sonner": "$sonner"
+    "sonner": "$sonner",
+    "react-quill": "$react-quill"
   }
 }

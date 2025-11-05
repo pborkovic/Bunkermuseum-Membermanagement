@@ -162,7 +162,7 @@ export function SendEmailModal({ isOpen, onClose, onEmailSent }: SendEmailModalP
       headerTitle="Neue E-Mail senden"
       className="email-modal-large"
     >
-      <div className="space-y-4 py-4 w-[900px] max-w-[95vw]">
+      <div className="space-y-6 py-6 w-[1200px] max-w-[95vw]">
         {/* Recipient Type Selection */}
         <div className="space-y-2">
           <Label>Empfänger-Typ</Label>

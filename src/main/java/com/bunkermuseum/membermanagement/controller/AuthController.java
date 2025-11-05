@@ -240,8 +240,13 @@ public class AuthController {
         try {
             Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-            if (principal instanceof User user) {
-                return UserMapper.toDTO(user);
+            if (principal instanceof User securityUser) {
+                // Reload the user from database to ensure it's attached to the current session
+                // and can access lazy-loaded relationships
+                var reloadedUser = userService.findById(securityUser.getId());
+                if (reloadedUser.isPresent()) {
+                    return UserMapper.toDTO(reloadedUser.get());
+                }
             }
 
             return null;

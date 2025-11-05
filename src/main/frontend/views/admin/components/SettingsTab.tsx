@@ -139,7 +139,7 @@ export default function SettingsTab({ onProfileUpdate }: { onProfileUpdate?: () 
         postalCode: profileForm.postalCode || undefined,
         active: true,
         deleted: false,
-      };
+      } as User;
 
       await UserController.updateUser(currentUser.id, updatedUser);
       toast.success('Profil erfolgreich aktualisiert');

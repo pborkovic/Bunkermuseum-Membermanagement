@@ -137,5 +137,29 @@ export interface LoadingStateProps {
 export enum TabId {
   USERS = 0,
   BOOKINGS = 1,
-  SETTINGS = 2,
+  EMAILS = 2,
+  SETTINGS = 3,
+}
+
+/**
+ * Page response interface for paginated data.
+ *
+ * @interface PageResponse
+ * @template T - The type of items in the page
+ * @property {T[]} content - Array of items for the current page
+ * @property {number} number - Current page number (0-indexed)
+ * @property {number} size - Number of items per page
+ * @property {number} totalElements - Total number of items across all pages
+ * @property {number} totalPages - Total number of pages
+ * @property {boolean} first - Whether this is the first page
+ * @property {boolean} last - Whether this is the last page
+ */
+export interface PageResponse<T> {
+  content: T[];
+  number: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  first: boolean;
+  last: boolean;
 }

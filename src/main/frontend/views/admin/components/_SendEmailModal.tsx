@@ -203,7 +203,10 @@ export function SendEmailModal({ isOpen, onClose, onEmailSent }: SendEmailModalP
                 <SelectTrigger className="w-full border-black focus:ring-black focus:border-black text-black bg-white">
                   <SelectValue placeholder="Benutzer auswählen..." className="text-black" />
                 </SelectTrigger>
-                <SelectContent className="bg-white border-black">
+                <SelectContent 
+                  className="bg-white border-black z-[9999] max-h-60 overflow-y-auto"
+                  style={{ zIndex: 9999 }}
+                >
                   {users.map((user) => (
                     <SelectItem
                       key={user.id}

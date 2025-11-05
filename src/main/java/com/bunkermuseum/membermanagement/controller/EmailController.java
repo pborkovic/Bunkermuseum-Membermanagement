@@ -16,6 +16,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -167,6 +168,7 @@ public class EmailController {
      *
      * @author Philipp Borkovic
      */
+    @Transactional(readOnly = true)
     public List<UserDTO> getAllActiveUsers() {
         List<User> activeUsers = userRepository.findActive();
         if (activeUsers == null || activeUsers.isEmpty()) {

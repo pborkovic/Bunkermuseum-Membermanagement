@@ -102,7 +102,7 @@ export default function EmailsTab() {
         </div>
         <Button
           onClick={sendEmailModal.open}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 bg-black text-white hover:bg-gray-800"
         >
           <Icon icon="vaadin:envelope" style={{ width: '16px', height: '16px' }} />
           Neue E-Mail senden

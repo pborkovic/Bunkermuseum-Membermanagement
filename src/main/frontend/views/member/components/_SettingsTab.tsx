@@ -163,7 +163,7 @@ export default function SettingsTab({ onProfileUpdate }: SettingsTabProps): JSX.
           postalCode: profileForm.postalCode || undefined,
           active: true,
           deleted: false,
-        };
+        } as User;
 
         await UserController.updateUser(currentUser.id, updatedUser);
         toast.success(SUCCESS_MESSAGES.PROFILE_UPDATED);

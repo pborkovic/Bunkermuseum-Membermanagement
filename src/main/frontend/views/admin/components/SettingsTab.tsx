@@ -126,7 +126,7 @@ export default function SettingsTab({ onProfileUpdate }: { onProfileUpdate?: () 
 
       // Create a User object with the fields we want to update
       const updatedUser: User = {
-        id: currentUser.id,
+        ...currentUser,
         name: profileForm.name,
         email: profileForm.email,
         salutation: profileForm.salutation || undefined,
@@ -137,10 +137,9 @@ export default function SettingsTab({ onProfileUpdate }: { onProfileUpdate?: () 
         street: profileForm.street || undefined,
         city: profileForm.city || undefined,
         postalCode: profileForm.postalCode || undefined,
-        avatarPath: currentUser.avatarPath,
-        emailVerifiedAt: currentUser.emailVerifiedAt,
-        roles: currentUser.roles
-      } as User;
+        active: true,
+        deleted: false,
+      };
 
       await UserController.updateUser(currentUser.id, updatedUser);
       toast.success('Profil erfolgreich aktualisiert');

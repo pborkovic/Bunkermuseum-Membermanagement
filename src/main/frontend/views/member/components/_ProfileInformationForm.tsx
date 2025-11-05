@@ -241,7 +241,7 @@ export default function ProfileInformationForm({
 
             {renderTextField({
               id: 'rank',
-              label: 'Rang',
+              label: 'Dienstgrad',
               field: 'rank',
             })}
 

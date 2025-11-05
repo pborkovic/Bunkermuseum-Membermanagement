@@ -115,21 +115,32 @@ export default function EmailsTab() {
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-700">Einträge pro Seite:</span>
-          <Select
-            value={emailsPerPage.toString()}
-            onValueChange={handlePageSizeChange}
-          >
-            <SelectTrigger className="w-20">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {PAGE_SIZE_OPTIONS.map((size) => (
-                <SelectItem key={size} value={size.toString()}>
-                  {size}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="relative">
+            <Icon
+              icon="vaadin:chevron-down"
+              className="absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none z-10"
+              style={{ width: '14px', height: '14px', color: 'black' }}
+            />
+            <Select
+              value={emailsPerPage.toString()}
+              onValueChange={handlePageSizeChange}
+            >
+              <SelectTrigger className="w-20 pl-8 text-black bg-white border-black">
+                <SelectValue className="text-black" />
+              </SelectTrigger>
+              <SelectContent className="bg-white border-black">
+                {PAGE_SIZE_OPTIONS.map((size) => (
+                  <SelectItem
+                    key={size}
+                    value={size.toString()}
+                    className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black"
+                  >
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 

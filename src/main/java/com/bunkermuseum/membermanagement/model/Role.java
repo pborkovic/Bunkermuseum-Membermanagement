@@ -1,6 +1,7 @@
 package com.bunkermuseum.membermanagement.model;
 
 import com.bunkermuseum.membermanagement.model.base.Model;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -92,6 +93,7 @@ public class Role extends Model {
      *   <li>Lazy loading for performance</li>
      * </ul>
      */
+    @JsonBackReference
     @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY)
     private Set<User> users = new HashSet<>();
 

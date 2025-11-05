@@ -288,4 +288,20 @@ public interface UserServiceContract {
      * @author Philipp Borkovic
      */
     User updateUser(UUID userId, User userData);
+
+    /**
+     * Finds a user by their unique identifier.
+     *
+     * <p>This method retrieves a user from the database by their UUID.
+     * It ensures the user is properly loaded within a transaction context
+     * to allow access to lazy-loaded relationships.</p>
+     *
+     * @param userId The UUID of the user to find
+     * @return Optional containing the user if found, empty if not found
+     *
+     * @throws IllegalArgumentException if userId is null
+     *
+     * @author Philipp Borkovic
+     */
+    java.util.Optional<User> findById(UUID userId);
 }

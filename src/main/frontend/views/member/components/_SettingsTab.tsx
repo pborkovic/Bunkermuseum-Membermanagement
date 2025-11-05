@@ -148,7 +148,7 @@ export default function SettingsTab({ onProfileUpdate }: SettingsTabProps): JSX.
         }
 
         const updatedUser: User = {
-          id: currentUser.id,
+          ...currentUser,
           name: profileForm.name,
           email: profileForm.email,
           salutation: profileForm.salutation || undefined,
@@ -161,9 +161,8 @@ export default function SettingsTab({ onProfileUpdate }: SettingsTabProps): JSX.
           street: profileForm.street || undefined,
           city: profileForm.city || undefined,
           postalCode: profileForm.postalCode || undefined,
-          avatarPath: currentUser.avatarPath,
-          emailVerifiedAt: currentUser.emailVerifiedAt,
-          roles: currentUser.roles,
+          active: true,
+          deleted: false,
         } as User;
 
         await UserController.updateUser(currentUser.id, updatedUser);

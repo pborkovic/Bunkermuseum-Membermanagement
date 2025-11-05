@@ -15,6 +15,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Hilla endpoint for authentication operations.
@@ -234,12 +235,18 @@ public class AuthController {
      *
      * @author Philipp Borkovic
      */
+    @Transactional(readOnly = true)
     public @Nullable UserDTO getCurrentUser() {
         try {
             Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-            if (principal instanceof User user) {
-                return UserMapper.toDTO(user);
+            if (principal instanceof User securityUser) {
+                // Reload the user from database to ensure it's attached to the current session
+                // and can access lazy-loaded relationships
+                var reloadedUser = userService.findById(securityUser.getId());
+                if (reloadedUser.isPresent()) {
+                    return UserMapper.toDTO(reloadedUser.get());
+                }
             }
 
             return null;

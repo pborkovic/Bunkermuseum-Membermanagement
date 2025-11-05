@@ -7,6 +7,7 @@ import { AuthController } from 'Frontend/generated/endpoints';
 import type UserDTO from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/UserDTO';
 import UsersTab from './components/UsersTab';
 import BookingsTab from './components/BookingsTab';
+import EmailsTab from './components/EmailsTab';
 import SettingsTab from './components/SettingsTab';
 import { TabId } from './types';
 import logo from 'Frontend/assets/images/logo_bunkermuseum.jpg';
@@ -188,6 +189,7 @@ export default function AdminDashboard(): JSX.Element {
           <div className="flex items-center gap-2 sm:gap-8 overflow-x-auto" role="tablist">
             {renderTabButton({ tabId: TabId.USERS, icon: 'vaadin:users', label: 'Mitglieder' })}
             {renderTabButton({ tabId: TabId.BOOKINGS, icon: 'vaadin:invoice', label: 'Buchungen' })}
+            {renderTabButton({ tabId: TabId.EMAILS, icon: 'vaadin:envelope', label: 'E-Mails' })}
             {renderTabButton({ tabId: TabId.SETTINGS, icon: 'vaadin:cog', label: 'Einstellungen' })}
           </div>
 
@@ -233,6 +235,7 @@ export default function AdminDashboard(): JSX.Element {
       <main className="flex-1 w-full px-6 py-6 overflow-y-auto" role="main">
         {selectedTab === TabId.USERS && <UsersTab />}
         {selectedTab === TabId.BOOKINGS && <BookingsTab />}
+        {selectedTab === TabId.EMAILS && <EmailsTab />}
         {selectedTab === TabId.SETTINGS && <SettingsTab onProfileUpdate={loadCurrentUser} />}
       </main>
     </div>

@@ -752,4 +752,23 @@ public class UserService extends BaseService<User, UserRepositoryContract>
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @author Philipp Borkovic
+     */
+    @Override
+    public Optional<User> findById(UUID userId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("User ID must not be null");
+        }
+
+        try {
+            return repository.findById(userId);
+        } catch (Exception e) {
+            logger.error("Error finding user by ID: {}", userId, e);
+            throw new RuntimeException("Failed to find user", e);
+        }
+    }
+
 }

@@ -414,7 +414,7 @@ export default function UsersTab(): JSX.Element {
               {/* Rank */}
               {detailsModal.data.rank && (
                 <div className="space-y-1">
-                  <label className="text-sm font-medium text-muted-foreground">Rang</label>
+                  <label className="text-sm font-medium text-muted-foreground">Dienstgrad</label>
                   <div className="flex items-center gap-2">
                     <Icon icon="vaadin:medal" className="text-foreground" style={{ width: '20px', height: '20px' }} />
                     <div className="text-sm font-medium">{detailsModal.data.rank}</div>
@@ -551,7 +551,7 @@ export default function UsersTab(): JSX.Element {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Rang</label>
+                    <label className="text-sm font-medium">Dienstgrad</label>
                     <input
                       type="text"
                       className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2"

@@ -199,15 +199,15 @@ export function SendEmailModal({ isOpen, onClose, onEmailSent }: SendEmailModalP
               <p className="text-sm text-gray-500">Lade Benutzer...</p>
             ) : (
               <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-                <SelectTrigger className="w-full border-black focus:ring-black focus:border-black">
-                  <SelectValue placeholder="Benutzer auswählen..." />
+                <SelectTrigger className="w-full border-black focus:ring-black focus:border-black text-black bg-white">
+                  <SelectValue placeholder="Benutzer auswählen..." className="text-black" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border-black">
                   {users.map((user) => (
                     <SelectItem
                       key={user.id}
                       value={user.id?.toString() || ''}
-                      className="hover:bg-gray-100 focus:bg-gray-100"
+                      className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black"
                     >
                       {user.name} ({user.email})
                     </SelectItem>

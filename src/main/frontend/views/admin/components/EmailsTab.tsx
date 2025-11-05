@@ -5,14 +5,11 @@ import { Icon } from '@vaadin/react-components/Icon';
 import { EmailController } from 'Frontend/generated/endpoints';
 import type Email from 'Frontend/generated/com/bunkermuseum/membermanagement/model/Email';
 import type { PageResponse } from '../types';
-import { EmailsList } from './_EmailsList';
+import EmailsList from './_EmailsList';
 import { SendEmailModal } from './_SendEmailModal';
-import Pagination from './shared/_Pagination';
-import PaginationInfo from './shared/_PaginationInfo';
-import LoadingState from './shared/_LoadingState';
-import EmptyState from './shared/_EmptyState';
 import { useModal } from '../hooks/useModal';
-import { PAGE_SIZE_OPTIONS, DEFAULT_PAGE_SIZE, LIST_CONTAINER_HEIGHT } from '../utils/constants';
+import { useWindowSize } from '../hooks/useWindowSize';
+import { PAGE_SIZE_OPTIONS, DEFAULT_PAGE_SIZE } from '../utils/constants';
 
 /**
  * Emails tab component for the admin dashboard.
@@ -28,6 +25,7 @@ import { PAGE_SIZE_OPTIONS, DEFAULT_PAGE_SIZE, LIST_CONTAINER_HEIGHT } from '../
  * @author Philipp Borkovic
  */
 export default function EmailsTab() {
+  const { isMobile } = useWindowSize();
   const [emails, setEmails] = useState<Email[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -87,9 +85,6 @@ export default function EmailsTab() {
     loadEmails();
   };
 
-  const startIndex = (currentPage - 1) * emailsPerPage + 1;
-  const endIndex = Math.min(currentPage * emailsPerPage, totalElements);
-
   return (
     <div className="space-y-6">
       {/* Header with Send Email Button */}
@@ -136,48 +131,19 @@ export default function EmailsTab() {
             </SelectContent>
           </Select>
         </div>
-
-        {/* Pagination Info */}
-        {!isLoading && totalElements > 0 && (
-          <PaginationInfo
-            startIndex={startIndex}
-            endIndex={endIndex}
-            totalElements={totalElements}
-            itemLabel="E-Mails"
-            isFiltered={false}
-          />
-        )}
       </div>
 
       {/* Emails List */}
-      <div style={{ minHeight: `${LIST_CONTAINER_HEIGHT}px` }}>
-        {isLoading ? (
-          <LoadingState
-            message="E-Mails werden geladen..."
-            className={`h-[${LIST_CONTAINER_HEIGHT}px]`}
-          />
-        ) : totalElements === 0 ? (
-          <EmptyState
-            icon="vaadin:envelope-open"
-            title="Keine E-Mails vorhanden"
-            description="Es wurden noch keine E-Mails gesendet. Klicken Sie auf 'Neue E-Mail senden', um eine E-Mail zu versenden."
-            className={`h-[${LIST_CONTAINER_HEIGHT}px]`}
-          />
-        ) : (
-          <EmailsList emails={emails} isLoading={isLoading} />
-        )}
-      </div>
-
-      {/* Pagination Controls */}
-      {!isLoading && totalElements > 0 && (
-        <div className="flex justify-center">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
-        </div>
-      )}
+      <EmailsList
+        emails={emails}
+        isLoading={isLoading}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalElements={totalElements}
+        emailsPerPage={emailsPerPage}
+        isMobile={isMobile}
+        onPageChange={handlePageChange}
+      />
 
       {/* Send Email Modal */}
       <SendEmailModal

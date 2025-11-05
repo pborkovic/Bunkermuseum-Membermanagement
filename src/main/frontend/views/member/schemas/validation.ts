@@ -52,7 +52,7 @@ export const profileFormSchema = z.object({
 
   rank: z
     .string()
-    .max(50, 'Der Rang darf maximal 50 Zeichen lang sein.')
+    .max(50, 'Der Dienstgrad darf maximal 50 Zeichen lang sein.')
     .optional(),
 
   birthday: z

@@ -15,6 +15,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Hilla endpoint for authentication operations.
@@ -234,6 +235,7 @@ public class AuthController {
      *
      * @author Philipp Borkovic
      */
+    @Transactional(readOnly = true)
     public @Nullable UserDTO getCurrentUser() {
         try {
             Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();

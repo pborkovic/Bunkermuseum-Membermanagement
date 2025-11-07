@@ -377,7 +377,7 @@ export default function UsersTab(): JSX.Element {
               )}
 
               {/* Address */}
-              {(detailsModal.data.street || detailsModal.data.city || detailsModal.data.postalCode) && (
+              {(detailsModal.data.street || detailsModal.data.city || detailsModal.data.postalCode || detailsModal.data.country) && (
                 <div className="space-y-1 sm:col-span-2">
                   <label className="text-sm font-medium text-muted-foreground">Adresse</label>
                   <div className="flex items-start gap-2">
@@ -387,6 +387,7 @@ export default function UsersTab(): JSX.Element {
                       {(detailsModal.data.postalCode || detailsModal.data.city) && (
                         <div>{detailsModal.data.postalCode} {detailsModal.data.city}</div>
                       )}
+                      {detailsModal.data.country && <div>{detailsModal.data.country}</div>}
                     </div>
                   </div>
                 </div>

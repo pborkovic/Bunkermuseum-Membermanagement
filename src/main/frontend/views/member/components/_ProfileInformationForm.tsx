@@ -295,6 +295,13 @@ export default function ProfileInformationForm({
                 field: 'city',
               })}
             </div>
+
+            {renderTextField({
+              id: 'country',
+              label: 'Land',
+              field: 'country',
+              placeholder: 'z.B. Deutschland',
+            })}
           </div>
         </div>
 

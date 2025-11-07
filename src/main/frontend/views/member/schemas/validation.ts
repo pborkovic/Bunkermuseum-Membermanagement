@@ -101,6 +101,11 @@ export const profileFormSchema = z.object({
       },
       'Bitte geben Sie eine gültige Postleitzahl ein (mindestens 4 Ziffern).'
     ),
+
+  country: z
+    .string()
+    .max(100, 'Das Land darf maximal 100 Zeichen lang sein.')
+    .optional(),
 });
 
 /**

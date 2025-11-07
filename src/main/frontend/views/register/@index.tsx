@@ -72,6 +72,7 @@ const registrationSchema = z.object({
   postalCode: z.string()
     .min(VALIDATION.MIN_POSTLEITZAHL_LENGTH, `Postleitzahl muss mindestens ${VALIDATION.MIN_POSTLEITZAHL_LENGTH} Zeichen lang sein`)
     .regex(/^\d+$/, 'Postleitzahl darf nur Zahlen enthalten'),
+  country: z.string().min(1, 'Land ist erforderlich'),
   password: z.string()
     .min(VALIDATION.MIN_PASSWORD_LENGTH, `Passwort muss mindestens ${VALIDATION.MIN_PASSWORD_LENGTH} Zeichen lang sein`)
     .max(VALIDATION.MAX_PASSWORD_LENGTH, `Passwort darf maximal ${VALIDATION.MAX_PASSWORD_LENGTH} Zeichen lang sein`)
@@ -152,6 +153,7 @@ export default function RegisterView(): JSX.Element {
   const [strasse, setStrasse] = useState('');
   const [stadt, setStadt] = useState('');
   const [postleitzahl, setPostleitzahl] = useState('');
+  const [land, setLand] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -181,6 +183,7 @@ export default function RegisterView(): JSX.Element {
         street: strasse,
         city: stadt,
         postalCode: postleitzahl,
+        country: land,
         password,
         confirmPassword,
       });
@@ -199,6 +202,7 @@ export default function RegisterView(): JSX.Element {
         street: validatedData.street,
         city: validatedData.city,
         postalCode: validatedData.postalCode,
+        country: validatedData.country,
       });
 
       if (response?.success) {
@@ -368,6 +372,20 @@ export default function RegisterView(): JSX.Element {
                   placeholder="Berlin"
                   value={stadt}
                   onChange={(e) => setStadt(e.target.value)}
+                  disabled={isLoading}
+                  required
+                  className="h-9"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="land" className="text-sm">Land</Label>
+                <Input
+                  id="land"
+                  type="text"
+                  placeholder="Deutschland"
+                  value={land}
+                  onChange={(e) => setLand(e.target.value)}
                   disabled={isLoading}
                   required
                   className="h-9"

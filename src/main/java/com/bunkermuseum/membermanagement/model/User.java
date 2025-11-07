@@ -353,6 +353,20 @@ public class User extends Model {
     private String postalCode;
 
     /**
+     * The country where the user resides.
+     *
+     * <p>Stores the country name for the user's address.
+     * Can accommodate international country names.</p>
+     *
+     * <p><strong>Database Mapping:</strong> Maps to 'country' column</p>
+     * <p><strong>Constraints:</strong> NULLABLE, VARCHAR(100)</p>
+     *
+     * @author Philipp Borkovic
+     */
+    @Column(name = "country", length = 100)
+    private String country;
+
+    /**
      * Indicates whether the user is an officer member.
      *
      * <p>This boolean flag marks users who hold officer membership status
@@ -777,6 +791,28 @@ public class User extends Model {
      */
     public void setPostalCode(String postalCode) {
         this.postalCode = postalCode;
+    }
+
+    /**
+     * Gets the user's country.
+     *
+     * @return The user's country, or null if not set
+     *
+     * @author Philipp Borkovic
+     */
+    public String getCountry() {
+        return country;
+    }
+
+    /**
+     * Sets the user's country.
+     *
+     * @param country The user's country
+     *
+     * @author Philipp Borkovic
+     */
+    public void setCountry(String country) {
+        this.country = country;
     }
 
     /**

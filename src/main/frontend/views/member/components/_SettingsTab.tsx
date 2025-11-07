@@ -96,6 +96,7 @@ export default function SettingsTab({ onProfileUpdate }: SettingsTabProps): JSX.
         street: user.street || '',
         city: user.city || '',
         postalCode: user.postalCode || '',
+        country: user.country || '',
       });
 
       if (user.avatarPath && user.id) {
@@ -161,6 +162,7 @@ export default function SettingsTab({ onProfileUpdate }: SettingsTabProps): JSX.
           street: profileForm.street || undefined,
           city: profileForm.city || undefined,
           postalCode: profileForm.postalCode || undefined,
+          country: profileForm.country || undefined,
           active: true,
           deleted: false,
         } as User;

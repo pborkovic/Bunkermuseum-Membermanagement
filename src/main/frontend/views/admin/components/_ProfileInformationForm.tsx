@@ -28,6 +28,7 @@ export interface ProfileFormData {
   street: string;
   city: string;
   postalCode: string;
+  country: string;
 }
 
 /**
@@ -225,6 +226,19 @@ export default function ProfileInformationForm({
                     className="border-black text-black"
                   />
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="country">Land</Label>
+                <Input
+                  id="country"
+                  type="text"
+                  value={formData.country}
+                  onChange={(e) => onChange({ ...formData, country: e.target.value })}
+                  disabled={isSaving}
+                  placeholder="z.B. Deutschland"
+                  className="border-black text-black"
+                />
               </div>
             </div>
           </div>

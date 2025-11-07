@@ -173,7 +173,8 @@ public class UserService extends BaseService<User, UserRepositoryContract>
             String phone,
             String street,
             String city,
-            String postalCode
+            String postalCode,
+            String country
     ) {
         validateRequiredFields(name, email, password);
 
@@ -196,7 +197,8 @@ public class UserService extends BaseService<User, UserRepositoryContract>
                 phone,
                 street,
                 city,
-                postalCode
+                postalCode,
+                country
         );
 
         return persistUser(user, normalizedEmail);
@@ -260,7 +262,8 @@ public class UserService extends BaseService<User, UserRepositoryContract>
             String phone,
             String street,
             String city,
-            String postalCode
+            String postalCode,
+            String country
     ) {
         User user = new User(name, email, null);
         user.setSalutation(salutation);
@@ -271,6 +274,7 @@ public class UserService extends BaseService<User, UserRepositoryContract>
         user.setStreet(street);
         user.setCity(city);
         user.setPostalCode(postalCode);
+        user.setCountry(country);
         user.setPassword(passwordEncoder.encode(password));
 
         return user;

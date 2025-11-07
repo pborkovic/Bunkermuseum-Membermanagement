@@ -43,7 +43,8 @@ export default function SettingsTab({ onProfileUpdate }: { onProfileUpdate?: () 
     phone: '',
     street: '',
     city: '',
-    postalCode: ''
+    postalCode: '',
+    country: ''
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -77,7 +78,8 @@ export default function SettingsTab({ onProfileUpdate }: { onProfileUpdate?: () 
           phone: user.phone || '',
           street: user.street || '',
           city: user.city || '',
-          postalCode: user.postalCode || ''
+          postalCode: user.postalCode || '',
+          country: user.country || ''
         });
 
         // Set profile picture URL directly if avatar path exists
@@ -137,6 +139,7 @@ export default function SettingsTab({ onProfileUpdate }: { onProfileUpdate?: () 
         street: profileForm.street || undefined,
         city: profileForm.city || undefined,
         postalCode: profileForm.postalCode || undefined,
+        country: profileForm.country || undefined,
         active: true,
         deleted: false,
       } as User;

@@ -80,7 +80,8 @@ public interface UserServiceContract {
             String phone,
             String street,
             String city,
-            String postalCode
+            String postalCode,
+            String country
     );
 
     /**

@@ -37,6 +37,7 @@ export interface ProfileFormData {
   street?: string;
   city?: string;
   postalCode?: string;
+  country?: string;
 }
 
 /**

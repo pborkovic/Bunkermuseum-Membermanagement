@@ -44,7 +44,8 @@ export default function UsersTab(): JSX.Element {
     phone: '',
     street: '',
     city: '',
-    postalCode: ''
+    postalCode: '',
+    country: ''
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -149,7 +150,8 @@ export default function UsersTab(): JSX.Element {
       phone: user.phone || '',
       street: user.street || '',
       city: user.city || '',
-      postalCode: user.postalCode || ''
+      postalCode: user.postalCode || '',
+      country: user.country || ''
     });
     editModal.openWith(user);
     detailsModal.close();
@@ -175,7 +177,8 @@ export default function UsersTab(): JSX.Element {
         phone: editForm.phone || undefined,
         street: editForm.street || undefined,
         city: editForm.city || undefined,
-        postalCode: editForm.postalCode || undefined
+        postalCode: editForm.postalCode || undefined,
+        country: editForm.country || undefined
       };
 
       await UserController.updateUser(editModal.data.id!, updatedUser);
@@ -374,7 +377,7 @@ export default function UsersTab(): JSX.Element {
               )}
 
               {/* Address */}
-              {(detailsModal.data.street || detailsModal.data.city || detailsModal.data.postalCode) && (
+              {(detailsModal.data.street || detailsModal.data.city || detailsModal.data.postalCode || detailsModal.data.country) && (
                 <div className="space-y-1 sm:col-span-2">
                   <label className="text-sm font-medium text-muted-foreground">Adresse</label>
                   <div className="flex items-start gap-2">
@@ -384,6 +387,7 @@ export default function UsersTab(): JSX.Element {
                       {(detailsModal.data.postalCode || detailsModal.data.city) && (
                         <div>{detailsModal.data.postalCode} {detailsModal.data.city}</div>
                       )}
+                      {detailsModal.data.country && <div>{detailsModal.data.country}</div>}
                     </div>
                   </div>
                 </div>

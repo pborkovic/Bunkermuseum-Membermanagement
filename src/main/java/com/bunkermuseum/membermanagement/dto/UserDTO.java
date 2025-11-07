@@ -96,6 +96,11 @@ public class UserDTO {
     private final @Nullable String postalCode;
 
     /**
+     * The user's country.
+     */
+    private final @Nullable String country;
+
+    /**
      * The roles assigned to this user.
      * Uses RoleDTO to avoid circular references.
      */
@@ -121,6 +126,7 @@ public class UserDTO {
      * @param street The user's street address
      * @param city The user's city
      * @param postalCode The user's postal code
+     * @param country The user's country
      * @param roles The set of roles assigned to this user
      *
      * @author Philipp Borkovic
@@ -139,6 +145,7 @@ public class UserDTO {
         @Nullable String street,
         @Nullable String city,
         @Nullable String postalCode,
+        @Nullable String country,
         Set<RoleDTO> roles
     ) {
         this.id = id;
@@ -154,6 +161,7 @@ public class UserDTO {
         this.street = street;
         this.city = city;
         this.postalCode = postalCode;
+        this.country = country;
         this.roles = roles;
     }
 
@@ -298,6 +306,17 @@ public class UserDTO {
      */
     public @Nullable String getPostalCode() {
         return postalCode;
+    }
+
+    /**
+     * Gets the user's country.
+     *
+     * @return The user's country, or null if not set
+     *
+     * @author Philipp Borkovic
+     */
+    public @Nullable String getCountry() {
+        return country;
     }
 
     /**

@@ -21,6 +21,7 @@
  * @property {string} street - Street address with house number
  * @property {string} city - City name
  * @property {string} postalCode - Postal/ZIP code
+ * @property {string} country - Country name
  */
 export interface ProfileFormData {
   name: string;
@@ -33,6 +34,7 @@ export interface ProfileFormData {
   street: string;
   city: string;
   postalCode: string;
+  country: string;
 }
 
 /**

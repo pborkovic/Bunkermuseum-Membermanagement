@@ -304,7 +304,8 @@ public class AuthController {
                     request.phone(),
                     request.street(),
                     request.city(),
-                    request.postalCode()
+                    request.postalCode(),
+                    request.country()
             );
 
             logger.info("User registered successfully: {} from IP: {}", email, clientIp);
@@ -370,7 +371,8 @@ public class AuthController {
             String phone,
             String street,
             String city,
-            String postalCode
+            String postalCode,
+            String country
     ) {}
 
     /**

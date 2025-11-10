@@ -470,22 +470,45 @@ export default function BookingsTab(): JSX.Element {
             {/* Date Range Selection */}
             <div className="space-y-3">
               <label className="text-sm font-medium">Zeitraum</label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-xs text-muted-foreground">Von</label>
-                  <DatePicker
-                    value={exportStartDate}
-                    onChange={(date) => setExportStartDate(date)}
-                  />
+              <Select
+                value={exportDateRangePreset}
+                onValueChange={(value) => setExportDateRangePreset(value)}
+              >
+                <SelectTrigger className="w-full border-black text-black [&_svg]:text-black [&_svg]:opacity-100">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-black z-[9999]">
+                  {DATE_RANGE_PRESETS.map((preset) => (
+                    <SelectItem
+                      key={preset.value}
+                      value={preset.value}
+                      className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black"
+                    >
+                      {preset.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Custom Date Range Pickers - Only show when custom is selected */}
+              {exportDateRangePreset === 'custom' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                  <div className="space-y-2">
+                    <label className="text-xs text-muted-foreground">Von</label>
+                    <DatePicker
+                      value={exportStartDate}
+                      onChange={(date) => setExportStartDate(date)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs text-muted-foreground">Bis</label>
+                    <DatePicker
+                      value={exportEndDate}
+                      onChange={(date) => setExportEndDate(date)}
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-xs text-muted-foreground">Bis</label>
-                  <DatePicker
-                    value={exportEndDate}
-                    onChange={(date) => setExportEndDate(date)}
-                  />
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Export Format Selector */}

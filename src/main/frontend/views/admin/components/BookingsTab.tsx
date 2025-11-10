@@ -57,6 +57,7 @@ export default function BookingsTab(): JSX.Element {
   const exportModal = useModal();
   const [exportBookingType, setExportBookingType] = useState('all');
   const [exportFormat, setExportFormat] = useState('xlsx');
+  const [exportDateRangePreset, setExportDateRangePreset] = useState('1month');
   const [exportStartDate, setExportStartDate] = useState<Date | undefined>(undefined);
   const [exportEndDate, setExportEndDate] = useState<Date | undefined>(undefined);
 
@@ -100,6 +101,22 @@ export default function BookingsTab(): JSX.Element {
       }
     }
   }, [dateRangePreset]);
+
+  /**
+   * Update export date range based on preset selection
+   */
+  useEffect(() => {
+    if (exportDateRangePreset !== 'custom') {
+      const preset = DATE_RANGE_PRESETS.find(p => p.value === exportDateRangePreset);
+      if (preset && preset.days > 0) {
+        const end = new Date();
+        const start = new Date();
+        start.setDate(start.getDate() - preset.days);
+        setExportStartDate(start);
+        setExportEndDate(end);
+      }
+    }
+  }, [exportDateRangePreset]);
 
   /**
    * Fetches all bookings from the BookingController.
@@ -233,11 +250,12 @@ export default function BookingsTab(): JSX.Element {
    * @author Philipp Borkovic
    */
   const handleOpenExportModal = useCallback((): void => {
-    // Pre-fill export dates with current dashboard date range
+    // Pre-fill export dates and preset with current dashboard settings
+    setExportDateRangePreset(dateRangePreset);
     setExportStartDate(startDate);
     setExportEndDate(endDate);
     exportModal.open();
-  }, [startDate, endDate, exportModal]);
+  }, [startDate, endDate, dateRangePreset, exportModal]);
 
   /**
    * Handles the export action.

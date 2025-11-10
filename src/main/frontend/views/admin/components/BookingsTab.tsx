@@ -52,8 +52,6 @@ export default function BookingsTab(): JSX.Element {
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
-
-  // Export modal state
   const exportModal = useModal();
   const [exportBookingType, setExportBookingType] = useState('all');
   const [exportFormat, setExportFormat] = useState('xlsx');
@@ -61,7 +59,6 @@ export default function BookingsTab(): JSX.Element {
   const [exportStartDate, setExportStartDate] = useState<Date | undefined>(undefined);
   const [exportEndDate, setExportEndDate] = useState<Date | undefined>(undefined);
 
-  // Detect mobile screen size
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -258,15 +255,28 @@ export default function BookingsTab(): JSX.Element {
   }, [startDate, endDate, dateRangePreset, exportModal]);
 
   /**
-   * Handles the export action.
-   * TODO: Implement backend export service call
+   * Handles the export action by triggering a file download.
    *
    * @author Philipp Borkovic
    */
   const handleExport = useCallback(async (): Promise<void> => {
     try {
-      console.log('Exporting bookings with type:', exportBookingType, 'format:', exportFormat, 'start:', exportStartDate, 'end:', exportEndDate);
-      // TODO: Call ExportController.exportBookings(exportBookingType, exportFormat, exportStartDate, exportEndDate) when backend is ready
+      let url = `/api/export/bookings?bookingType=${encodeURIComponent(exportBookingType)}&format=${encodeURIComponent(exportFormat)}`;
+
+      if (exportStartDate) {
+        url += `&startDate=${exportStartDate.toISOString().split('T')[0]}`;
+      }
+      if (exportEndDate) {
+        url += `&endDate=${exportEndDate.toISOString().split('T')[0]}`;
+      }
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `bookings_${exportBookingType}_${new Date().toISOString().split('T')[0]}.${exportFormat}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
       exportModal.close();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Fehler beim Exportieren der Buchungen';
@@ -274,13 +284,11 @@ export default function BookingsTab(): JSX.Element {
     }
   }, [exportBookingType, exportFormat, exportStartDate, exportEndDate, exportModal]);
 
-  // Calculate pagination
   const totalPages = Math.ceil(filteredBookings.length / bookingsPerPage);
   const startIndexZeroBased = (currentPage - 1) * bookingsPerPage;
   const endIndexZeroBased = startIndexZeroBased + bookingsPerPage;
   const currentBookings = filteredBookings.slice(startIndexZeroBased, endIndexZeroBased);
 
-  // Check if filters are active
   const hasActiveFilters = !!(searchQuery || (startDate && endDate));
 
   return (

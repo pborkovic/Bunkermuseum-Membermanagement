@@ -470,7 +470,6 @@ public class ExportService implements ExportServiceContract {
      */
     private List<BookingDTO> filterBookingsByType(String bookingType, LocalDate startDate, LocalDate endDate) {
         // TODO: Implement proper filtering based on booking type and date range
-        // For now, return empty list as placeholder
         return List.of();
     }
 

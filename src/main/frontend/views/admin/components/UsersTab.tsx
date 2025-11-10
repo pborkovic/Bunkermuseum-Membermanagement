@@ -8,9 +8,9 @@ import { UserController } from 'Frontend/generated/endpoints';
 import type User from 'Frontend/generated/com/bunkermuseum/membermanagement/model/User';
 import UsersList from './_UsersList';
 import { useWindowSize } from '../hooks/useWindowSize';
-import { useModalWithData } from '../hooks/useModal';
+import { useModalWithData, useModal } from '../hooks/useModal';
 import { formatDate } from '../utils/formatting';
-import { ANREDE_OPTIONS, USER_STATUS_OPTIONS, PAGE_SIZE_OPTIONS, DEFAULT_PAGE_SIZE } from '../utils/constants';
+import { ANREDE_OPTIONS, USER_STATUS_OPTIONS, PAGE_SIZE_OPTIONS, DEFAULT_PAGE_SIZE, EXPORT_USER_TYPE_OPTIONS } from '../utils/constants';
 import type { ProfileFormData } from '../types';
 
 /**
@@ -33,6 +33,7 @@ export default function UsersTab(): JSX.Element {
   const detailsModal = useModalWithData<User>();
   const deleteModal = useModalWithData<User>();
   const editModal = useModalWithData<User>();
+  const exportModal = useModal();
   const [users, setUsers] = useState<User[]>([]);
   const [editForm, setEditForm] = useState<ProfileFormData>({
     name: '',
@@ -55,6 +56,7 @@ export default function UsersTab(): JSX.Element {
   const [totalElements, setTotalElements] = useState(0);
   const [usersPerPage, setUsersPerPage] = useState(DEFAULT_PAGE_SIZE);
   const [statusFilter, setStatusFilter] = useState('active');
+  const [exportUserType, setExportUserType] = useState('all');
 
   /**
    * Loads users from the backend with pagination.
@@ -201,15 +203,44 @@ export default function UsersTab(): JSX.Element {
     setCurrentPage(Math.min(Math.max(1, page), totalPages));
   };
 
+  /**
+   * Handles the export action.
+   * TODO: Implement backend export service call
+   *
+   * @author Philipp Borkovic
+   */
+  const handleExport = useCallback(async (): Promise<void> => {
+    try {
+      console.log('Exporting users with type:', exportUserType);
+      // TODO: Call ExportController.exportUsers(exportUserType) when backend is ready
+      exportModal.close();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Fehler beim Exportieren der Benutzer';
+      setError(errorMessage);
+    }
+  }, [exportUserType, exportModal]);
+
   return (
     <div className="flex flex-col h-full space-y-4">
       {/* Header with Search and Controls */}
       <div className="flex-shrink-0 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-black">Mitgliederverwaltung</h2>
-          <p className="text-sm text-gray-600 mt-1">
-            Übersicht aller registrierten Mitglieder
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1">
+          <div>
+            <h2 className="text-2xl font-bold text-black">Mitgliederverwaltung</h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Übersicht aller registrierten Mitglieder
+            </p>
+          </div>
+
+          {/* Export Button */}
+          <Button
+            variant="outline"
+            onClick={exportModal.open}
+            className="text-white bg-black hover:bg-gray-800 border-black self-start sm:self-auto sm:mt-7"
+          >
+            <Icon icon="vaadin:download" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+            Exportieren
+          </Button>
         </div>
 
         {/* Search Bar and Controls */}
@@ -641,6 +672,71 @@ export default function UsersTab(): JSX.Element {
             </div>
           </div>
         )}
+      </Dialog>
+
+      {/* Export options modal */}
+      <Dialog
+        opened={exportModal.isOpen}
+        onOpenedChanged={(e: any) => {
+          if (!e.detail.value) exportModal.close();
+        }}
+        headerTitle="Benutzerexport Optionen"
+      >
+        <div className="p-4 sm:p-6 min-w-[300px] sm:min-w-[500px] max-w-[95vw]">
+          <div className="space-y-6">
+            {/* Icon */}
+            <div className="flex justify-center">
+              <Icon icon="vaadin:download-alt" className="text-black" style={{ width: '64px', height: '64px' }} />
+            </div>
+
+            {/* Description */}
+            <div className="text-center space-y-2">
+              <p className="font-medium text-lg">Mitglieder exportieren</p>
+              <p className="text-sm text-muted-foreground">
+                Wählen Sie die Art der Mitglieder aus, die Sie exportieren möchten.
+              </p>
+            </div>
+
+            {/* Export Type Selector */}
+            <div className="space-y-3">
+              <label className="text-sm font-medium">Mitgliedertyp</label>
+              <Select
+                value={exportUserType}
+                onValueChange={(value) => setExportUserType(value)}
+              >
+                <SelectTrigger className="w-full border-black text-black [&_svg]:text-black [&_svg]:opacity-100">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-black">
+                  {EXPORT_USER_TYPE_OPTIONS.map((option) => (
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                      className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black"
+                    >
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t mt-6">
+            <Button variant="outline" onClick={exportModal.close} className="w-full sm:w-auto">
+              Abbrechen
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleExport}
+              className="text-white bg-black hover:bg-gray-800 border-black w-full sm:w-auto"
+            >
+              <Icon icon="vaadin:download" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+              Exportieren
+            </Button>
+          </div>
+        </div>
       </Dialog>
     </div>
   );

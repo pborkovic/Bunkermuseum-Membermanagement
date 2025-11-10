@@ -97,3 +97,60 @@ export const MOBILE_BREAKPOINT = 768;
  * @type {number}
  */
 export const RESIZE_DEBOUNCE_DELAY = 150;
+
+/**
+ * User export type options.
+ * Defines different member categories for export functionality.
+ *
+ * @constant
+ *
+ * @type {ReadonlyArray<{value: string, label: string}>}
+ */
+export const EXPORT_USER_TYPE_OPTIONS = [
+  { value: 'all', label: 'Alle Mitglieder' },
+  { value: 'ordentlich', label: 'Ordentliche Mitglieder' },
+  { value: 'foerdernd', label: 'Fördernde Mitglieder' },
+  { value: 'ausgetreten', label: 'Ausgetretene Mitglieder' },
+] as const;
+
+/**
+ * Export format options.
+ * Defines available file formats for data export.
+ *
+ * @constant
+ *
+ * @type {ReadonlyArray<{value: string, label: string}>}
+ */
+export const EXPORT_FORMAT_OPTIONS = [
+  { value: 'xlsx', label: 'Excel - XLSX' },
+  { value: 'pdf', label: 'PDF' },
+  { value: 'xml', label: 'XML' },
+  { value: 'json', label: 'JSON' },
+] as const;
+
+/**
+ * Booking export type options.
+ * Defines different booking categories for export functionality.
+ *
+ * @constant
+ *
+ * @type {ReadonlyArray<{value: string, label: string}>}
+ */
+export const EXPORT_BOOKING_TYPE_OPTIONS = [
+  { value: 'all', label: 'Alle Buchungen' },
+  { value: 'open', label: 'Offene Buchungen' },
+  { value: 'completed', label: 'Abgeschlossene Buchungen' },
+] as const;
+
+/**
+ * Email export type options.
+ * Defines different email categories for export functionality.
+ *
+ * @constant
+ *
+ * @type {ReadonlyArray<{value: string, label: string}>}
+ */
+export const EXPORT_EMAIL_TYPE_OPTIONS = [
+  { value: 'system', label: 'System-E-Mails' },
+  { value: 'user', label: 'Benutzer-gesendete E-Mails' },
+] as const;

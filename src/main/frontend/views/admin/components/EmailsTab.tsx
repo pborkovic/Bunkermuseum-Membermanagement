@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
+import { Dialog } from '@vaadin/react-components/Dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Icon } from '@vaadin/react-components/Icon';
 import { EmailController } from 'Frontend/generated/endpoints';
@@ -9,7 +10,7 @@ import EmailsList from './_EmailsList';
 import { SendEmailModal } from './_SendEmailModal';
 import { useModal } from '../hooks/useModal';
 import { useWindowSize } from '../hooks/useWindowSize';
-import { PAGE_SIZE_OPTIONS, DEFAULT_PAGE_SIZE } from '../utils/constants';
+import { PAGE_SIZE_OPTIONS, DEFAULT_PAGE_SIZE, EXPORT_EMAIL_TYPE_OPTIONS, EXPORT_FORMAT_OPTIONS } from '../utils/constants';
 
 /**
  * Emails tab component for the admin dashboard.
@@ -38,6 +39,11 @@ export default function EmailsTab() {
 
   // Modal state
   const sendEmailModal = useModal();
+  const exportModal = useModal();
+
+  // Export modal state
+  const [exportEmailType, setExportEmailType] = useState('system');
+  const [exportFormat, setExportFormat] = useState('xlsx');
 
   // Load emails whenever pagination changes
   useEffect(() => {
@@ -85,6 +91,29 @@ export default function EmailsTab() {
     loadEmails();
   };
 
+  /**
+   * Handles the export action by triggering a file download.
+   *
+   * @author Philipp Borkovic
+   */
+  const handleExport = useCallback(async (): Promise<void> => {
+    try {
+      const url = `/api/export/emails?emailType=${encodeURIComponent(exportEmailType)}&format=${encodeURIComponent(exportFormat)}`;
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `emails_${exportEmailType}_${new Date().toISOString().split('T')[0]}.${exportFormat}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      exportModal.close();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Fehler beim Exportieren der E-Mails';
+      setError(errorMessage);
+    }
+  }, [exportEmailType, exportFormat, exportModal]);
+
   return (
     <div className="space-y-6">
       {/* Header with Send Email Button */}
@@ -95,13 +124,23 @@ export default function EmailsTab() {
             Übersicht aller gesendeten E-Mails
           </p>
         </div>
-        <Button
-          onClick={sendEmailModal.open}
-          className="flex items-center gap-2 bg-black text-white hover:bg-gray-800"
-        >
-          <Icon icon="vaadin:envelope" style={{ width: '16px', height: '16px' }} />
-          Neue E-Mail senden
-        </Button>
+        <div className="flex gap-3">
+          <Button
+            variant="outline"
+            onClick={exportModal.open}
+            className="text-white bg-black hover:bg-gray-800 border-black"
+          >
+            <Icon icon="vaadin:download" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+            Exportieren
+          </Button>
+          <Button
+            onClick={sendEmailModal.open}
+            className="flex items-center gap-2 bg-black text-white hover:bg-gray-800"
+          >
+            <Icon icon="vaadin:envelope" style={{ width: '16px', height: '16px' }} />
+            Neue E-Mail senden
+          </Button>
+        </div>
       </div>
 
       {/* Error Display */}
@@ -162,6 +201,106 @@ export default function EmailsTab() {
         onClose={sendEmailModal.close}
         onEmailSent={handleEmailSent}
       />
+
+      {/* Export options modal */}
+      <Dialog
+        opened={exportModal.isOpen}
+        onOpenedChanged={(e: any) => {
+          if (!e.detail.value) exportModal.close();
+        }}
+        headerTitle="E-Mail-Export Optionen"
+      >
+        <div className="p-4 sm:p-6 min-w-[300px] sm:min-w-[500px] max-w-[95vw]">
+          <div className="space-y-6">
+            {/* Icon */}
+            <div className="flex justify-center">
+              <Icon icon="vaadin:download-alt" className="text-black" style={{ width: '64px', height: '64px' }} />
+            </div>
+
+            {/* Description */}
+            <div className="text-center space-y-2">
+              <p className="font-medium text-lg">E-Mails exportieren</p>
+              <p className="text-sm text-muted-foreground">
+                Wählen Sie die Art der E-Mails und das Exportformat aus.
+              </p>
+            </div>
+
+            {/* Email Type Selector */}
+            <div className="space-y-3">
+              <label className="text-sm font-medium">E-Mail-Typ</label>
+              <Select
+                value={exportEmailType}
+                onValueChange={(value) => setExportEmailType(value)}
+              >
+                <SelectTrigger className="w-full border-black text-black [&_svg]:text-black [&_svg]:opacity-100">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-black z-[9999]">
+                  {EXPORT_EMAIL_TYPE_OPTIONS.map((option) => (
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                      className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black"
+                    >
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Export Format Selector */}
+            <div className="space-y-3">
+              <label className="text-sm font-medium">Exportformat</label>
+              <Select
+                value={exportFormat}
+                onValueChange={(value) => setExportFormat(value)}
+              >
+                <SelectTrigger className="w-full border-black text-black [&_svg]:text-black [&_svg]:opacity-100">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-black z-[9999]">
+                  {EXPORT_FORMAT_OPTIONS.map((option) => {
+                    const iconMap: Record<string, string> = {
+                      'xlsx': 'vaadin:file-table',
+                      'pdf': 'vaadin:file-text',
+                      'xml': 'vaadin:file-code',
+                      'json': 'vaadin:curly-brackets'
+                    };
+                    return (
+                      <SelectItem
+                        key={option.value}
+                        value={option.value}
+                        className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Icon icon={iconMap[option.value]} style={{ width: '16px', height: '16px' }} />
+                          {option.label}
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t mt-6">
+            <Button variant="destructive" onClick={exportModal.close} className="text-white w-full sm:w-auto">
+              Abbrechen
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleExport}
+              className="text-white bg-black hover:bg-gray-800 border-black w-full sm:w-auto"
+            >
+              <Icon icon="vaadin:download" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+              Exportieren
+            </Button>
+          </div>
+        </div>
+      </Dialog>
     </div>
   );
 }

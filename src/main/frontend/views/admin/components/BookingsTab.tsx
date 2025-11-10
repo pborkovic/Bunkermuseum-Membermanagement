@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Icon } from '@vaadin/react-components';
+import { Dialog } from '@vaadin/react-components/Dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Button } from '@/components/ui/button';
 import { BookingController } from 'Frontend/generated/endpoints';
 import type BookingDTO from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/BookingDTO';
@@ -9,6 +11,8 @@ import BookingDetailsModal from './_BookingDetailsModal';
 import DeleteBookingModal from './_DeleteBookingModal';
 import AssignBookingModal from './_AssignBookingModal';
 import BookingsDateRangeFilter, { DATE_RANGE_PRESETS } from './_BookingsDateRangeFilter';
+import { useModal } from '../hooks/useModal';
+import { EXPORT_BOOKING_TYPE_OPTIONS, EXPORT_FORMAT_OPTIONS } from '../utils/constants';
 
 /**
  * BookingsTab component - Displays all bookings with pagination, search, and date filtering.
@@ -48,8 +52,13 @@ export default function BookingsTab(): JSX.Element {
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const exportModal = useModal();
+  const [exportBookingType, setExportBookingType] = useState('all');
+  const [exportFormat, setExportFormat] = useState('xlsx');
+  const [exportDateRangePreset, setExportDateRangePreset] = useState('1month');
+  const [exportStartDate, setExportStartDate] = useState<Date | undefined>(undefined);
+  const [exportEndDate, setExportEndDate] = useState<Date | undefined>(undefined);
 
-  // Detect mobile screen size
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -89,6 +98,22 @@ export default function BookingsTab(): JSX.Element {
       }
     }
   }, [dateRangePreset]);
+
+  /**
+   * Update export date range based on preset selection
+   */
+  useEffect(() => {
+    if (exportDateRangePreset !== 'custom') {
+      const preset = DATE_RANGE_PRESETS.find(p => p.value === exportDateRangePreset);
+      if (preset && preset.days > 0) {
+        const end = new Date();
+        const start = new Date();
+        start.setDate(start.getDate() - preset.days);
+        setExportStartDate(start);
+        setExportEndDate(end);
+      }
+    }
+  }, [exportDateRangePreset]);
 
   /**
    * Fetches all bookings from the BookingController.
@@ -216,13 +241,54 @@ export default function BookingsTab(): JSX.Element {
     setCurrentPage(Math.min(Math.max(1, page), totalPages));
   };
 
-  // Calculate pagination
+  /**
+   * Opens the export modal and pre-fills date range from current dashboard settings.
+   *
+   * @author Philipp Borkovic
+   */
+  const handleOpenExportModal = useCallback((): void => {
+    // Pre-fill export dates and preset with current dashboard settings
+    setExportDateRangePreset(dateRangePreset);
+    setExportStartDate(startDate);
+    setExportEndDate(endDate);
+    exportModal.open();
+  }, [startDate, endDate, dateRangePreset, exportModal]);
+
+  /**
+   * Handles the export action by triggering a file download.
+   *
+   * @author Philipp Borkovic
+   */
+  const handleExport = useCallback(async (): Promise<void> => {
+    try {
+      let url = `/api/export/bookings?bookingType=${encodeURIComponent(exportBookingType)}&format=${encodeURIComponent(exportFormat)}`;
+
+      if (exportStartDate) {
+        url += `&startDate=${exportStartDate.toISOString().split('T')[0]}`;
+      }
+      if (exportEndDate) {
+        url += `&endDate=${exportEndDate.toISOString().split('T')[0]}`;
+      }
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `bookings_${exportBookingType}_${new Date().toISOString().split('T')[0]}.${exportFormat}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      exportModal.close();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Fehler beim Exportieren der Buchungen';
+      setError(errorMessage);
+    }
+  }, [exportBookingType, exportFormat, exportStartDate, exportEndDate, exportModal]);
+
   const totalPages = Math.ceil(filteredBookings.length / bookingsPerPage);
   const startIndexZeroBased = (currentPage - 1) * bookingsPerPage;
   const endIndexZeroBased = startIndexZeroBased + bookingsPerPage;
   const currentBookings = filteredBookings.slice(startIndexZeroBased, endIndexZeroBased);
 
-  // Check if filters are active
   const hasActiveFilters = !!(searchQuery || (startDate && endDate));
 
   return (
@@ -238,6 +304,16 @@ export default function BookingsTab(): JSX.Element {
 
         {/* Search Bar and Controls */}
         <div className="flex flex-col sm:flex-row gap-3 sm:ml-auto items-stretch sm:items-center">
+          {/* Export Button */}
+          <Button
+            variant="outline"
+            onClick={handleOpenExportModal}
+            className="text-white bg-black hover:bg-gray-800 border-black h-9 whitespace-nowrap"
+          >
+            <Icon icon="vaadin:download" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+            Exportieren
+          </Button>
+
           {/* Assign Button */}
           <div className="flex">
             <Button onClick={() => setIsAssignModalOpen(true)} className="bg-black text-white hover:bg-gray-800 whitespace-nowrap">
@@ -351,6 +427,150 @@ export default function BookingsTab(): JSX.Element {
           loadBookings();
         }}
       />
+
+      {/* Export options modal */}
+      <Dialog
+        opened={exportModal.isOpen}
+        onOpenedChanged={(e: any) => {
+          if (!e.detail.value) exportModal.close();
+        }}
+        headerTitle="Buchungsexport Optionen"
+      >
+        <div className="p-4 sm:p-6 min-w-[300px] sm:min-w-[500px] max-w-[95vw]">
+          <div className="space-y-6">
+            {/* Icon */}
+            <div className="flex justify-center">
+              <Icon icon="vaadin:download-alt" className="text-black" style={{ width: '64px', height: '64px' }} />
+            </div>
+
+            {/* Description */}
+            <div className="text-center space-y-2">
+              <p className="font-medium text-lg">Buchungen exportieren</p>
+              <p className="text-sm text-muted-foreground">
+                Wählen Sie die Art der Buchungen, den Zeitraum und das Format aus.
+              </p>
+            </div>
+
+            {/* Booking Type Selector */}
+            <div className="space-y-3">
+              <label className="text-sm font-medium">Buchungstyp</label>
+              <Select
+                value={exportBookingType}
+                onValueChange={(value) => setExportBookingType(value)}
+              >
+                <SelectTrigger className="w-full border-black text-black [&_svg]:text-black [&_svg]:opacity-100">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-black z-[9999]">
+                  {EXPORT_BOOKING_TYPE_OPTIONS.map((option) => (
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                      className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black"
+                    >
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Date Range Selection */}
+            <div className="space-y-3">
+              <label className="text-sm font-medium">Zeitraum</label>
+              <Select
+                value={exportDateRangePreset}
+                onValueChange={(value) => setExportDateRangePreset(value)}
+              >
+                <SelectTrigger className="w-full border-black text-black [&_svg]:text-black [&_svg]:opacity-100">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-black z-[9999]">
+                  {DATE_RANGE_PRESETS.map((preset) => (
+                    <SelectItem
+                      key={preset.value}
+                      value={preset.value}
+                      className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black"
+                    >
+                      {preset.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Custom Date Range Pickers - Only show when custom is selected */}
+              {exportDateRangePreset === 'custom' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                  <div className="space-y-2">
+                    <label className="text-xs text-muted-foreground">Von</label>
+                    <DatePicker
+                      value={exportStartDate}
+                      onChange={(date) => setExportStartDate(date)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs text-muted-foreground">Bis</label>
+                    <DatePicker
+                      value={exportEndDate}
+                      onChange={(date) => setExportEndDate(date)}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Export Format Selector */}
+            <div className="space-y-3">
+              <label className="text-sm font-medium">Exportformat</label>
+              <Select
+                value={exportFormat}
+                onValueChange={(value) => setExportFormat(value)}
+              >
+                <SelectTrigger className="w-full border-black text-black [&_svg]:text-black [&_svg]:opacity-100">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-black z-[9999]">
+                  {EXPORT_FORMAT_OPTIONS.map((option) => {
+                    const iconMap: Record<string, string> = {
+                      'xlsx': 'vaadin:file-table',
+                      'pdf': 'vaadin:file-text',
+                      'xml': 'vaadin:file-code',
+                      'json': 'vaadin:curly-brackets'
+                    };
+                    return (
+                      <SelectItem
+                        key={option.value}
+                        value={option.value}
+                        className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Icon icon={iconMap[option.value]} style={{ width: '16px', height: '16px' }} />
+                          {option.label}
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t mt-6">
+            <Button variant="destructive" onClick={exportModal.close} className="text-white w-full sm:w-auto">
+              Abbrechen
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleExport}
+              className="text-white bg-black hover:bg-gray-800 border-black w-full sm:w-auto"
+            >
+              <Icon icon="vaadin:download" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+              Exportieren
+            </Button>
+          </div>
+        </div>
+      </Dialog>
     </div>
   );
 }

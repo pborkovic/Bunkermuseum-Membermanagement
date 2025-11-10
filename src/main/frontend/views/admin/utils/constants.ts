@@ -141,3 +141,16 @@ export const EXPORT_BOOKING_TYPE_OPTIONS = [
   { value: 'open', label: 'Offene Buchungen' },
   { value: 'completed', label: 'Abgeschlossene Buchungen' },
 ] as const;
+
+/**
+ * Email export type options.
+ * Defines different email categories for export functionality.
+ *
+ * @constant
+ *
+ * @type {ReadonlyArray<{value: string, label: string}>}
+ */
+export const EXPORT_EMAIL_TYPE_OPTIONS = [
+  { value: 'system', label: 'System-E-Mails' },
+  { value: 'user', label: 'Benutzer-gesendete E-Mails' },
+] as const;

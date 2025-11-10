@@ -733,15 +733,26 @@ export default function UsersTab(): JSX.Element {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-white border-black z-[9999]">
-                  {EXPORT_FORMAT_OPTIONS.map((option) => (
-                    <SelectItem
-                      key={option.value}
-                      value={option.value}
-                      className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black"
-                    >
-                      {option.label}
-                    </SelectItem>
-                  ))}
+                  {EXPORT_FORMAT_OPTIONS.map((option) => {
+                    const iconMap: Record<string, string> = {
+                      'xlsx': 'vaadin:file-table',
+                      'pdf': 'vaadin:file-text',
+                      'xml': 'vaadin:file-code',
+                      'json': 'vaadin:curly-brackets'
+                    };
+                    return (
+                      <SelectItem
+                        key={option.value}
+                        value={option.value}
+                        className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Icon icon={iconMap[option.value]} style={{ width: '16px', height: '16px' }} />
+                          {option.label}
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>

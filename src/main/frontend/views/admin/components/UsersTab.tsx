@@ -205,15 +205,21 @@ export default function UsersTab(): JSX.Element {
   };
 
   /**
-   * Handles the export action.
-   * TODO: Implement backend export service call
+   * Handles the export action by triggering a file download.
    *
    * @author Philipp Borkovic
    */
   const handleExport = useCallback(async (): Promise<void> => {
     try {
-      console.log('Exporting users with type:', exportUserType, 'format:', exportFormat);
-      // TODO: Call ExportController.exportUsers(exportUserType, exportFormat) when backend is ready
+      const url = `/api/export/users?userType=${encodeURIComponent(exportUserType)}&format=${encodeURIComponent(exportFormat)}`;
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `users_${exportUserType}_${new Date().toISOString().split('T')[0]}.${exportFormat}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
       exportModal.close();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Fehler beim Exportieren der Benutzer';

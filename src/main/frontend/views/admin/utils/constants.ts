@@ -112,3 +112,18 @@ export const EXPORT_USER_TYPE_OPTIONS = [
   { value: 'foerdernd', label: 'Fördernde Mitglieder' },
   { value: 'ausgetreten', label: 'Ausgetretene Mitglieder' },
 ] as const;
+
+/**
+ * Export format options.
+ * Defines available file formats for data export.
+ *
+ * @constant
+ *
+ * @type {ReadonlyArray<{value: string, label: string}>}
+ */
+export const EXPORT_FORMAT_OPTIONS = [
+  { value: 'xlsx', label: 'Excel - XLSX' },
+  { value: 'pdf', label: 'PDF' },
+  { value: 'xml', label: 'XML' },
+  { value: 'json', label: 'JSON' },
+] as const;

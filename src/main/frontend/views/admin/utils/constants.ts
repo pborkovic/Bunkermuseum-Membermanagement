@@ -97,3 +97,18 @@ export const MOBILE_BREAKPOINT = 768;
  * @type {number}
  */
 export const RESIZE_DEBOUNCE_DELAY = 150;
+
+/**
+ * User export type options.
+ * Defines different member categories for export functionality.
+ *
+ * @constant
+ *
+ * @type {ReadonlyArray<{value: string, label: string}>}
+ */
+export const EXPORT_USER_TYPE_OPTIONS = [
+  { value: 'all', label: 'Alle Mitglieder' },
+  { value: 'ordentlich', label: 'Ordentliche Mitglieder' },
+  { value: 'foerdernd', label: 'Fördernde Mitglieder' },
+  { value: 'ausgetreten', label: 'Ausgetretene Mitglieder' },
+] as const;

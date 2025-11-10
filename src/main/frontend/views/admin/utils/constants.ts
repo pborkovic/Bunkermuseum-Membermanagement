@@ -127,3 +127,17 @@ export const EXPORT_FORMAT_OPTIONS = [
   { value: 'xml', label: 'XML' },
   { value: 'json', label: 'JSON' },
 ] as const;
+
+/**
+ * Booking export type options.
+ * Defines different booking categories for export functionality.
+ *
+ * @constant
+ *
+ * @type {ReadonlyArray<{value: string, label: string}>}
+ */
+export const EXPORT_BOOKING_TYPE_OPTIONS = [
+  { value: 'all', label: 'Alle Buchungen' },
+  { value: 'open', label: 'Offene Buchungen' },
+  { value: 'completed', label: 'Abgeschlossene Buchungen' },
+] as const;

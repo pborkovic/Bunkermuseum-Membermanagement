@@ -92,15 +92,21 @@ export default function EmailsTab() {
   };
 
   /**
-   * Handles the export action.
-   * TODO: Implement backend export service call
+   * Handles the export action by triggering a file download.
    *
    * @author Philipp Borkovic
    */
   const handleExport = useCallback(async (): Promise<void> => {
     try {
-      console.log('Exporting emails with type:', exportEmailType, 'format:', exportFormat);
-      // TODO: Call ExportController.exportEmails(exportEmailType, exportFormat) when backend is ready
+      const url = `/api/export/emails?emailType=${encodeURIComponent(exportEmailType)}&format=${encodeURIComponent(exportFormat)}`;
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `emails_${exportEmailType}_${new Date().toISOString().split('T')[0]}.${exportFormat}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
       exportModal.close();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Fehler beim Exportieren der E-Mails';

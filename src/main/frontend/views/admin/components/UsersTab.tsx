@@ -225,27 +225,24 @@ export default function UsersTab(): JSX.Element {
     <div className="flex flex-col h-full space-y-4">
       {/* Header with Search and Controls */}
       <div className="flex-shrink-0 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1">
-          <div>
-            <h2 className="text-2xl font-bold text-black">Mitgliederverwaltung</h2>
-            <p className="text-sm text-gray-600 mt-1">
-              Übersicht aller registrierten Mitglieder
-            </p>
-          </div>
-
-          {/* Export Button */}
-          <Button
-            variant="outline"
-            onClick={exportModal.open}
-            className="text-white bg-black hover:bg-gray-800 border-black self-start sm:self-auto sm:mt-7"
-          >
-            <Icon icon="vaadin:download" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
-            Exportieren
-          </Button>
+        <div>
+          <h2 className="text-2xl font-bold text-black">Mitgliederverwaltung</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Übersicht aller registrierten Mitglieder
+          </p>
         </div>
 
         {/* Search Bar and Controls */}
         <div className="flex flex-col sm:flex-row gap-3 sm:ml-auto">
+          {/* Export Button */}
+          <Button
+            variant="outline"
+            onClick={exportModal.open}
+            className="text-white bg-black hover:bg-gray-800 border-black h-9 self-start sm:self-auto"
+          >
+            <Icon icon="vaadin:download" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+            Exportieren
+          </Button>
           {/* Status Filter */}
           <div className="flex items-center gap-2">
             <label className="text-sm text-gray-600 whitespace-nowrap">Status:</label>

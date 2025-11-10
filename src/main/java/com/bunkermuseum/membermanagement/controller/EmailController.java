@@ -126,35 +126,28 @@ public class EmailController {
             String subject,
             String content
     ) {
-        // Validate that exactly one of userId or customEmail is provided
         if ((userId == null && customEmail == null) || (userId != null && customEmail != null)) {
             throw new IllegalArgumentException(
                     "Bitte wählen Sie entweder einen Benutzer oder geben Sie eine E-Mail-Adresse ein."
             );
         }
 
-        // Get the current logged-in admin user (the sender)
         User currentUser = getCurrentAuthenticatedUser();
 
-        // Determine the recipient's email address
         String toAddress;
         if (userId != null) {
-            // Send to existing user
             User recipientUser = userRepository.findByIdOrFail(userId);
             toAddress = recipientUser.getEmail();
         } else {
-            // Send to custom email address
             toAddress = customEmail;
         }
 
-        // Send email via EmailService (which logs to database)
-        // The currentUser (logged-in admin) is tracked as the sender
         return emailService.sendSimpleEmail(
                 "noreply@bunkermuseum.com",
                 toAddress,
                 subject,
                 content,
-                currentUser  // Track who sent the email (the logged-in admin)
+                currentUser
         );
     }
 

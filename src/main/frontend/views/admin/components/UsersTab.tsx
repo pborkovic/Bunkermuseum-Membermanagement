@@ -10,7 +10,7 @@ import UsersList from './_UsersList';
 import { useWindowSize } from '../hooks/useWindowSize';
 import { useModalWithData, useModal } from '../hooks/useModal';
 import { formatDate } from '../utils/formatting';
-import { ANREDE_OPTIONS, USER_STATUS_OPTIONS, PAGE_SIZE_OPTIONS, DEFAULT_PAGE_SIZE, EXPORT_USER_TYPE_OPTIONS } from '../utils/constants';
+import { ANREDE_OPTIONS, USER_STATUS_OPTIONS, PAGE_SIZE_OPTIONS, DEFAULT_PAGE_SIZE, EXPORT_USER_TYPE_OPTIONS, EXPORT_FORMAT_OPTIONS } from '../utils/constants';
 import type { ProfileFormData } from '../types';
 
 /**
@@ -57,6 +57,7 @@ export default function UsersTab(): JSX.Element {
   const [usersPerPage, setUsersPerPage] = useState(DEFAULT_PAGE_SIZE);
   const [statusFilter, setStatusFilter] = useState('active');
   const [exportUserType, setExportUserType] = useState('all');
+  const [exportFormat, setExportFormat] = useState('xlsx');
 
   /**
    * Loads users from the backend with pagination.
@@ -211,14 +212,14 @@ export default function UsersTab(): JSX.Element {
    */
   const handleExport = useCallback(async (): Promise<void> => {
     try {
-      console.log('Exporting users with type:', exportUserType);
-      // TODO: Call ExportController.exportUsers(exportUserType) when backend is ready
+      console.log('Exporting users with type:', exportUserType, 'format:', exportFormat);
+      // TODO: Call ExportController.exportUsers(exportUserType, exportFormat) when backend is ready
       exportModal.close();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Fehler beim Exportieren der Benutzer';
       setError(errorMessage);
     }
-  }, [exportUserType, exportModal]);
+  }, [exportUserType, exportFormat, exportModal]);
 
   return (
     <div className="flex flex-col h-full space-y-4">
@@ -707,8 +708,32 @@ export default function UsersTab(): JSX.Element {
                 <SelectTrigger className="w-full border-black text-black [&_svg]:text-black [&_svg]:opacity-100">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-white border-black">
+                <SelectContent className="bg-white border-black z-[9999]">
                   {EXPORT_USER_TYPE_OPTIONS.map((option) => (
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                      className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black"
+                    >
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Export Format Selector */}
+            <div className="space-y-3">
+              <label className="text-sm font-medium">Exportformat</label>
+              <Select
+                value={exportFormat}
+                onValueChange={(value) => setExportFormat(value)}
+              >
+                <SelectTrigger className="w-full border-black text-black [&_svg]:text-black [&_svg]:opacity-100">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-black z-[9999]">
+                  {EXPORT_FORMAT_OPTIONS.map((option) => (
                     <SelectItem
                       key={option.value}
                       value={option.value}
@@ -724,7 +749,7 @@ export default function UsersTab(): JSX.Element {
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t mt-6">
-            <Button variant="outline" onClick={exportModal.close} className="w-full sm:w-auto">
+            <Button variant="destructive" onClick={exportModal.close} className="text-white w-full sm:w-auto">
               Abbrechen
             </Button>
             <Button

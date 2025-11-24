@@ -8,6 +8,7 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.time.LocalDate;
+import java.util.UUID;
 
 /**
  * REST endpoint controller responsible for handling data export operations across various domains.
@@ -139,6 +140,66 @@ public class ExportController {
         logger.info("Export emails request: emailType={}, format={}", emailType, format);
 
         byte[] exportData = exportService.exportEmails(emailType, format);
+
+        return "Export successful - " + exportData.length + " bytes generated";
+    }
+
+    /**
+     * Exports a single user's data in the specified format.
+     *
+     * <p>
+     * This method exports all data associated with a specific user identified by their UUID.
+     * The export includes all user profile information, settings, and related data.
+     * </p>
+     *
+     * @param userId the UUID of the user to export; must not be {@code null}.
+     * @param format the desired export format; must not be {@code null}.
+     *               Supported formats include {@code "xlsx"}, {@code "csv"}, {@code "json"}, or {@code "xml"}.
+     *
+     * @return a human-readable message confirming the export operation and reporting
+     *         the total number of bytes generated, e.g. {@code "Export successful - 2048 bytes generated"}.
+     *
+     * @throws IllegalArgumentException if the provided {@code userId} is invalid or {@code format} is not supported.
+     *
+     * @see ExportService#exportUser(UUID, String)
+     *
+     * @author Philipp Borkovic
+     */
+    @Nonnull
+    public String exportUser(@Nonnull UUID userId, @Nonnull String format) {
+        logger.info("Export user request: userId={}, format={}", userId, format);
+
+        byte[] exportData = exportService.exportUser(userId, format);
+
+        return "Export successful - " + exportData.length + " bytes generated";
+    }
+
+    /**
+     * Exports a single booking's data in the specified format.
+     *
+     * <p>
+     * This method exports all data associated with a specific booking identified by its UUID.
+     * The export includes booking details, amounts, dates, and associated user information.
+     * </p>
+     *
+     * @param bookingId the UUID of the booking to export; must not be {@code null}.
+     * @param format    the desired export format; must not be {@code null}.
+     *                  Supported formats include {@code "xlsx"}, {@code "csv"}, {@code "json"}, or {@code "xml"}.
+     *
+     * @return a human-readable message confirming the export operation and reporting
+     *         the total number of bytes generated, e.g. {@code "Export successful - 1536 bytes generated"}.
+     *
+     * @throws IllegalArgumentException if the provided {@code bookingId} is invalid or {@code format} is not supported.
+     *
+     * @see ExportService#exportBooking(UUID, String)
+     *
+     * @author Philipp Borkovic
+     */
+    @Nonnull
+    public String exportBooking(@Nonnull UUID bookingId, @Nonnull String format) {
+        logger.info("Export booking request: bookingId={}, format={}", bookingId, format);
+
+        byte[] exportData = exportService.exportBooking(bookingId, format);
 
         return "Export successful - " + exportData.length + " bytes generated";
     }

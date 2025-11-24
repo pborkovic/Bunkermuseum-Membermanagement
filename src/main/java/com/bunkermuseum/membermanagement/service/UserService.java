@@ -1,17 +1,22 @@
 package com.bunkermuseum.membermanagement.service;
 
+import com.bunkermuseum.membermanagement.model.PasswordSetupToken;
 import com.bunkermuseum.membermanagement.model.User;
+import com.bunkermuseum.membermanagement.repository.contract.PasswordSetupTokenRepositoryContract;
 import com.bunkermuseum.membermanagement.repository.contract.UserRepositoryContract;
 import com.bunkermuseum.membermanagement.service.base.BaseService;
+import com.bunkermuseum.membermanagement.service.contract.EmailServiceContract;
 import com.bunkermuseum.membermanagement.service.contract.UserServiceContract;
 import com.bunkermuseum.membermanagement.validation.PasswordValidator;
 import org.jspecify.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
@@ -62,11 +67,23 @@ public class UserService extends BaseService<User, UserRepositoryContract>
     private static final int FAILED_ATTEMPTS_CLEANUP_HOURS = 24;
 
     private final PasswordEncoder passwordEncoder;
+    private final EmailServiceContract emailService;
+    private final PasswordSetupTokenRepositoryContract tokenRepository;
     private final Map<String, LoginAttemptTracker> loginAttempts = new ConcurrentHashMap<>();
 
-    public UserService(UserRepositoryContract repository, PasswordEncoder passwordEncoder) {
+    @Value("${app.base-url:http://localhost:8080}")
+    private String baseUrl;
+
+    public UserService(
+            UserRepositoryContract repository,
+            PasswordEncoder passwordEncoder,
+            EmailServiceContract emailService,
+            PasswordSetupTokenRepositoryContract tokenRepository
+    ) {
         super(repository);
         this.passwordEncoder = passwordEncoder;
+        this.emailService = emailService;
+        this.tokenRepository = tokenRepository;
     }
 
     /**
@@ -120,7 +137,9 @@ public class UserService extends BaseService<User, UserRepositoryContract>
             throw new IllegalArgumentException("User must not be null");
         }
 
-        if (user.getPassword() != null && !user.getPassword().isBlank()) {
+        boolean passwordProvided = user.getPassword() != null && !user.getPassword().isBlank();
+
+        if (passwordProvided) {
             PasswordValidator.ValidationResult validationResult = PasswordValidator.validate(user.getPassword());
 
             if (!validationResult.isValid()) {
@@ -143,6 +162,11 @@ public class UserService extends BaseService<User, UserRepositoryContract>
                 throw new RuntimeException("User creation failed");
             }
 
+            // If no password was provided, send password setup email
+            if (!passwordProvided) {
+                sendPasswordSetupEmail(createdUser);
+            }
+
             return createdUser;
         } catch (IllegalArgumentException e) {
             logger.error("Invalid user data provided for username: {}", user.getName(), e);
@@ -152,6 +176,90 @@ public class UserService extends BaseService<User, UserRepositoryContract>
             logger.error("Unexpected error occurred while creating user: {}", user.getName(), e);
 
             throw new RuntimeException("Error occurred while creating user", e);
+        }
+    }
+
+    /**
+     * Sends a password setup email to a newly created user.
+     *
+     * <p>This method generates a unique, time-limited token and sends an email
+     * to the user with a link to set their password. The token expires after 24 hours.</p>
+     *
+     * <p>The email contains:
+     * <ul>
+     *     <li>A personalized greeting with the user's name</li>
+     *     <li>A unique password setup link</li>
+     *     <li>Instructions for setting up their account</li>
+     *     <li>Expiration information (24 hours)</li>
+     * </ul>
+     *
+     * @param user the newly created user to send the setup email to
+     * @throws RuntimeException if email sending fails
+     *
+     * @author Philipp Borkovic
+     */
+    private void sendPasswordSetupEmail(User user) {
+        try {
+            // Generate unique token (UUID v4)
+            String token = UUID.randomUUID().toString();
+            LocalDateTime expiresAt = LocalDateTime.now().plusHours(24);
+
+            // Create and save token
+            PasswordSetupToken setupToken = new PasswordSetupToken(user, token, expiresAt);
+            tokenRepository.create(setupToken);
+
+            // Build password setup URL
+            String setupUrl = baseUrl + "/setup-password?token=" + token;
+
+            // Create email content
+            String subject = "Willkommen - Richten Sie Ihr Passwort ein";
+            String content = String.format("""
+                    <html>
+                    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                        <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                            <h2 style="color: #2c3e50;">Willkommen beim Bunkermuseum!</h2>
+
+                            <p>Hallo %s,</p>
+
+                            <p>Ein Administrator hat ein Konto für Sie erstellt. Um Ihr Konto zu aktivieren,
+                            müssen Sie zunächst ein Passwort festlegen.</p>
+
+                            <p>Bitte klicken Sie auf den folgenden Link, um Ihr Passwort einzurichten:</p>
+
+                            <p style="margin: 30px 0;">
+                                <a href="%s"
+                                   style="background-color: #3498db; color: white; padding: 12px 24px;
+                                          text-decoration: none; border-radius: 4px; display: inline-block;">
+                                    Passwort einrichten
+                                </a>
+                            </p>
+
+                            <p style="color: #7f8c8d; font-size: 14px;">
+                                Oder kopieren Sie diesen Link in Ihren Browser:<br>
+                                <a href="%s" style="color: #3498db;">%s</a>
+                            </p>
+
+                            <p style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ecf0f1; color: #7f8c8d; font-size: 12px;">
+                                <strong>Wichtig:</strong> Dieser Link ist 24 Stunden gültig.<br>
+                                Falls Sie dieses Konto nicht angefordert haben, können Sie diese E-Mail ignorieren.
+                            </p>
+                        </div>
+                    </body>
+                    </html>
+                    """,
+                    user.getName(),
+                    setupUrl,
+                    setupUrl,
+                    setupUrl
+            );
+
+            // Send email (null user = system email)
+            emailService.sendSimpleEmail("noreply@bunkermuseum.com", user.getEmail(), subject, content, null);
+
+            logger.info("Password setup email sent to user: {} ({})", user.getName(), user.getEmail());
+        } catch (Exception e) {
+            logger.error("Failed to send password setup email to user: {} ({})", user.getName(), user.getEmail(), e);
+            throw new RuntimeException("Failed to send password setup email", e);
         }
     }
 

@@ -29,6 +29,7 @@ interface BookingsListProps {
   isMobile: boolean;
   onBookingClick: (booking: BookingDTO) => void;
   onDeleteClick: (booking: BookingDTO) => void;
+  onExportClick: (booking: BookingDTO) => void;
   onPageChange: (page: number) => void;
 }
 
@@ -62,6 +63,7 @@ function BookingsList({
   isMobile,
   onBookingClick,
   onDeleteClick,
+  onExportClick,
   onPageChange,
 }: BookingsListProps): JSX.Element {
   /**
@@ -160,6 +162,17 @@ function BookingsList({
                           Details anzeigen
                         </DropdownMenuItem>
                         <DropdownMenuItem
+                          onClick={() => onExportClick(booking)}
+                          className="text-black hover:bg-gray-100 focus:bg-gray-100 cursor-pointer"
+                        >
+                          <Icon
+                            icon="vaadin:download"
+                            className="mr-2"
+                            style={{ width: '16px', height: '16px' }}
+                          />
+                          Exportieren
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
                           onClick={() => onDeleteClick(booking)}
                           className="text-red-600 hover:bg-gray-100 focus:bg-gray-100 focus:text-red-600 cursor-pointer"
                         >
@@ -216,6 +229,17 @@ function BookingsList({
                         style={{ width: '16px', height: '16px' }}
                       />
                       Details anzeigen
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => onExportClick(booking)}
+                      className="text-black hover:bg-gray-100 focus:bg-gray-100 cursor-pointer"
+                    >
+                      <Icon
+                        icon="vaadin:download"
+                        className="mr-2"
+                        style={{ width: '16px', height: '16px' }}
+                      />
+                      Exportieren
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => onDeleteClick(booking)}

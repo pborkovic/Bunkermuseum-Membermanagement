@@ -58,6 +58,8 @@ export default function BookingsTab(): JSX.Element {
   const [exportDateRangePreset, setExportDateRangePreset] = useState('1month');
   const [exportStartDate, setExportStartDate] = useState<Date | undefined>(undefined);
   const [exportEndDate, setExportEndDate] = useState<Date | undefined>(undefined);
+  const [singleBookingExportModal, setSingleBookingExportModal] = useState<BookingDTO | null>(null);
+  const [singleBookingExportFormat, setSingleBookingExportFormat] = useState('xlsx');
 
   useEffect(() => {
     const checkMobile = () => {
@@ -284,6 +286,51 @@ export default function BookingsTab(): JSX.Element {
     }
   }, [exportBookingType, exportFormat, exportStartDate, exportEndDate, exportModal]);
 
+  /**
+   * Opens the single booking export modal.
+   *
+   * @author Philipp Borkovic
+   */
+  const handleExportBooking = useCallback((booking: BookingDTO): void => {
+    setSingleBookingExportFormat('xlsx');
+    setSingleBookingExportModal(booking);
+  }, []);
+
+  /**
+   * Closes the single booking export modal.
+   *
+   * @author Philipp Borkovic
+   */
+  const handleCloseSingleBookingExport = useCallback((): void => {
+    setSingleBookingExportModal(null);
+  }, []);
+
+  /**
+   * Handles exporting a single booking's data with selected format.
+   *
+   * @author Philipp Borkovic
+   */
+  const handleConfirmSingleBookingExport = useCallback((): void => {
+    if (!singleBookingExportModal) return;
+
+    try {
+      const booking = singleBookingExportModal;
+      const url = `/api/export/booking/${booking.id}?format=${singleBookingExportFormat}`;
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `booking_${booking.code}_${new Date().toISOString().split('T')[0]}.${singleBookingExportFormat}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      handleCloseSingleBookingExport();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Fehler beim Exportieren der Buchung';
+      setError(errorMessage);
+    }
+  }, [singleBookingExportModal, singleBookingExportFormat, handleCloseSingleBookingExport]);
+
   const totalPages = Math.ceil(filteredBookings.length / bookingsPerPage);
   const startIndexZeroBased = (currentPage - 1) * bookingsPerPage;
   const endIndexZeroBased = startIndexZeroBased + bookingsPerPage;
@@ -400,6 +447,7 @@ export default function BookingsTab(): JSX.Element {
           isMobile={isMobile}
           onBookingClick={handleBookingClick}
           onDeleteClick={handleDeleteClick}
+          onExportClick={handleExportBooking}
           onPageChange={handlePageChange}
         />
       </div>
@@ -570,6 +618,84 @@ export default function BookingsTab(): JSX.Element {
             </Button>
           </div>
         </div>
+      </Dialog>
+
+      {/* Single booking export modal */}
+      <Dialog
+        opened={!!singleBookingExportModal}
+        onOpenedChanged={(e: any) => {
+          if (!e.detail.value) handleCloseSingleBookingExport();
+        }}
+        headerTitle="Buchung exportieren"
+      >
+        {singleBookingExportModal && (
+          <div className="p-4 sm:p-6 min-w-[300px] sm:min-w-[500px] max-w-[95vw]">
+            <div className="space-y-6">
+              {/* Icon */}
+              <div className="flex justify-center">
+                <Icon icon="vaadin:download-alt" className="text-black" style={{ width: '64px', height: '64px' }} />
+              </div>
+
+              {/* Description */}
+              <div className="text-center space-y-2">
+                <p className="font-medium text-lg">Buchung exportieren</p>
+                <p className="text-sm text-muted-foreground">
+                  Exportieren Sie die Daten der Buchung <span className="font-semibold">{singleBookingExportModal.code || 'N/A'}</span> in einem der verfügbaren Formate.
+                </p>
+              </div>
+
+              {/* Export Format Selector */}
+              <div className="space-y-3">
+                <label className="text-sm font-medium">Exportformat</label>
+                <Select
+                  value={singleBookingExportFormat}
+                  onValueChange={(value) => setSingleBookingExportFormat(value)}
+                >
+                  <SelectTrigger className="w-full border-black text-black [&_svg]:text-black [&_svg]:opacity-100">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border-black z-[9999]">
+                    {EXPORT_FORMAT_OPTIONS.map((option) => {
+                      const iconMap: Record<string, string> = {
+                        'xlsx': 'vaadin:file-table',
+                        'pdf': 'vaadin:file-text',
+                        'xml': 'vaadin:file-code',
+                        'json': 'vaadin:curly-brackets'
+                      };
+                      return (
+                        <SelectItem
+                          key={option.value}
+                          value={option.value}
+                          className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Icon icon={iconMap[option.value]} style={{ width: '16px', height: '16px' }} />
+                            {option.label}
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t mt-6">
+              <Button variant="destructive" onClick={handleCloseSingleBookingExport} className="text-white w-full sm:w-auto">
+                Abbrechen
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleConfirmSingleBookingExport}
+                className="text-white bg-black hover:bg-gray-800 border-black w-full sm:w-auto"
+              >
+                <Icon icon="vaadin:download" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+                Exportieren
+              </Button>
+            </div>
+          </div>
+        )}
       </Dialog>
     </div>
   );

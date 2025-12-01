@@ -142,10 +142,8 @@ public class UserController {
             if (userPage == null) {
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Service returned null page response");
             }
-            if (userPage.getContent() == null) {
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                        "Service returned null content in page response");
-            }
+
+            userPage.getContent();
 
             List<UserDTO> userDTOs = UserMapper.toDTOList(userPage.getContent());
 

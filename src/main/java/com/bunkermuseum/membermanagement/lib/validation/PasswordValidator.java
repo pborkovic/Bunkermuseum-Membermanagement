@@ -1,4 +1,4 @@
-package com.bunkermuseum.membermanagement.validation;
+package com.bunkermuseum.membermanagement.lib.validation;
 
 import java.util.ArrayList;
 import java.util.List;

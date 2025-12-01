@@ -1,4 +1,4 @@
-package com.bunkermuseum.membermanagement.config;
+package com.bunkermuseum.membermanagement.config.security;
 
 import com.vaadin.flow.spring.security.VaadinWebSecurity;
 import org.springframework.context.annotation.Bean;

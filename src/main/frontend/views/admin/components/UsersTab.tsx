@@ -288,7 +288,8 @@ export default function UsersTab(): JSX.Element {
         street: createForm.street || undefined,
         city: createForm.city || undefined,
         postalCode: createForm.postalCode || undefined,
-        country: createForm.country || undefined
+        country: createForm.country || undefined,
+        ofMg: false
       } as User;
 
       await UserController.createUser(newUser);
@@ -643,6 +644,7 @@ export default function UsersTab(): JSX.Element {
           if (!e.detail.value) editModal.close();
         }}
         headerTitle="Benutzer bearbeiten"
+        noCloseOnOutsideClick
       >
         {editModal.data && (
           <div className="p-4 sm:p-6 min-w-[300px] sm:min-w-[600px] lg:min-w-[700px] max-w-[95vw] max-h-[90vh] overflow-y-auto">
@@ -723,7 +725,7 @@ export default function UsersTab(): JSX.Element {
                     <label className="text-sm font-medium">Geburtsdatum</label>
                     <DatePicker
                       value={editForm.birthday}
-                      onChange={(date) => setEditForm({ ...editForm, birthday: date })}
+                      onChange={(date) => setEditForm(prev => ({ ...prev, birthday: date }))}
                     />
                   </div>
                 </div>
@@ -905,6 +907,7 @@ export default function UsersTab(): JSX.Element {
           if (!e.detail.value) createModal.close();
         }}
         headerTitle="Neues Mitglied erstellen"
+        noCloseOnOutsideClick
       >
         <div className="p-4 sm:p-6 min-w-[300px] sm:min-w-[900px] lg:min-w-[1100px] max-w-[95vw] max-h-[90vh] overflow-y-auto">
           <div className="space-y-6">
@@ -1000,11 +1003,11 @@ export default function UsersTab(): JSX.Element {
                   />
                 </div>
 
-                <div className="space-y-2 relative z-[99999]">
+                <div className="space-y-2">
                   <label className="text-xs text-muted-foreground">Geburtsdatum</label>
                   <DatePicker
                     value={createForm.birthday}
-                    onChange={(date) => setCreateForm({ ...createForm, birthday: date })}
+                    onChange={(date) => setCreateForm(prev => ({ ...prev, birthday: date }))}
                   />
                 </div>
               </div>

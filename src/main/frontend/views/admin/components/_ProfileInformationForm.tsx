@@ -147,7 +147,7 @@ export default function ProfileInformationForm({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="rank">Rang</Label>
+                <Label htmlFor="rank">Dienstgrad</Label>
                 <Input
                   id="rank"
                   type="text"

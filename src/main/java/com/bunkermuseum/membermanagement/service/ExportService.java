@@ -1,8 +1,10 @@
 package com.bunkermuseum.membermanagement.service;
 
 import com.bunkermuseum.membermanagement.dto.BookingDTO;
+import com.bunkermuseum.membermanagement.model.Booking;
 import com.bunkermuseum.membermanagement.model.Email;
 import com.bunkermuseum.membermanagement.model.User;
+import com.bunkermuseum.membermanagement.repository.contract.BookingRepositoryContract;
 import com.bunkermuseum.membermanagement.repository.contract.UserRepositoryContract;
 import com.bunkermuseum.membermanagement.repository.contract.EmailRepositoryContract;
 import com.bunkermuseum.membermanagement.service.contract.ExportServiceContract;
@@ -40,6 +42,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Service implementation for handling data export functionality.
@@ -71,6 +74,7 @@ public class ExportService implements ExportServiceContract {
     private static final Logger log = LoggerFactory.getLogger(ExportService.class);
 
     private final UserRepositoryContract userRepository;
+    private final BookingRepositoryContract bookingRepository;
     private final EmailRepositoryContract emailRepository;
     private final ObjectMapper objectMapper;
 
@@ -82,14 +86,17 @@ public class ExportService implements ExportServiceContract {
      * regarding read-only operations; it relies on repository contracts for data access.</p>
      *
      * @param userRepository repository used to read users for exports; must not be null
+     * @param bookingRepository repository used to read bookings for exports; must not be null
      * @param emailRepository repository used to read emails for exports; must not be null
      *
      */
     public ExportService(
             UserRepositoryContract userRepository,
+            BookingRepositoryContract bookingRepository,
             EmailRepositoryContract emailRepository
     ) {
         this.userRepository = userRepository;
+        this.bookingRepository = bookingRepository;
         this.emailRepository = emailRepository;
 
         // Configure ObjectMapper for JSON exports
@@ -165,6 +172,53 @@ public class ExportService implements ExportServiceContract {
         };
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @author Philipp Borkovic
+     */
+    @Override
+    public byte @NonNull [] exportUser(@NonNull UUID userId, @NonNull String format) {
+        log.info("Exporting user: userId={}, format={}", userId, format);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
+
+        List<User> users = List.of(user);
+
+        return switch (format.toLowerCase()) {
+            case "xlsx" -> exportUsersToExcel(users);
+            case "pdf" -> exportUsersToPdf(users);
+            case "xml" -> exportUsersToXml(users);
+            case "json" -> exportUsersToJson(users);
+            default -> throw new IllegalArgumentException("Unsupported export format: " + format);
+        };
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @author Philipp Borkovic
+     */
+    @Override
+    public byte @NonNull [] exportBooking(@NonNull UUID bookingId, @NonNull String format) {
+        log.info("Exporting booking: bookingId={}, format={}", bookingId, format);
+
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new IllegalArgumentException("Booking not found with ID: " + bookingId));
+
+        BookingDTO bookingDTO = toDTO(booking);
+        List<BookingDTO> bookings = List.of(bookingDTO);
+
+        return switch (format.toLowerCase()) {
+            case "xlsx" -> exportBookingsToExcel(bookings);
+            case "pdf" -> exportBookingsToPdf(bookings);
+            case "xml" -> exportBookingsToXml(bookings);
+            case "json" -> exportBookingsToJson(bookings);
+            default -> throw new IllegalArgumentException("Unsupported export format: " + format);
+        };
+    }
+
 
     /**
      * Filters users by type.
@@ -185,13 +239,13 @@ public class ExportService implements ExportServiceContract {
             case "all" -> allUsers;
             case "ordentlich" -> allUsers.stream()
                     .filter(user -> user.deletedAt() == null)
-                    .toList(); // Regular members (active users)
+                    .toList();
             case "foerdernd" -> allUsers.stream()
                     .filter(user -> user.deletedAt() == null)
-                    .toList(); // Supporting members (TODO: add proper filtering by member type)
+                    .toList(); // (TODO: add proper filtering by member type)
             case "ausgetreten" -> allUsers.stream()
                     .filter(user -> user.deletedAt() != null)
-                    .toList(); // Former members (deleted users)
+                    .toList();
             default -> throw new IllegalArgumentException("Unsupported user type: " + userType);
         };
     }
@@ -989,6 +1043,34 @@ public class ExportService implements ExportServiceContract {
         return out.toByteArray();
     }
 
+
+    /**
+     * Converts a Booking entity to a BookingDTO.
+     *
+     * <p>This method maps all relevant fields from the entity to the DTO,
+     * replacing the User entity reference with just the userId to avoid
+     * circular references and serialization issues.</p>
+     *
+     * @param booking The booking entity to convert
+     * @return A BookingDTO representation of the booking
+     *
+     * @author Philipp Borkovic
+     */
+    private BookingDTO toDTO(Booking booking) {
+        return new BookingDTO(
+            booking.getId(),
+            booking.getExpectedPurpose(),
+            booking.getExpectedAmount(),
+            booking.getReceivedAt(),
+            booking.getActualPurpose(),
+            booking.getActualAmount(),
+            booking.getOfMG(),
+            booking.getUser() != null ? booking.getUser().getId() : null,
+            booking.getNote(),
+            booking.getAccountStatementPage(),
+            booking.getCode()
+        );
+    }
 
     /**
      * Returns a string truncated to {@code maxLength}, appending "..." if truncation occurs.

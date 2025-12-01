@@ -1,4 +1,4 @@
-package com.bunkermuseum.membermanagement.config;
+package com.bunkermuseum.membermanagement.config.storage;
 
 import io.minio.MinioClient;
 import org.springframework.beans.factory.annotation.Value;

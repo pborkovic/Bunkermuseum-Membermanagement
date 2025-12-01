@@ -4,6 +4,7 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 /**
  * Service contract for handling data export functionality across different entities.
@@ -86,4 +87,38 @@ public interface ExportServiceContract {
      * @throws IllegalArgumentException if {@code format} is unsupported or if {@code emailType} is unsupported
      */
     byte @NonNull [] exportEmails(@NonNull String emailType, @NonNull String format);
+
+    /**
+     * Exports a single user's data in the specified format.
+     *
+     * <p>Exports all data associated with the specified user including profile information,
+     * settings, and related data.</p>
+     *
+     * <p>Supported format values (case-insensitive): "xlsx", "pdf", "xml", "json".</p>
+     *
+     * @param userId the UUID of the user to export
+     * @param format the target file format to generate
+     *
+     * @return the exported document as a byte array
+     *
+     * @throws IllegalArgumentException if {@code format} is unsupported or if {@code userId} is invalid
+     */
+    byte @NonNull [] exportUser(@NonNull UUID userId, @NonNull String format);
+
+    /**
+     * Exports a single booking's data in the specified format.
+     *
+     * <p>Exports all data associated with the specified booking including amounts, dates,
+     * and user information.</p>
+     *
+     * <p>Supported format values (case-insensitive): "xlsx", "pdf", "xml", "json".</p>
+     *
+     * @param bookingId the UUID of the booking to export
+     * @param format the target file format to generate
+     *
+     * @return the exported document as a byte array
+     *
+     * @throws IllegalArgumentException if {@code format} is unsupported or if {@code bookingId} is invalid
+     */
+    byte @NonNull [] exportBooking(@NonNull UUID bookingId, @NonNull String format);
 }

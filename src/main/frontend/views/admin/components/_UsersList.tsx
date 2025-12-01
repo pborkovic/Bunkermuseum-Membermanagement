@@ -29,6 +29,7 @@ interface UsersListProps {
   isMobile: boolean;
   onUserClick: (user: User) => void;
   onDeleteClick: (user: User) => void;
+  onExportClick: (user: User) => void;
   onPageChange: (page: number) => void;
 }
 
@@ -60,6 +61,7 @@ function UsersList({
   isMobile,
   onUserClick,
   onDeleteClick,
+  onExportClick,
   onPageChange,
 }: UsersListProps): JSX.Element {
   /**
@@ -171,6 +173,17 @@ function UsersList({
                         style={{ width: '16px', height: '16px' }}
                       />
                       Details anzeigen
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => onExportClick(item)}
+                      className="text-black hover:bg-gray-100 focus:bg-gray-100 cursor-pointer"
+                    >
+                      <Icon
+                        icon="vaadin:download"
+                        className="mr-2"
+                        style={{ width: '16px', height: '16px' }}
+                      />
+                      Exportieren
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => onDeleteClick(item)}

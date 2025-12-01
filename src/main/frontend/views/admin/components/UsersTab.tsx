@@ -35,6 +35,7 @@ export default function UsersTab(): JSX.Element {
   const editModal = useModalWithData<User>();
   const exportModal = useModal();
   const createModal = useModal();
+  const singleUserExportModal = useModalWithData<User>();
   const [users, setUsers] = useState<User[]>([]);
   const [editForm, setEditForm] = useState<ProfileFormData>({
     name: '',
@@ -72,6 +73,7 @@ export default function UsersTab(): JSX.Element {
   const [statusFilter, setStatusFilter] = useState('active');
   const [exportUserType, setExportUserType] = useState('all');
   const [exportFormat, setExportFormat] = useState('xlsx');
+  const [singleUserExportFormat, setSingleUserExportFormat] = useState('xlsx');
 
   /**
    * Loads users from the backend with pagination.
@@ -286,7 +288,8 @@ export default function UsersTab(): JSX.Element {
         street: createForm.street || undefined,
         city: createForm.city || undefined,
         postalCode: createForm.postalCode || undefined,
-        country: createForm.country || undefined
+        country: createForm.country || undefined,
+        ofMg: false
       } as User;
 
       await UserController.createUser(newUser);
@@ -298,6 +301,42 @@ export default function UsersTab(): JSX.Element {
       setError(errorMessage);
     }
   }, [createForm, createModal, loadUsers]);
+
+  /**
+   * Opens the single user export modal.
+   *
+   * @author Philipp Borkovic
+   */
+  const handleExportUser = useCallback((user: User): void => {
+    setSingleUserExportFormat('xlsx');
+    singleUserExportModal.openWith(user);
+  }, [singleUserExportModal]);
+
+  /**
+   * Handles exporting a single user's data with selected format.
+   *
+   * @author Philipp Borkovic
+   */
+  const handleConfirmSingleUserExport = useCallback((): void => {
+    if (!singleUserExportModal.data) return;
+
+    try {
+      const user = singleUserExportModal.data;
+      const url = `/api/export/user/${user.id}?format=${singleUserExportFormat}`;
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `user_${user.name}_${new Date().toISOString().split('T')[0]}.${singleUserExportFormat}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      singleUserExportModal.close();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Fehler beim Exportieren des Benutzers';
+      setError(errorMessage);
+    }
+  }, [singleUserExportModal, singleUserExportFormat]);
 
   return (
     <div className="flex flex-col h-full space-y-4">
@@ -422,6 +461,7 @@ export default function UsersTab(): JSX.Element {
           isMobile={isMobile}
           onUserClick={handleUserClick}
           onDeleteClick={handleDeleteClick}
+          onExportClick={handleExportUser}
           onPageChange={handlePageChange}
         />
       </div>
@@ -604,6 +644,7 @@ export default function UsersTab(): JSX.Element {
           if (!e.detail.value) editModal.close();
         }}
         headerTitle="Benutzer bearbeiten"
+        noCloseOnOutsideClick
       >
         {editModal.data && (
           <div className="p-4 sm:p-6 min-w-[300px] sm:min-w-[600px] lg:min-w-[700px] max-w-[95vw] max-h-[90vh] overflow-y-auto">
@@ -684,7 +725,7 @@ export default function UsersTab(): JSX.Element {
                     <label className="text-sm font-medium">Geburtsdatum</label>
                     <DatePicker
                       value={editForm.birthday}
-                      onChange={(date) => setEditForm({ ...editForm, birthday: date })}
+                      onChange={(date) => setEditForm(prev => ({ ...prev, birthday: date }))}
                     />
                   </div>
                 </div>
@@ -866,6 +907,7 @@ export default function UsersTab(): JSX.Element {
           if (!e.detail.value) createModal.close();
         }}
         headerTitle="Neues Mitglied erstellen"
+        noCloseOnOutsideClick
       >
         <div className="p-4 sm:p-6 min-w-[300px] sm:min-w-[900px] lg:min-w-[1100px] max-w-[95vw] max-h-[90vh] overflow-y-auto">
           <div className="space-y-6">
@@ -961,11 +1003,11 @@ export default function UsersTab(): JSX.Element {
                   />
                 </div>
 
-                <div className="space-y-2 relative z-[99999]">
+                <div className="space-y-2">
                   <label className="text-xs text-muted-foreground">Geburtsdatum</label>
                   <DatePicker
                     value={createForm.birthday}
-                    onChange={(date) => setCreateForm({ ...createForm, birthday: date })}
+                    onChange={(date) => setCreateForm(prev => ({ ...prev, birthday: date }))}
                   />
                 </div>
               </div>
@@ -1065,6 +1107,84 @@ export default function UsersTab(): JSX.Element {
             </Button>
           </div>
         </div>
+      </Dialog>
+
+      {/* Single user export modal */}
+      <Dialog
+        opened={singleUserExportModal.isOpen}
+        onOpenedChanged={(e: any) => {
+          if (!e.detail.value) singleUserExportModal.close();
+        }}
+        headerTitle="Mitglied exportieren"
+      >
+        {singleUserExportModal.data && (
+          <div className="p-4 sm:p-6 min-w-[300px] sm:min-w-[500px] max-w-[95vw]">
+            <div className="space-y-6">
+              {/* Icon */}
+              <div className="flex justify-center">
+                <Icon icon="vaadin:download-alt" className="text-black" style={{ width: '64px', height: '64px' }} />
+              </div>
+
+              {/* Description */}
+              <div className="text-center space-y-2">
+                <p className="font-medium text-lg">Mitglied exportieren</p>
+                <p className="text-sm text-muted-foreground">
+                  Exportieren Sie die Daten von <span className="font-semibold">{singleUserExportModal.data.name}</span> in einem der verfügbaren Formate.
+                </p>
+              </div>
+
+              {/* Export Format Selector */}
+              <div className="space-y-3">
+                <label className="text-sm font-medium">Exportformat</label>
+                <Select
+                  value={singleUserExportFormat}
+                  onValueChange={(value) => setSingleUserExportFormat(value)}
+                >
+                  <SelectTrigger className="w-full border-black text-black [&_svg]:text-black [&_svg]:opacity-100">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border-black z-[9999]">
+                    {EXPORT_FORMAT_OPTIONS.map((option) => {
+                      const iconMap: Record<string, string> = {
+                        'xlsx': 'vaadin:file-table',
+                        'pdf': 'vaadin:file-text',
+                        'xml': 'vaadin:file-code',
+                        'json': 'vaadin:curly-brackets'
+                      };
+                      return (
+                        <SelectItem
+                          key={option.value}
+                          value={option.value}
+                          className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Icon icon={iconMap[option.value]} style={{ width: '16px', height: '16px' }} />
+                            {option.label}
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t mt-6">
+              <Button variant="destructive" onClick={singleUserExportModal.close} className="text-white w-full sm:w-auto">
+                Abbrechen
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleConfirmSingleUserExport}
+                className="text-white bg-black hover:bg-gray-800 border-black w-full sm:w-auto"
+              >
+                <Icon icon="vaadin:download" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+                Exportieren
+              </Button>
+            </div>
+          </div>
+        )}
       </Dialog>
     </div>
   );

@@ -27,7 +27,7 @@ import { z } from 'zod';
  * - Member type must be a valid enum value
  * - Expected amount must be a positive number > 0
  * - Actual amount must be a positive number > 0
- * - Actual purpose must be non-blank and <= 500 characters
+ * - Actual purpose must be non-blank and <= 200 characters (year and member name will be appended automatically)
  *
  * @constant
  * @type {z.ZodObject}
@@ -38,7 +38,7 @@ import { z } from 'zod';
  *   memberType: MemberType.REGULAR_MEMBERS,
  *   expectedAmount: '50.00',
  *   actualAmount: '50.00',
- *   actualPurpose: 'Mitgliedsbeitrag 2024'
+ *   actualPurpose: 'Mitgliedsbeitrag' // Year and member name added automatically
  * });
  *
  * if (!result.success) {
@@ -66,12 +66,9 @@ const bookingAssignmentSchema = z.object({
     ),
   actualPurpose: z
     .string()
-    .min(1, 'Bitte geben Sie den tatsächlichen Verwendungszweck ein.')
-    .max(500, 'Verwendungszweck darf maximal 500 Zeichen lang sein.')
-    .refine(
-      (val) => val.trim().length > 0,
-      'Bitte geben Sie den tatsächlichen Verwendungszweck ein.'
-    ),
+    .max(200, 'Verwendungszweck darf maximal 200 Zeichen lang sein (Jahr und Mitgliedsname werden automatisch hinzugefügt).')
+    .optional()
+    .default('Mitgliedsbeitrag'),
 });
 
 /**
@@ -205,9 +202,10 @@ export default function AssignBookingModal({
 
   /**
    * Transaction purpose/description text.
+   * Defaults to "Mitgliedsbeitrag".
    * @type {string}
    */
-  const [actualPurpose, setActualPurpose] = useState<string>('');
+  const [actualPurpose, setActualPurpose] = useState<string>('Mitgliedsbeitrag');
 
   /**
    * Submission state flag.
@@ -241,7 +239,7 @@ export default function AssignBookingModal({
       setMemberType(MemberType.REGULAR_MEMBERS);
       setExpectedAmount('');
       setActualAmount('');
-      setActualPurpose('');
+      setActualPurpose('Mitgliedsbeitrag');
       setError('');
       setIsSubmitting(false);
     }
@@ -347,7 +345,7 @@ export default function AssignBookingModal({
         memberType,
         expectedAmount: Number(expectedAmount),
         actualAmount: Number(actualAmount),
-        actualPurpose: actualPurpose.trim(),
+        actualPurpose: actualPurpose.trim() || 'Mitgliedsbeitrag',
       };
 
       // Submit to backend
@@ -479,7 +477,7 @@ export default function AssignBookingModal({
           {/* Actual Purpose */}
           <div>
             <label className="block text-sm font-semibold text-black mb-2">
-              Tatsächlicher Verwendungszweck <span className="text-red-600">*</span>
+              Tatsächlicher Verwendungszweck
             </label>
             <div className="relative">
               <Icon
@@ -490,12 +488,15 @@ export default function AssignBookingModal({
               <textarea
                 value={actualPurpose}
                 onChange={(e) => setActualPurpose(e.target.value)}
-                placeholder="z.B. Mitgliedsbeitrag 2024"
+                placeholder="z.B. Mitgliedsbeitrag"
                 rows={3}
                 className="w-full pl-10 pr-3 py-2.5 text-sm text-black border border-black rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1 placeholder:text-gray-400 resize-none"
                 disabled={isSubmitting}
               />
             </div>
+            <p className="text-xs text-gray-600 mt-1">
+              Das Jahr und der Mitgliedsname werden automatisch hinzugefügt (z.B. "Mitgliedsbeitrag 2025, Max Mustermann").
+            </p>
           </div>
         </div>
 

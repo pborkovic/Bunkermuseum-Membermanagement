@@ -14,7 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import java.time.Year;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -97,12 +97,23 @@ public class BookingService extends BaseService<Booking, BookingRepositoryContra
                 return 0;
             }
 
+            int currentYear = Year.now().getValue();
+
             List<Booking> toCreate = targets.stream().map(user -> {
                 Booking booking = new Booking(null);
                 booking.setUser(user);
                 booking.setExpectedAmount(request.getExpectedAmount());
                 booking.setActualAmount(request.getActualAmount());
-                booking.setActualPurpose(request.getActualPurpose());
+
+                String basePurpose = request.getActualPurpose();
+                if (basePurpose == null || basePurpose.trim().isEmpty()) {
+                    basePurpose = "Mitgliedsbeitrag";
+                }
+                String personalizedPurpose = String.format("%s %d, %s",
+                    basePurpose.trim(),
+                    currentYear,
+                    user.getName());
+                booking.setActualPurpose(personalizedPurpose);
 
                 return booking;
             }).collect(Collectors.toList());
@@ -127,10 +138,11 @@ public class BookingService extends BaseService<Booking, BookingRepositoryContra
     /**
      * Resolves users by member type (role-based filtering).
      *
-     * <p>This method filters active users by their assigned roles, targeting
-     * users with the specified member type role.</p>
+     * <p>This method filters users by their assigned roles, targeting
+     * users with the specified member type role. It supports multiple role name formats
+     * for flexibility.</p>
      *
-     * @param memberType The member type role name (e.g., "ORDENTLICHE_MITGLIEDER", "FÖRDERNDE_MITGLIEDER")
+     * @param memberType The member type role name (e.g., "ordentliche_mitglieder", "fördernde_mitglieder")
      * @return List of users with the specified member type role, never null but may be empty
      *
      * @author Philipp Borkovic
@@ -139,14 +151,59 @@ public class BookingService extends BaseService<Booking, BookingRepositoryContra
         List<User> allUsers = userRepository.findAll();
         String memberTypeLowerCase = memberType.toLowerCase();
 
-        return allUsers.stream()
+        logger.info("Searching for users with member type: {}", memberTypeLowerCase);
+        logger.info("Total users in database: {}", allUsers.size());
+
+        List<String> acceptableRoleNames = buildAcceptableRoleNames(memberTypeLowerCase);
+        logger.info("Acceptable role names for matching: {}", acceptableRoleNames);
+
+        List<User> matchedUsers = allUsers.stream()
             .filter(user -> user.getRoles() != null)
-            .filter(user -> user.getRoles().stream()
-                .map(Role::getName)
-                .filter(Objects::nonNull)
-                .map(String::toLowerCase)
-                .anyMatch(roleName -> roleName.equals(memberTypeLowerCase)))
+            .filter(user -> {
+                List<String> userRoles = user.getRoles().stream()
+                    .map(Role::getName)
+                    .filter(Objects::nonNull)
+                    .map(String::toLowerCase)
+                    .toList();
+
+                logger.debug("User {} has roles: {}", user.getEmail(), userRoles);
+
+                boolean hasRole = userRoles.stream()
+                    .anyMatch(roleName -> acceptableRoleNames.stream()
+                        .anyMatch(acceptable -> roleName.contains(acceptable) || acceptable.contains(roleName)));
+
+                if (!hasRole) {
+                    logger.debug("User {} does not have matching role. User roles: {}, Required: {}",
+                        user.getEmail(), userRoles, acceptableRoleNames);
+                }
+
+                return hasRole;
+            })
             .collect(Collectors.toList());
+
+        logger.info("Found {} users with member type: {}", matchedUsers.size(), memberTypeLowerCase);
+
+        return matchedUsers;
+    }
+
+    /**
+     * Builds a list of acceptable role name variations for matching.
+     *
+     * @param baseName The base role name (e.g., "ordentliche_mitglieder")
+     * @return List of acceptable variations for fuzzy matching
+     */
+    private List<String> buildAcceptableRoleNames(String baseName) {
+        List<String> variations = new java.util.ArrayList<>();
+        variations.add(baseName);
+        variations.add(baseName.replace("_", " "));
+        variations.add(baseName.replace("_", ""));
+
+        String[] parts = baseName.split("_");
+        if (parts.length > 0) {
+            variations.add(parts[0]); // "ordentliche" or "fördernde"
+        }
+
+        return variations;
     }
 
 

@@ -161,8 +161,6 @@ public class UserService extends BaseService<User, UserRepositoryContract>
 
                 throw new RuntimeException("User creation failed");
             }
-
-            // If no password was provided, send password setup email
             if (!passwordProvided) {
                 sendPasswordSetupEmail(createdUser);
             }
@@ -200,18 +198,14 @@ public class UserService extends BaseService<User, UserRepositoryContract>
      */
     private void sendPasswordSetupEmail(User user) {
         try {
-            // Generate unique token (UUID v4)
             String token = UUID.randomUUID().toString();
             LocalDateTime expiresAt = LocalDateTime.now().plusHours(24);
-
-            // Create and save token
             PasswordSetupToken setupToken = new PasswordSetupToken(user, token, expiresAt);
+
             tokenRepository.create(setupToken);
 
-            // Build password setup URL
             String setupUrl = baseUrl + "/setup-password?token=" + token;
 
-            // Create email content
             String subject = "Willkommen - Richten Sie Ihr Passwort ein";
             String content = String.format("""
                     <html>
@@ -253,7 +247,6 @@ public class UserService extends BaseService<User, UserRepositoryContract>
                     setupUrl
             );
 
-            // Send email (null user = system email)
             emailService.sendSimpleEmail("noreply@bunkermuseum.com", user.getEmail(), subject, content, null);
 
             logger.info("Password setup email sent to user: {} ({})", user.getName(), user.getEmail());
@@ -818,15 +811,12 @@ public class UserService extends BaseService<User, UserRepositoryContract>
 
             User user = optionalUser.get();
 
-            // Update basic fields
             if (userData.getName() != null && !userData.getName().isBlank()) {
                 user.setName(userData.getName());
             }
             if (userData.getEmail() != null && !userData.getEmail().isBlank()) {
                 user.setEmail(userData.getEmail());
             }
-
-            // Update profile fields
             if (userData.getSalutation() != null) {
                 user.setSalutation(userData.getSalutation());
             }
@@ -842,8 +832,6 @@ public class UserService extends BaseService<User, UserRepositoryContract>
             if (userData.getPhone() != null) {
                 user.setPhone(userData.getPhone());
             }
-
-            // Update address fields
             if (userData.getStreet() != null) {
                 user.setStreet(userData.getStreet());
             }

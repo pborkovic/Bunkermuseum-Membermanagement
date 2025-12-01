@@ -205,7 +205,7 @@ public class PageResponse<T> {
         this.size = size;
         this.totalElements = totalElements;
 
-        this.totalPages = size > 0 ? (int) Math.ceil((double) totalElements / size) : 0;
+        this.totalPages = (int) Math.ceil((double) totalElements / size);
 
         this.first = page == 0;
 

@@ -1,5 +1,6 @@
 package com.bunkermuseum.membermanagement.service;
 
+import com.bunkermuseum.membermanagement.lib.helper.LoginAttemptTracker;
 import com.bunkermuseum.membermanagement.model.PasswordSetupToken;
 import com.bunkermuseum.membermanagement.model.User;
 import com.bunkermuseum.membermanagement.repository.contract.PasswordSetupTokenRepositoryContract;
@@ -7,7 +8,7 @@ import com.bunkermuseum.membermanagement.repository.contract.UserRepositoryContr
 import com.bunkermuseum.membermanagement.service.base.BaseService;
 import com.bunkermuseum.membermanagement.service.contract.EmailServiceContract;
 import com.bunkermuseum.membermanagement.service.contract.UserServiceContract;
-import com.bunkermuseum.membermanagement.validation.PasswordValidator;
+import com.bunkermuseum.membermanagement.lib.validation.PasswordValidator;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -62,10 +63,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class UserService extends BaseService<User, UserRepositoryContract>
         implements UserServiceContract {
 
-    private static final int MAX_LOGIN_ATTEMPTS = 5;
-    private static final int LOCKOUT_DURATION_MINUTES = 15;
     private static final int FAILED_ATTEMPTS_CLEANUP_HOURS = 24;
-
     private final PasswordEncoder passwordEncoder;
     private final EmailServiceContract emailService;
     private final PasswordSetupTokenRepositoryContract tokenRepository;
@@ -84,45 +82,6 @@ public class UserService extends BaseService<User, UserRepositoryContract>
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
         this.tokenRepository = tokenRepository;
-    }
-
-    /**
-     * Internal class to track login attempts and account lockout.
-     *
-     * @author Philipp Borkovic
-     */
-    private static class LoginAttemptTracker {
-        private int failedAttempts = 0;
-        private Instant lockoutUntil = null;
-        private Instant lastAttempt = Instant.now();
-
-        boolean isLocked() {
-            if (lockoutUntil != null && Instant.now().isBefore(lockoutUntil)) {
-                return true;
-            }
-            if (lockoutUntil != null && Instant.now().isAfter(lockoutUntil)) {
-                reset();
-            }
-            return false;
-        }
-
-        void incrementFailedAttempts() {
-            failedAttempts++;
-            lastAttempt = Instant.now();
-            if (failedAttempts >= MAX_LOGIN_ATTEMPTS) {
-                lockoutUntil = Instant.now().plus(LOCKOUT_DURATION_MINUTES, ChronoUnit.MINUTES);
-            }
-        }
-
-        void reset() {
-            failedAttempts = 0;
-            lockoutUntil = null;
-            lastAttempt = Instant.now();
-        }
-
-        Instant getLastAttempt() {
-            return lastAttempt;
-        }
     }
 
     /**

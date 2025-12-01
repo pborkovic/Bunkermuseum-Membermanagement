@@ -17,6 +17,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+
 /**
  * Hilla endpoint for authentication operations.
  *
@@ -366,7 +368,7 @@ public class AuthController {
             String salutation,
             String academicTitle,
             String rank,
-            java.time.LocalDate birthday,
+            LocalDate birthday,
             String phone,
             String street,
             String city,

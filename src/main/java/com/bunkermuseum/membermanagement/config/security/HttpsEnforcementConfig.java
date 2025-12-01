@@ -138,9 +138,6 @@ public class HttpsEnforcementConfig {
                 url.append(request.getServerName());
 
                 int httpsPort = 443;
-                if (httpsPort != 443) {
-                    url.append(":").append(httpsPort);
-                }
 
                 url.append(request.getRequestURI());
 

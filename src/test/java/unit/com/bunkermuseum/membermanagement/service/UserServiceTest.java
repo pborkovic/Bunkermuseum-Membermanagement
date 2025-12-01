@@ -1,8 +1,10 @@
 package unit.com.bunkermuseum.membermanagement.service;
 
 import com.bunkermuseum.membermanagement.model.User;
+import com.bunkermuseum.membermanagement.repository.contract.PasswordSetupTokenRepositoryContract;
 import com.bunkermuseum.membermanagement.repository.contract.UserRepositoryContract;
 import com.bunkermuseum.membermanagement.service.UserService;
+import com.bunkermuseum.membermanagement.service.contract.EmailServiceContract;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -56,6 +58,18 @@ class UserServiceTest {
     private PasswordEncoder passwordEncoder;
 
     /**
+     * Mock instance of the email service for sending emails.
+     */
+    @Mock
+    private EmailServiceContract emailService;
+
+    /**
+     * Mock instance of the password setup token repository.
+     */
+    @Mock
+    private PasswordSetupTokenRepositoryContract tokenRepository;
+
+    /**
      * Test instance of UserService for testing business logic and security features.
      */
     private UserService userService;
@@ -82,7 +96,7 @@ class UserServiceTest {
      */
     @BeforeEach
     void setUp() {
-        userService = new UserService(userRepository, passwordEncoder);
+        userService = new UserService(userRepository, passwordEncoder, emailService, tokenRepository);
         testUser = new User("Test User", "test@example.com", "hashedPassword123");
         testUser.setEmailVerifiedAt(Instant.now());
 

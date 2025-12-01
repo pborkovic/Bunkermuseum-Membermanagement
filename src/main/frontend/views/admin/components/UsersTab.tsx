@@ -34,8 +34,22 @@ export default function UsersTab(): JSX.Element {
   const deleteModal = useModalWithData<User>();
   const editModal = useModalWithData<User>();
   const exportModal = useModal();
+  const createModal = useModal();
   const [users, setUsers] = useState<User[]>([]);
   const [editForm, setEditForm] = useState<ProfileFormData>({
+    name: '',
+    email: '',
+    salutation: '',
+    academicTitle: '',
+    rank: '',
+    birthday: undefined,
+    phone: '',
+    street: '',
+    city: '',
+    postalCode: '',
+    country: ''
+  });
+  const [createForm, setCreateForm] = useState<ProfileFormData>({
     name: '',
     email: '',
     salutation: '',
@@ -227,6 +241,64 @@ export default function UsersTab(): JSX.Element {
     }
   }, [exportUserType, exportFormat, exportModal]);
 
+  /**
+   * Opens the create user modal and resets the form.
+   *
+   * @author Philipp Borkovic
+   */
+  const handleOpenCreateModal = useCallback((): void => {
+    setCreateForm({
+      name: '',
+      email: '',
+      salutation: '',
+      academicTitle: '',
+      rank: '',
+      birthday: undefined,
+      phone: '',
+      street: '',
+      city: '',
+      postalCode: '',
+      country: ''
+    });
+    createModal.open();
+  }, [createModal]);
+
+  /**
+   * Creates a new user with the provided form data.
+   *
+   * @author Philipp Borkovic
+   */
+  const handleCreateUser = useCallback(async (): Promise<void> => {
+    try {
+      if (!createForm.name || !createForm.email) {
+        setError('Name und E-Mail sind Pflichtfelder');
+        return;
+      }
+
+      const newUser = {
+        name: createForm.name,
+        email: createForm.email,
+        salutation: createForm.salutation || undefined,
+        academicTitle: createForm.academicTitle || undefined,
+        rank: createForm.rank || undefined,
+        birthday: createForm.birthday ? createForm.birthday.toISOString().split('T')[0] : undefined,
+        phone: createForm.phone || undefined,
+        street: createForm.street || undefined,
+        city: createForm.city || undefined,
+        postalCode: createForm.postalCode || undefined,
+        country: createForm.country || undefined
+      } as User;
+
+      await UserController.createUser(newUser);
+      createModal.close();
+      setError('');
+      await loadUsers();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Fehler beim Erstellen des Benutzers';
+      setError(errorMessage);
+    }
+  }, [createForm, createModal, loadUsers]);
+
   return (
     <div className="flex flex-col h-full space-y-4">
       {/* Header with Search and Controls */}
@@ -240,6 +312,15 @@ export default function UsersTab(): JSX.Element {
 
         {/* Search Bar and Controls */}
         <div className="flex flex-col sm:flex-row gap-3 sm:ml-auto">
+          {/* Create User Button */}
+          <Button
+            variant="outline"
+            onClick={handleOpenCreateModal}
+            className="text-white bg-green-600 hover:bg-green-700 border-green-600 h-9 self-start sm:self-auto"
+          >
+            <Icon icon="vaadin:plus" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+            Neues Mitglied
+          </Button>
           {/* Export Button */}
           <Button
             variant="outline"
@@ -773,6 +854,214 @@ export default function UsersTab(): JSX.Element {
             >
               <Icon icon="vaadin:download" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
               Exportieren
+            </Button>
+          </div>
+        </div>
+      </Dialog>
+
+      {/* Create user modal */}
+      <Dialog
+        opened={createModal.isOpen}
+        onOpenedChanged={(e: any) => {
+          if (!e.detail.value) createModal.close();
+        }}
+        headerTitle="Neues Mitglied erstellen"
+      >
+        <div className="p-4 sm:p-6 min-w-[300px] sm:min-w-[900px] lg:min-w-[1100px] max-w-[95vw] max-h-[90vh] overflow-y-auto">
+          <div className="space-y-6">
+            {/* Icon */}
+            <div className="flex justify-center">
+              <Icon icon="vaadin:user-card" className="text-black" style={{ width: '64px', height: '64px' }} />
+            </div>
+
+            {/* Description */}
+            <div className="text-center space-y-2">
+              <p className="font-medium text-lg">Neues Mitglied anlegen</p>
+              <p className="text-sm text-muted-foreground">
+                Geben Sie die Mitgliedsdaten ein. Das neue Mitglied erhält eine E-Mail zur Passwort-Einrichtung.
+              </p>
+            </div>
+
+            {/* Basic Information */}
+            <div className="space-y-3">
+              <label className="text-sm font-medium">Grundinformationen</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs text-muted-foreground">Name *</label>
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 border border-black rounded-md bg-white text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
+                    value={createForm.name}
+                    onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
+                    placeholder="Max Mustermann"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs text-muted-foreground">E-Mail *</label>
+                  <input
+                    type="email"
+                    className="w-full px-3 py-2 border border-black rounded-md bg-white text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
+                    value={createForm.email}
+                    onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
+                    placeholder="max@example.com"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Personal Information */}
+            <div className="space-y-3">
+              <label className="text-sm font-medium">Persönliche Daten</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs text-muted-foreground">Anrede</label>
+                  <Select
+                    value={createForm.salutation}
+                    onValueChange={(value) => setCreateForm({ ...createForm, salutation: value })}
+                  >
+                    <SelectTrigger className="w-full border-black text-black [&_svg]:text-black [&_svg]:opacity-100 [&_svg]:-mt-4">
+                      <SelectValue placeholder="Wählen" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border-black z-[9999]">
+                      {ANREDE_OPTIONS.map(option => (
+                        <SelectItem
+                          key={option.value}
+                          value={option.value}
+                          className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black"
+                        >
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs text-muted-foreground">Akademischer Titel</label>
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 border border-black rounded-md bg-white text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
+                    value={createForm.academicTitle}
+                    onChange={(e) => setCreateForm({ ...createForm, academicTitle: e.target.value })}
+                    placeholder="z.B. Dr., Prof."
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs text-muted-foreground">Dienstgrad</label>
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 border border-black rounded-md bg-white text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
+                    value={createForm.rank}
+                    onChange={(e) => setCreateForm({ ...createForm, rank: e.target.value })}
+                    placeholder="z.B. Oberst, Major"
+                  />
+                </div>
+
+                <div className="space-y-2 relative z-[99999]">
+                  <label className="text-xs text-muted-foreground">Geburtsdatum</label>
+                  <DatePicker
+                    value={createForm.birthday}
+                    onChange={(date) => setCreateForm({ ...createForm, birthday: date })}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Contact Information */}
+            <div className="space-y-3">
+              <label className="text-sm font-medium">Kontaktdaten</label>
+              <div className="space-y-2">
+                <label className="text-xs text-muted-foreground">Telefon</label>
+                <input
+                  type="tel"
+                  className="w-full px-3 py-2 border border-black rounded-md bg-white text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
+                  value={createForm.phone}
+                  onChange={(e) => setCreateForm({ ...createForm, phone: e.target.value })}
+                  placeholder="+49 123 456789"
+                />
+              </div>
+            </div>
+
+            {/* Address Information */}
+            <div className="space-y-3">
+              <label className="text-sm font-medium">Adresse</label>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-xs text-muted-foreground">Straße & Hausnummer</label>
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 border border-black rounded-md bg-white text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
+                    value={createForm.street}
+                    onChange={(e) => setCreateForm({ ...createForm, street: e.target.value })}
+                    placeholder="Musterstraße 123"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs text-muted-foreground">Postleitzahl</label>
+                    <input
+                      type="text"
+                      className="w-full px-3 py-2 border border-black rounded-md bg-white text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
+                      value={createForm.postalCode}
+                      onChange={(e) => setCreateForm({ ...createForm, postalCode: e.target.value })}
+                      placeholder="12345"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs text-muted-foreground">Stadt</label>
+                    <input
+                      type="text"
+                      className="w-full px-3 py-2 border border-black rounded-md bg-white text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
+                      value={createForm.city}
+                      onChange={(e) => setCreateForm({ ...createForm, city: e.target.value })}
+                      placeholder="Berlin"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs text-muted-foreground">Land</label>
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 border border-black rounded-md bg-white text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
+                    value={createForm.country}
+                    onChange={(e) => setCreateForm({ ...createForm, country: e.target.value })}
+                    placeholder="Deutschland"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4">
+            <Button
+              variant="destructive"
+              onClick={createModal.close}
+              className="text-white"
+            >
+              <Icon
+                icon="vaadin:close"
+                className="mr-2"
+                style={{ width: '16px', height: '16px', color: 'white' }}
+              />
+              Abbrechen
+            </Button>
+            <Button
+              onClick={handleCreateUser}
+              className="bg-black text-white hover:bg-gray-800"
+            >
+              <Icon
+                icon="vaadin:check"
+                className="mr-2"
+                style={{ width: '16px', height: '16px', color: 'white' }}
+              />
+              Erstellen
             </Button>
           </div>
         </div>

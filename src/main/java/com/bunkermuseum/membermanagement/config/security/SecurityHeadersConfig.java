@@ -1,4 +1,4 @@
-package com.bunkermuseum.membermanagement.config;
+package com.bunkermuseum.membermanagement.config.security;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletResponse;

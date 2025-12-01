@@ -432,9 +432,9 @@ export default function RegisterView(): JSX.Element {
                 {error}
               </div>
             )}
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Registrieren...' : 'Registrieren'}
-            </Button>
+              <Button type="submit" className="w-full bg-black text-white hover:bg-gray-800" disabled={isLoading}>
+                  {isLoading ? 'Registrieren...' : 'Registrieren'}
+              </Button>
           </form>
 
           {/* Login link */}

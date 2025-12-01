@@ -138,9 +138,9 @@ export default function LoginView(): JSX.Element {
                 {error}
               </div>
             )}
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Anmelden...' : 'Anmelden'}
-            </Button>
+              <Button type="submit" className="w-full bg-black text-white hover:bg-black/90" disabled={isLoading}>
+                  {isLoading ? 'Anmelden...' : 'Anmelden'}
+              </Button>
           </form>
 
           {/* Register link */}

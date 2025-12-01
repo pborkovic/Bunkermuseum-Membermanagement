@@ -1,7 +1,6 @@
 package com.bunkermuseum.membermanagement.dto;
 
 import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.jspecify.annotations.Nullable;
@@ -60,11 +59,12 @@ public class AssignBookingRequest {
 
     /**
      * The actual purpose of the transaction as received.
-     * Required field with maximum length of 500 characters.
+     * Optional field with maximum length of 200 characters.
+     * If not provided, defaults to "Mitgliedsbeitrag".
+     * Note: The system will automatically append the year and member name to this purpose.
      */
-    @NotBlank(message = "Tatsächlicher Verwendungszweck ist erforderlich")
-    @Size(max = 500, message = "Verwendungszweck darf maximal 500 Zeichen lang sein")
-    private String actualPurpose;
+    @Size(max = 200, message = "Verwendungszweck darf maximal 200 Zeichen lang sein")
+    private String actualPurpose = "Mitgliedsbeitrag";
 
     /**
      * Default constructor for framework usage (Jackson, Spring, etc.).

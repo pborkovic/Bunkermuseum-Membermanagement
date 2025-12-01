@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 
 /**
  * REST controller responsible for handling data export operations for users, bookings, and emails.
@@ -162,6 +163,80 @@ public class ExportDownloadController {
 
         byte[] exportData = exportService.exportEmails(emailType, format);
         String filename = generateFilename("emails", emailType, format);
+
+        return buildDownloadResponse(exportData, filename, format);
+    }
+
+    /**
+     * Handles HTTP GET requests for downloading a single user's data in the specified format.
+     *
+     * <p>
+     * This endpoint exports all data associated with a specific user identified by their UUID.
+     * The export includes all user profile information, settings, and related data in the
+     * requested format (e.g., XLSX, PDF, XML, JSON).
+     * </p>
+     *
+     * @param userId the UUID of the user to export; must not be {@code null}.
+     * @param format the desired output file format (e.g., {@code "xlsx"}, {@code "pdf"},
+     *               {@code "xml"}, {@code "json"}); must not be {@code null}.
+     *
+     * @return a {@link ResponseEntity} containing the exported user data as a downloadable attachment,
+     *         with the appropriate content type and filename headers applied.
+     *
+     * @throws IllegalArgumentException if the provided {@code userId} is invalid or {@code format} is not supported.
+     *
+     * @author Philipp Borkovic
+     */
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<byte[]> downloadUser(
+            @PathVariable UUID userId,
+            @RequestParam String format
+    ) {
+        logger.info("Download user: userId={}, format={}", userId, format);
+
+        byte[] exportData = exportService.exportUser(userId, format);
+
+        String filename = String.format("user_%s_%s.%s",
+                userId.toString().substring(0, 8),
+                LocalDate.now().format(DateTimeFormatter.ISO_DATE),
+                format);
+
+        return buildDownloadResponse(exportData, filename, format);
+    }
+
+    /**
+     * Handles HTTP GET requests for downloading a single booking's data in the specified format.
+     *
+     * <p>
+     * This endpoint exports all data associated with a specific booking identified by its UUID.
+     * The export includes booking details, amounts, dates, and associated user information in the
+     * requested format (e.g., XLSX, PDF, XML, JSON).
+     * </p>
+     *
+     * @param bookingId the UUID of the booking to export; must not be {@code null}.
+     * @param format    the desired output file format (e.g., {@code "xlsx"}, {@code "pdf"},
+     *                  {@code "xml"}, {@code "json"}); must not be {@code null}.
+     *
+     * @return a {@link ResponseEntity} containing the exported booking data as a downloadable attachment,
+     *         with the appropriate content type and filename headers applied.
+     *
+     * @throws IllegalArgumentException if the provided {@code bookingId} is invalid or {@code format} is not supported.
+     *
+     * @author Philipp Borkovic
+     */
+    @GetMapping("/booking/{bookingId}")
+    public ResponseEntity<byte[]> downloadBooking(
+            @PathVariable UUID bookingId,
+            @RequestParam String format
+    ) {
+        logger.info("Download booking: bookingId={}, format={}", bookingId, format);
+
+        byte[] exportData = exportService.exportBooking(bookingId, format);
+
+        String filename = String.format("booking_%s_%s.%s",
+                bookingId.toString().substring(0, 8),
+                LocalDate.now().format(DateTimeFormatter.ISO_DATE),
+                format);
 
         return buildDownloadResponse(exportData, filename, format);
     }

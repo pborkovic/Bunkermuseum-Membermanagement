@@ -106,9 +106,17 @@ public class AuthController {
                 return null;
             }
 
-            var authorities = java.util.Collections.singletonList(
-                    new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_USER")
-            );
+            var authorities = user.getRoles().stream()
+                    .map(role -> new org.springframework.security.core.authority.SimpleGrantedAuthority(
+                            "ROLE_" + role.getName().toUpperCase()
+                    ))
+                    .collect(java.util.stream.Collectors.toList());
+
+            if (authorities.isEmpty()) {
+                authorities = java.util.Collections.singletonList(
+                        new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_USER")
+                );
+            }
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(user, null, authorities);
@@ -123,11 +131,19 @@ public class AuthController {
                     context
             );
 
+            java.util.Set<com.bunkermuseum.membermanagement.dto.RoleDTO> roleDTOs = user.getRoles().stream()
+                    .map(role -> new com.bunkermuseum.membermanagement.dto.RoleDTO(
+                            role.getId(),
+                            role.getName()
+                    ))
+                    .collect(java.util.stream.Collectors.toSet());
+
             return new LoginResponse(
                     user.getId().toString(),
                     user.getName(),
                     user.getEmail(),
-                    user.getEmailVerifiedAt() != null
+                    user.getEmailVerifiedAt() != null,
+                    roleDTOs
             );
         } catch (IllegalArgumentException e) {
             logger.error("Validation error during login for email: {} from IP: {}", email, clientIp, e);
@@ -334,6 +350,7 @@ public class AuthController {
      * @param name The user's display name
      * @param email The user's email address
      * @param emailVerified Whether the user's email has been verified
+     * @param roles The user's roles for authorization and dashboard routing
      *
      * @author Philipp Borkovic
      */
@@ -341,7 +358,8 @@ public class AuthController {
             String id,
             String name,
             String email,
-            boolean emailVerified
+            boolean emailVerified,
+            java.util.Set<com.bunkermuseum.membermanagement.dto.RoleDTO> roles
     ) {}
 
     /**

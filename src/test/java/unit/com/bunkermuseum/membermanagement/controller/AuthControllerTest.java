@@ -638,7 +638,8 @@ class AuthControllerTest {
                 userId.toString(),
                 name,
                 email,
-                emailVerified
+                emailVerified,
+                java.util.Collections.emptySet()
         );
 
         // Assert

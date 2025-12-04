@@ -2,8 +2,8 @@ package com.bunkermuseum.membermanagement.service;
 
 import com.bunkermuseum.membermanagement.dto.AssignBookingRequest;
 import com.bunkermuseum.membermanagement.dto.BookingDTO;
+import com.bunkermuseum.membermanagement.dto.MemberType;
 import com.bunkermuseum.membermanagement.model.Booking;
-import com.bunkermuseum.membermanagement.model.Role;
 import com.bunkermuseum.membermanagement.model.User;
 import com.bunkermuseum.membermanagement.repository.contract.BookingRepositoryContract;
 import com.bunkermuseum.membermanagement.repository.contract.UserRepositoryContract;
@@ -88,8 +88,7 @@ public class BookingService extends BaseService<Booking, BookingRepositoryContra
                 throw new IllegalArgumentException("Member type is required");
             }
 
-            String roleName = request.getMemberType().getRoleName();
-            List<User> targets = resolveUsersByMemberType(roleName);
+            List<User> targets = resolveUsersByMemberType(request.getMemberType());
 
             if (targets.isEmpty()) {
                 logger.warn("No users found with member type: {}", request.getMemberType());
@@ -113,6 +112,7 @@ public class BookingService extends BaseService<Booking, BookingRepositoryContra
                     basePurpose.trim(),
                     currentYear,
                     user.getName());
+                booking.setExpectedPurpose(personalizedPurpose);
                 booking.setActualPurpose(personalizedPurpose);
 
                 return booking;
@@ -136,74 +136,42 @@ public class BookingService extends BaseService<Booking, BookingRepositoryContra
     }
 
     /**
-     * Resolves users by member type (role-based filtering).
+     * Resolves users by member type based on the ofMg field.
      *
-     * <p>This method filters users by their assigned roles, targeting
-     * users with the specified member type role. It supports multiple role name formats
-     * for flexibility.</p>
+     * <p>This method filters active users by their member type:
+     * <ul>
+     *   <li>REGULAR_MEMBERS (Ordentliche Mitglieder): ofMg = true</li>
+     *   <li>SUPPORTING_MEMBERS (Fördernde Mitglieder): ofMg = false</li>
+     * </ul>
+     * Deleted users (deletedAt != null) are automatically excluded.</p>
      *
-     * @param memberType The member type role name (e.g., "ordentliche_mitglieder", "fördernde_mitglieder")
-     * @return List of users with the specified member type role, never null but may be empty
+     * @param memberType The member type enum (REGULAR_MEMBERS or SUPPORTING_MEMBERS)
+     * @return List of active users matching the specified member type, never null but may be empty
      *
      * @author Philipp Borkovic
      */
-    private List<User> resolveUsersByMemberType(String memberType) {
+    private List<User> resolveUsersByMemberType(MemberType memberType) {
         List<User> allUsers = userRepository.findAll();
-        String memberTypeLowerCase = memberType.toLowerCase();
 
-        logger.info("Searching for users with member type: {}", memberTypeLowerCase);
+        logger.info("Searching for users with member type: {}", memberType);
         logger.info("Total users in database: {}", allUsers.size());
 
-        List<String> acceptableRoleNames = buildAcceptableRoleNames(memberTypeLowerCase);
-        logger.info("Acceptable role names for matching: {}", acceptableRoleNames);
+        boolean targetOfMgValue = (memberType == MemberType.REGULAR_MEMBERS);
 
         List<User> matchedUsers = allUsers.stream()
-            .filter(user -> user.getRoles() != null)
+            .filter(User::isActive)
             .filter(user -> {
-                List<String> userRoles = user.getRoles().stream()
-                    .map(Role::getName)
-                    .filter(Objects::nonNull)
-                    .map(String::toLowerCase)
-                    .toList();
+                Boolean userOfMg = user.getOfMg();
+                boolean ofMgValue = (userOfMg != null) ? userOfMg : false;
 
-                logger.debug("User {} has roles: {}", user.getEmail(), userRoles);
-
-                boolean hasRole = userRoles.stream()
-                    .anyMatch(roleName -> acceptableRoleNames.stream()
-                        .anyMatch(acceptable -> roleName.contains(acceptable) || acceptable.contains(roleName)));
-
-                if (!hasRole) {
-                    logger.debug("User {} does not have matching role. User roles: {}, Required: {}",
-                        user.getEmail(), userRoles, acceptableRoleNames);
-                }
-
-                return hasRole;
+                return (ofMgValue == targetOfMgValue);
             })
             .collect(Collectors.toList());
 
-        logger.info("Found {} users with member type: {}", matchedUsers.size(), memberTypeLowerCase);
+        logger.info("Found {} active users with member type: {} (ofMg={})",
+            matchedUsers.size(), memberType, targetOfMgValue);
 
         return matchedUsers;
-    }
-
-    /**
-     * Builds a list of acceptable role name variations for matching.
-     *
-     * @param baseName The base role name (e.g., "ordentliche_mitglieder")
-     * @return List of acceptable variations for fuzzy matching
-     */
-    private List<String> buildAcceptableRoleNames(String baseName) {
-        List<String> variations = new java.util.ArrayList<>();
-        variations.add(baseName);
-        variations.add(baseName.replace("_", " "));
-        variations.add(baseName.replace("_", ""));
-
-        String[] parts = baseName.split("_");
-        if (parts.length > 0) {
-            variations.add(parts[0]); // "ordentliche" or "fördernde"
-        }
-
-        return variations;
     }
 
 

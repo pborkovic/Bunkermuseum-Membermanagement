@@ -72,7 +72,22 @@ export default function LoginView(): JSX.Element {
       const response = await AuthController.login(email, password);
 
       if (response) {
-        window.location.href = '/';
+        const roleNames = Array.from(response.roles || [])
+          .filter((role): role is { name: string } => Boolean(role?.name))
+          .map(role => role.name.toUpperCase());
+
+        const hasAdmin = roleNames.includes('ADMIN');
+        const hasMember = roleNames.includes('USER') || roleNames.includes('MEMBER');
+
+        if (hasAdmin && hasMember) {
+          window.location.href = '/dashboard-selection';
+        } else if (hasAdmin) {
+          window.location.href = '/admin';
+        } else if (hasMember) {
+          window.location.href = '/member';
+        } else {
+          window.location.href = '/member';
+        }
       } else {
         setError(ERROR_MESSAGES.INVALID_CREDENTIALS);
       }

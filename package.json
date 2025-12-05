@@ -36,6 +36,7 @@
     "react": "18.3.1",
     "react-day-picker": "^8.10.1",
     "react-dom": "18.3.1",
+    "react-icons": "^5.5.0",
     "react-quill": "^2.0.0",
     "react-router": "7.6.1",
     "sonner": "^2.0.7",
@@ -141,7 +142,7 @@
       "workbox-core": "7.3.0",
       "workbox-precaching": "7.3.0"
     },
-    "hash": "1b4472c7a214e3fbd58e73254ce1a80eca681ad1936c76ec4b96e90f8c190179"
+    "hash": "9e76c2c95fba2d73214dde2c562c7eebfe3e930ebb855d7a5a9c9feeb0440618"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
@@ -241,6 +242,7 @@
     "@radix-ui/react-dropdown-menu": "$@radix-ui/react-dropdown-menu",
     "next-themes": "$next-themes",
     "sonner": "$sonner",
-    "react-quill": "$react-quill"
+    "react-quill": "$react-quill",
+    "react-icons": "$react-icons"
   }
 }

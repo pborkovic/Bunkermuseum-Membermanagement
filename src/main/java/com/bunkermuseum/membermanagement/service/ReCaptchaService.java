@@ -63,9 +63,6 @@ public class ReCaptchaService implements ReCaptchaServiceContract {
             throw new IllegalArgumentException("reCAPTCHA token is required");
         }
 
-        logger.debug("Verifying reCAPTCHA token. Secret key configured: {}, Verify URL: {}",
-                     (secretKey != null && !secretKey.isEmpty()), verifyUrl);
-
         try {
             String requestBody = String.format("secret=%s&response=%s", secretKey, token);
 
@@ -76,7 +73,6 @@ public class ReCaptchaService implements ReCaptchaServiceContract {
                     .timeout(Duration.ofSeconds(10))
                     .build();
 
-            logger.debug("Sending reCAPTCHA verification request to: {}", verifyUrl);
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             logger.debug("reCAPTCHA API response status: {}, body: {}",
@@ -84,6 +80,7 @@ public class ReCaptchaService implements ReCaptchaServiceContract {
 
             if (response.statusCode() != 200) {
                 logger.error("reCAPTCHA verification failed with status code: {}", response.statusCode());
+
                 return false;
             }
 
@@ -93,17 +90,21 @@ public class ReCaptchaService implements ReCaptchaServiceContract {
             if (!success) {
                 JsonNode errorCodes = jsonResponse.path("error-codes");
                 String hostname = jsonResponse.path("hostname").asText("unknown");
+
                 logger.warn("reCAPTCHA verification failed. Success: {}, Error codes: {}, Hostname: {}",
                            success, errorCodes, hostname);
+
                 return false;
             }
 
             String hostname = jsonResponse.path("hostname").asText("unknown");
             logger.info("reCAPTCHA verification successful for hostname: {}", hostname);
+
             return true;
 
         } catch (Exception e) {
             logger.error("Error verifying reCAPTCHA token", e);
+
             return false;
         }
     }

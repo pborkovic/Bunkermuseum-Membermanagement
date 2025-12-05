@@ -49,6 +49,9 @@ declare module '*.webp' {
 
 interface ImportMetaEnv {
   readonly VITE_RECAPTCHA_SITE_KEY: string;
+  readonly DEV: boolean;
+  readonly PROD: boolean;
+  readonly MODE: string;
 }
 
 interface ImportMeta {

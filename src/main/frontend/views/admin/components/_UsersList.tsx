@@ -205,7 +205,7 @@ function UsersList({
       </div>
 
       {/* Pagination Footer */}
-      <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-4 px-1 pt-4">
+      <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-4 px-1 pt-1">
         {/* Results Info - Left side */}
         <PaginationInfo
           startIndex={startIndex}

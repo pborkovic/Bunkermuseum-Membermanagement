@@ -2,6 +2,7 @@ package unit.com.bunkermuseum.membermanagement.controller;
 
 import com.bunkermuseum.membermanagement.controller.AuthController;
 import com.bunkermuseum.membermanagement.model.User;
+import com.bunkermuseum.membermanagement.service.ReCaptchaService;
 import com.bunkermuseum.membermanagement.service.contract.RoleServiceContract;
 import com.bunkermuseum.membermanagement.service.contract.UserServiceContract;
 import jakarta.servlet.http.HttpServletRequest;
@@ -86,6 +87,12 @@ class AuthControllerTest {
     private Authentication authentication;
 
     /**
+     * Mock instance of the ReCaptcha service for endpoints requiring captcha validation.
+     */
+    @Mock
+    private ReCaptchaService reCaptchaService;
+
+    /**
      * Test instance of AuthController for testing endpoint behavior.
      */
     private AuthController authController;
@@ -112,7 +119,7 @@ class AuthControllerTest {
      */
     @BeforeEach
     void setUp() {
-        authController = new AuthController(userService, roleService, request);
+        authController = new AuthController(userService, roleService, request, reCaptchaService);
 
         testUser = new User("Test User", "test@example.com", "hashedPassword123");
         testUser.setEmailVerifiedAt(Instant.now());

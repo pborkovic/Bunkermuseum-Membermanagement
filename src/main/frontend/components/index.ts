@@ -3,9 +3,6 @@
  * Provides centralized exports for all reusable React components.
  *
  * @author Philipp Borkovic
- *
- * @version 1.0.0
- * @since 2025-09-15
  */
 
 /**
@@ -20,6 +17,12 @@ export { ThemeToggle } from './ThemeToggle';
  * @see {@link Group} for grouping form elements
  */
 export { ViewToolbar, Group } from './ViewToolbar';
+
+/**
+ * Error handling components.
+ * @see {@link ErrorBoundary} for React error boundary functionality
+ */
+export { ErrorBoundary } from './ErrorBoundary';
 
 /**
  * Component prop type definitions.

@@ -128,7 +128,7 @@ export interface SalutationOption {
  */
 export interface TabConfig {
   tabId: TabId;
-  icon: string;
+  icon: JSX.Element | React.ReactNode;
   label: string;
 }
 

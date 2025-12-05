@@ -112,7 +112,7 @@ function UsersList({
             header="Name"
             flexGrow={1}
             headerRenderer={() => (
-              <div className="text-center w-full font-medium">Name</div>
+              <div className="text-left w-full font-medium">Name</div>
             )}
             renderer={({ item }: any) => (
               <button
@@ -130,7 +130,7 @@ function UsersList({
               header="E-Mail"
               flexGrow={1}
               headerRenderer={() => (
-                <div className="text-center w-full font-medium">E-Mail</div>
+                <div className="text-left w-full font-medium">E-Mail</div>
               )}
               renderer={({ item }: any) => (
                 <div className="text-left">

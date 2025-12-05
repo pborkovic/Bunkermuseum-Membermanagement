@@ -436,15 +436,14 @@ export default function UsersTab(): JSX.Element {
               Neues Mitglied
             </Button>
             {/* Export Button */}
-              <Button
-                  variant="outline"
-                  onClick={exportModal.open}
-                  className="text-black bg-[#eab308] hover:bg-[#ca9c07] border-black h-9 self-start sm:self-auto"
-              >
-                  <Icon icon="vaadin:download" className="mr-2"
-                        style={{width: '16px', height: '16px', color: 'black'}}/>
-                  Exportieren
-              </Button>
+            <Button
+              variant="outline"
+              onClick={exportModal.open}
+              className="text-white bg-black hover:bg-gray-800 border-black h-9 self-start sm:self-auto"
+            >
+              <Icon icon="vaadin:download" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+              Exportieren
+            </Button>
           </div>
         </div>
       </div>

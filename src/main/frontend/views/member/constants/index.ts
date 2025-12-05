@@ -10,6 +10,7 @@
 
 import type { SalutationOption, TabConfig } from '../types';
 import { TabId } from '../types';
+import type { IconType } from 'react-icons';
 
 /**
  * File upload constraints.
@@ -43,10 +44,11 @@ export const VALIDATION = {
  * @const {Object} PROFILE_PICTURE
  */
 export const PROFILE_PICTURE = {
-  DEFAULT_ICON: 'vaadin:user' as const,
   SIZE_LARGE: 128,
   SIZE_SMALL: 40,
   ICON_SIZE: 64,
+  ICON_WIDTH: 20,
+  ICON_HEIGHT: 20,
 } as const;
 
 /**
@@ -61,22 +63,10 @@ export const SALUTATION_OPTIONS: readonly SalutationOption[] = [
 ] as const;
 
 /**
- * Tab configurations for the member dashboard navigation.
- *
- * @const {ReadonlyArray<TabConfig>}
+ * Tab icon components for the member dashboard navigation.
+ * Exported separately to avoid JSX in .ts file.
  */
-export const TAB_CONFIGS: readonly TabConfig[] = [
-  {
-    tabId: TabId.BOOKINGS,
-    icon: 'vaadin:invoice',
-    label: 'Buchungen',
-  },
-  {
-    tabId: TabId.SETTINGS,
-    icon: 'vaadin:cog',
-    label: 'Einstellungen',
-  },
-] as const;
+export { FaFileInvoice as BookingsIcon, FaCog as SettingsIcon, FaUser as UserIcon } from 'react-icons/fa';
 
 /**
  * Error messages in German.

@@ -10,14 +10,14 @@ export const config: ViewConfig = {
 };
 
 /**
- * 404 Seite nicht gefunden - Fehlerseite
+ * 404 Not Found Error Page
  *
- * Wird angezeigt, wenn ein Benutzer zu einer nicht existierenden Route navigiert.
- * Bietet Optionen zur Rückkehr zur Startseite oder zur vorherigen Seite.
+ * Displays when a user navigates to a non-existent route.
+ * Provides options to return to home or go back to previous page.
  *
  * @component
  *
- * @returns {JSX.Element} Die 404 Fehlerseite
+ * @returns {JSX.Element} The 404 error page
  *
  * @author Philipp Borkovic
  */

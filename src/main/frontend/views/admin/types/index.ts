@@ -107,13 +107,13 @@ export interface WindowSize {
  * Empty state props interface.
  *
  * @interface EmptyStateProps
- * @property {string} icon - Vaadin icon name to display
+ * @property {JSX.Element | React.ReactNode} icon - React icon element to display
  * @property {string} title - Main title text
  * @property {string} description - Descriptive text
  * @property {string} [className] - Optional additional CSS classes
  */
 export interface EmptyStateProps {
-  icon: string;
+  icon: JSX.Element | React.ReactNode;
   title: string;
   description: string;
   className?: string;

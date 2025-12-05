@@ -3,6 +3,7 @@ package com.bunkermuseum.membermanagement.controller;
 import com.bunkermuseum.membermanagement.dto.UserDTO;
 import com.bunkermuseum.membermanagement.dto.mapper.UserMapper;
 import com.bunkermuseum.membermanagement.model.User;
+import com.bunkermuseum.membermanagement.service.contract.ReCaptchaServiceContract;
 import com.bunkermuseum.membermanagement.service.contract.RoleServiceContract;
 import com.bunkermuseum.membermanagement.service.contract.UserServiceContract;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
@@ -48,13 +49,13 @@ public class AuthController {
     private final UserServiceContract userService;
     private final RoleServiceContract roleService;
     private final HttpServletRequest request;
-    private final com.bunkermuseum.membermanagement.service.ReCaptchaService reCaptchaService;
+    private final ReCaptchaServiceContract reCaptchaService;
 
     public AuthController(
             UserServiceContract userService,
             RoleServiceContract roleService,
             HttpServletRequest request,
-            com.bunkermuseum.membermanagement.service.ReCaptchaService reCaptchaService
+            ReCaptchaServiceContract reCaptchaService
     ) {
         this.userService = userService;
         this.roleService = roleService;

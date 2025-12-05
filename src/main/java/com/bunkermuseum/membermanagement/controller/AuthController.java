@@ -48,15 +48,18 @@ public class AuthController {
     private final UserServiceContract userService;
     private final RoleServiceContract roleService;
     private final HttpServletRequest request;
+    private final com.bunkermuseum.membermanagement.service.ReCaptchaService reCaptchaService;
 
     public AuthController(
             UserServiceContract userService,
             RoleServiceContract roleService,
-            HttpServletRequest request
+            HttpServletRequest request,
+            com.bunkermuseum.membermanagement.service.ReCaptchaService reCaptchaService
     ) {
         this.userService = userService;
         this.roleService = roleService;
         this.request = request;
+        this.reCaptchaService = reCaptchaService;
     }
 
     /**
@@ -310,6 +313,14 @@ public class AuthController {
         String email = request.email();
 
         try {
+            boolean isValidRecaptcha = reCaptchaService.verifyToken(request.recaptchaToken());
+
+            if (!isValidRecaptcha) {
+                logger.warn("reCAPTCHA verification failed for registration attempt from IP: {}", clientIp);
+
+                throw new IllegalArgumentException("reCAPTCHA verification failed. Please try again.");
+            }
+
             userService.register(
                     request.name(),
                     email,
@@ -376,6 +387,7 @@ public class AuthController {
      * @param street The user's street address
      * @param city The user's city
      * @param postalCode The user's postal code
+     * @param recaptchaToken The reCAPTCHA v2 token for bot protection
      *
      * @author Philipp Borkovic
      */
@@ -391,7 +403,8 @@ public class AuthController {
             String street,
             String city,
             String postalCode,
-            String country
+            String country,
+            String recaptchaToken
     ) {}
 
     /**

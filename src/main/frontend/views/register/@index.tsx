@@ -18,7 +18,7 @@ import logo from 'Frontend/assets/images/logo_bunkermuseum.jpg';
  *
  * @author Philipp Borkovic
  */
-const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LeyACIsAAAAAASaFn6feKREGZB_IWoKXjLfNR8y';
+const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
 /**
  * Extend Window interface to include grecaptcha.

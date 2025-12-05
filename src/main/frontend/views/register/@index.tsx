@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { ViewConfig } from '@vaadin/hilla-file-router/types.js';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,24 @@ import { z } from 'zod';
 import { subYears } from 'date-fns';
 import { AuthController } from 'Frontend/generated/endpoints';
 import logo from 'Frontend/assets/images/logo_bunkermuseum.jpg';
+
+/**
+ * Google reCAPTCHA v2 site key.
+ * This should be set via environment variable or configuration.
+ *
+ * @author Philipp Borkovic
+ */
+const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LeyACIsAAAAAASaFn6feKREGZB_IWoKXjLfNR8y';
+
+/**
+ * Extend Window interface to include grecaptcha.
+ */
+declare global {
+  interface Window {
+    grecaptcha: any;
+    onRecaptchaLoadCallback?: () => void;
+  }
+}
 
 /**
  * Validation constants for the registration form.
@@ -158,10 +176,72 @@ export default function RegisterView(): JSX.Element {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [recaptchaToken, setRecaptchaToken] = useState('');
+  const [isRecaptchaReady, setIsRecaptchaReady] = useState(false);
+  const recaptchaRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * Loads the Google reCAPTCHA v2 checkbox script and renders the widget.
+   *
+   * @author Philipp Borkovic
+   */
+  useEffect(() => {
+    // Check if script is already loaded
+    if (window.grecaptcha && window.grecaptcha.ready) {
+      window.grecaptcha.ready(() => {
+        renderRecaptcha();
+      });
+      return;
+    }
+
+    // Load reCAPTCHA script
+    const script = document.createElement('script');
+    script.src = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoadCallback&render=explicit';
+    script.async = true;
+    script.defer = true;
+
+    // Set up callback for when reCAPTCHA is ready
+    window.onRecaptchaLoadCallback = () => {
+      renderRecaptcha();
+    };
+
+    document.body.appendChild(script);
+
+    return () => {
+      delete window.onRecaptchaLoadCallback;
+    };
+  }, []);
+
+  /**
+   * Renders the visible reCAPTCHA checkbox widget.
+   *
+   * @author Philipp Borkovic
+   */
+  const renderRecaptcha = () => {
+    if (recaptchaRef.current && window.grecaptcha && window.grecaptcha.render) {
+      try {
+        window.grecaptcha.render(recaptchaRef.current, {
+          sitekey: RECAPTCHA_SITE_KEY,
+          callback: (token: string) => {
+            setRecaptchaToken(token);
+            setIsRecaptchaReady(true);
+          },
+          'expired-callback': () => {
+            setRecaptchaToken('');
+          },
+          'error-callback': () => {
+            setError('reCAPTCHA-Fehler. Bitte laden Sie die Seite neu.');
+          },
+        });
+      } catch (e) {
+        console.debug('reCAPTCHA widget already rendered');
+      }
+    }
+  };
 
   /**
    * Handles form submission and registration process.
-   * Validates all form fields using Zod schema, then submits registration data.
+   * Validates form and submits registration data with reCAPTCHA token.
    *
    * @param {React.FormEvent} e - The form submission event
    *
@@ -171,7 +251,14 @@ export default function RegisterView(): JSX.Element {
     e.preventDefault();
     setError('');
 
+    // Check if reCAPTCHA token is present
+    if (!recaptchaToken) {
+      setError('Bitte bestätigen Sie, dass Sie kein Roboter sind.');
+      return;
+    }
+
     try {
+      // Validate form data
       const validatedData = registrationSchema.parse({
         salutation: anrede,
         academicTitle: akademischerTitel,
@@ -190,6 +277,7 @@ export default function RegisterView(): JSX.Element {
 
       setIsLoading(true);
 
+      // Submit registration with reCAPTCHA token
       const response = await AuthController.register({
         name: validatedData.name,
         email: validatedData.email,
@@ -203,6 +291,7 @@ export default function RegisterView(): JSX.Element {
         city: validatedData.city,
         postalCode: validatedData.postalCode,
         country: validatedData.country,
+        recaptchaToken: recaptchaToken,
       });
 
       if (response?.success) {
@@ -427,12 +516,18 @@ export default function RegisterView(): JSX.Element {
                 />
               </div>
             </div>
+
+            {/* reCAPTCHA checkbox widget */}
+            <div className="flex justify-center">
+              <div ref={recaptchaRef} id="recaptcha-container"></div>
+            </div>
+
             {error && (
               <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
                 {error}
               </div>
             )}
-              <Button type="submit" className="w-full bg-black text-white hover:bg-gray-800" disabled={isLoading}>
+              <Button type="submit" className="w-full bg-black text-white hover:bg-gray-800" disabled={isLoading || !recaptchaToken}>
                   {isLoading ? 'Registrieren...' : 'Registrieren'}
               </Button>
           </form>

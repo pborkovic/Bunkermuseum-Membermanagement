@@ -29,7 +29,7 @@ import java.time.Duration;
  *     <li>Provides detailed error logging for debugging</li>
  * </ul>
  *
- * @author Philipp Borkovic
+ * @see ReCaptchaServiceContract
  */
 @Service
 public class ReCaptchaService implements ReCaptchaServiceContract {
@@ -53,17 +53,7 @@ public class ReCaptchaService implements ReCaptchaServiceContract {
     }
 
     /**
-     * Verifies a reCAPTCHA token with Google's API.
-     *
-     * <p>This method validates the token by making a POST request to Google's
-     * verification endpoint. It checks both the HTTP response and the success
-     * field in the JSON response.</p>
-     *
-     * @param token The reCAPTCHA token from the client
-     *
-     * @return true if the token is valid, false otherwise
-     *
-     * @throws IllegalArgumentException if token is null or blank
+     * {@inheritDoc}
      *
      * @author Philipp Borkovic
      */

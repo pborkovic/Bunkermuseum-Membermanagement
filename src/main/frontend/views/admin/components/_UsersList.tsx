@@ -115,7 +115,7 @@ function UsersList({
             headerRenderer={() => (
               <div className="text-left w-full font-medium">Name</div>
             )}
-            renderer={({ item }: any) => (
+            renderer={({ item }: { item: User }) => (
               <button
                 onClick={() => onUserClick(item)}
                 className="text-left hover:underline focus:outline-none w-full py-2"
@@ -133,7 +133,7 @@ function UsersList({
               headerRenderer={() => (
                 <div className="text-left w-full font-medium">E-Mail</div>
               )}
-              renderer={({ item }: any) => (
+              renderer={({ item }: { item: User }) => (
                 <div className="text-left">
                   <span className="text-gray-700">{item.email}</span>
                 </div>
@@ -148,7 +148,7 @@ function UsersList({
             headerRenderer={() => (
               <div className="text-center w-full font-medium">Aktionen</div>
             )}
-            renderer={({ item }: any) => (
+            renderer={({ item }: { item: User }) => (
               <div className="flex justify-center">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

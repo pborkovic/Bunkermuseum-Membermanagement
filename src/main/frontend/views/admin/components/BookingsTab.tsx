@@ -6,6 +6,7 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { Button } from '@/components/ui/button';
 import { BookingController } from 'Frontend/generated/endpoints';
 import type BookingDTO from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/BookingDTO';
+import { getErrorMessage, DialogOpenedChangedEvent } from '../../../types/vaadin';
 import BookingsList from './_BookingsList';
 import BookingDetailsModal from './_BookingDetailsModal';
 import DeleteBookingModal from './_DeleteBookingModal';
@@ -128,8 +129,9 @@ export default function BookingsTab(): JSX.Element {
       setError('');
       const allBookings = await BookingController.getAllBookings();
       setBookings((allBookings || []).filter((booking): booking is BookingDTO => booking !== undefined));
-    } catch (err: any) {
-      setError(err.message || 'Fehler beim Laden der Buchungen');
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(err);
+      setError(errorMessage || 'Fehler beim Laden der Buchungen');
     } finally {
       setIsLoading(false);
     }
@@ -226,8 +228,9 @@ export default function BookingsTab(): JSX.Element {
       console.log('Deleting booking:', bookingToDelete.id);
       handleCloseDeleteModal();
       loadBookings(); // Reload bookings after deletion
-    } catch (err: any) {
-      setError(err.message || 'Fehler beim Löschen der Buchung');
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(err);
+      setError(errorMessage || 'Fehler beim Löschen der Buchung');
     }
   };
 
@@ -478,7 +481,7 @@ export default function BookingsTab(): JSX.Element {
       {/* Export options modal */}
       <Dialog
         opened={exportModal.isOpen}
-        onOpenedChanged={(e: any) => {
+        onOpenedChanged={(e: DialogOpenedChangedEvent) => {
           if (!e.detail.value) exportModal.close();
         }}
         headerTitle="Buchungsexport Optionen"
@@ -622,7 +625,7 @@ export default function BookingsTab(): JSX.Element {
       {/* Single booking export modal */}
       <Dialog
         opened={!!singleBookingExportModal}
-        onOpenedChanged={(e: any) => {
+        onOpenedChanged={(e: DialogOpenedChangedEvent) => {
           if (!e.detail.value) handleCloseSingleBookingExport();
         }}
         headerTitle="Buchung exportieren"

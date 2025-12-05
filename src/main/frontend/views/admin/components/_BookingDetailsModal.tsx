@@ -2,6 +2,7 @@ import { Dialog } from '@vaadin/react-components/Dialog';
 import { Button } from '@/components/ui/button';
 import { FaFileInvoice, FaTimes } from 'react-icons/fa';
 import type BookingDTO from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/BookingDTO';
+import { DialogOpenedChangedEvent } from '../../../types/vaadin';
 
 /**
  * BookingDetailsModal component props.
@@ -59,7 +60,7 @@ export default function BookingDetailsModal({
   return (
     <Dialog
       opened={isOpen}
-      onOpenedChanged={(e: any) => {
+      onOpenedChanged={(e: DialogOpenedChangedEvent) => {
         if (!e.detail.value) onClose();
       }}
       headerTitle="Buchungsdetails"

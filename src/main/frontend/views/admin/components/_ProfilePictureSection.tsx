@@ -2,6 +2,7 @@ import React from 'react';
 import { FaImage, FaUser, FaSpinner } from 'react-icons/fa';
 import { toast } from 'sonner';
 import type UserDTO from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/UserDTO';
+import { getErrorMessage } from '../../../types/vaadin';
 
 /**
  * ProfilePictureSection component - Profile picture upload and display.
@@ -72,8 +73,9 @@ export default function ProfilePictureSection({
       // Reload profile
       await onUpload();
 
-    } catch (err: any) {
-      toast.error(err.message || 'Fehler beim Hochladen des Profilbilds');
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(err);
+      toast.error(errorMessage || 'Fehler beim Hochladen des Profilbilds');
     }
   };
 

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AuthController } from 'Frontend/generated/endpoints';
+import { getErrorMessage } from '../../types/vaadin';
 import logo from 'Frontend/assets/images/logo_bunkermuseum.jpg';
 
 /**
@@ -90,11 +91,12 @@ export default function LoginView(): JSX.Element {
       } else {
         setError(ERROR_MESSAGES.INVALID_CREDENTIALS);
       }
-    } catch (err: any) {
-      if (err.message?.includes('locked')) {
-        setError(err.message);
-      } else if (err.message) {
-        setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(err);
+      if (errorMessage.includes('locked')) {
+        setError(errorMessage);
+      } else if (errorMessage) {
+        setError(errorMessage);
       } else {
         setError(ERROR_MESSAGES.GENERIC_ERROR);
       }

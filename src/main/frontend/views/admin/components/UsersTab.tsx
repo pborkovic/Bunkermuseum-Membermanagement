@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DatePicker } from '@/components/ui/date-picker';
 import { UserController } from 'Frontend/generated/endpoints';
 import type User from 'Frontend/generated/com/bunkermuseum/membermanagement/model/User';
+import { DialogOpenedChangedEvent } from '../../../types/vaadin';
 import UsersList from './_UsersList';
 import { useWindowSize } from '../hooks/useWindowSize';
 import { useModalWithData, useModal } from '../hooks/useModal';
@@ -475,7 +476,7 @@ export default function UsersTab(): JSX.Element {
       {/* User details modal */}
       <Dialog
         opened={detailsModal.isOpen}
-        onOpenedChanged={(e: any) => {
+        onOpenedChanged={(e: DialogOpenedChangedEvent) => {
           if (!e.detail.value) detailsModal.close();
         }}
         headerTitle="Benutzerdetails"
@@ -607,7 +608,7 @@ export default function UsersTab(): JSX.Element {
       {/* Delete confirmation modal */}
       <Dialog
         opened={deleteModal.isOpen}
-        onOpenedChanged={(e: any) => {
+        onOpenedChanged={(e: DialogOpenedChangedEvent) => {
           if (!e.detail.value) deleteModal.close();
         }}
         headerTitle="Benutzer löschen"
@@ -646,7 +647,7 @@ export default function UsersTab(): JSX.Element {
       {/* Edit user modal */}
       <Dialog
         opened={editModal.isOpen}
-        onOpenedChanged={(e: any) => {
+        onOpenedChanged={(e: DialogOpenedChangedEvent) => {
           if (!e.detail.value) editModal.close();
         }}
         headerTitle="Benutzer bearbeiten"
@@ -809,7 +810,7 @@ export default function UsersTab(): JSX.Element {
       {/* Export options modal */}
       <Dialog
         opened={exportModal.isOpen}
-        onOpenedChanged={(e: any) => {
+        onOpenedChanged={(e: DialogOpenedChangedEvent) => {
           if (!e.detail.value) exportModal.close();
         }}
         headerTitle="Benutzerexport Optionen"
@@ -909,7 +910,7 @@ export default function UsersTab(): JSX.Element {
       {/* Create user modal */}
       <Dialog
         opened={createModal.isOpen}
-        onOpenedChanged={(e: any) => {
+        onOpenedChanged={(e: DialogOpenedChangedEvent) => {
           if (!e.detail.value) createModal.close();
         }}
         headerTitle="Neues Mitglied erstellen"
@@ -1116,7 +1117,7 @@ export default function UsersTab(): JSX.Element {
       {/* Single user export modal */}
       <Dialog
         opened={singleUserExportModal.isOpen}
-        onOpenedChanged={(e: any) => {
+        onOpenedChanged={(e: DialogOpenedChangedEvent) => {
           if (!e.detail.value) singleUserExportModal.close();
         }}
         headerTitle="Mitglied exportieren"

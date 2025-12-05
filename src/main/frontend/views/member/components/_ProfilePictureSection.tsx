@@ -12,6 +12,7 @@ import { useCallback } from 'react';
 import { FaImage, FaSpinner } from 'react-icons/fa';
 import { toast } from 'sonner';
 import type UserDTO from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/UserDTO';
+import { UserIcon } from '../constants';
 import { useImageLoadError } from '../hooks';
 import {
   getErrorMessage,
@@ -161,7 +162,7 @@ export default function ProfilePictureSection({
               justifyContent: 'center',
             }}
           >
-            {PROFILE_PICTURE.DEFAULT_ICON}
+            <UserIcon style={{ width: `${PROFILE_PICTURE.ICON_SIZE}px`, height: `${PROFILE_PICTURE.ICON_SIZE}px` }} />
           </div>
         )}
       </div>

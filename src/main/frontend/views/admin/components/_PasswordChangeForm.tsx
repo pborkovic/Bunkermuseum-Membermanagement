@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { FaLock } from 'react-icons/fa';
 import { toast } from 'sonner';
 import { AuthController } from 'Frontend/generated/endpoints';
+import { getErrorMessage } from '../../../types/vaadin';
 
 /**
  * PasswordChangeForm component - Change user password.
@@ -42,8 +43,9 @@ export default function PasswordChangeForm(): JSX.Element {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-    } catch (err: any) {
-      toast.error(err.message || 'Fehler beim Ändern des Passworts');
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(err);
+      toast.error(errorMessage || 'Fehler beim Ändern des Passworts');
     } finally {
       setIsSaving(false);
     }

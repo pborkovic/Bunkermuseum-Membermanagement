@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import type UserDTO from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/UserDTO';
 import { EmailController } from 'Frontend/generated/endpoints';
+import { getErrorMessage, DialogOpenedChangedEvent } from '../../../types/vaadin';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
@@ -53,9 +54,10 @@ export function SendEmailModal({ isOpen, onClose, onEmailSent }: SendEmailModalP
       setIsLoadingUsers(true);
       const allUsers = await EmailController.getAllActiveUsers();
       setUsers((allUsers || []) as UserDTO[]);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error loading users:', error);
-      toast.error('Fehler beim Laden der Benutzer');
+      const errorMessage = getErrorMessage(error);
+      toast.error(errorMessage || 'Fehler beim Laden der Benutzer');
     } finally {
       setIsLoadingUsers(false);
     }
@@ -102,9 +104,10 @@ export function SendEmailModal({ isOpen, onClose, onEmailSent }: SendEmailModalP
       resetForm();
       onClose();
       onEmailSent();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error sending email:', error);
-      toast.error(error.message || 'Fehler beim Senden der E-Mail');
+      const errorMessage = getErrorMessage(error);
+      toast.error(errorMessage || 'Fehler beim Senden der E-Mail');
     } finally {
       setIsSending(false);
     }
@@ -158,7 +161,7 @@ export function SendEmailModal({ isOpen, onClose, onEmailSent }: SendEmailModalP
   return (
     <Dialog
       opened={isOpen}
-      onOpenedChanged={(e) => !e.detail.value && handleClose()}
+      onOpenedChanged={(e: DialogOpenedChangedEvent) => !e.detail.value && handleClose()}
       headerTitle="Neue E-Mail senden"
       className="email-modal-large"
     >

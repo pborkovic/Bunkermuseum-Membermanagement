@@ -7,6 +7,7 @@ import { MdExpandMore } from 'react-icons/md';
 import { EmailController } from 'Frontend/generated/endpoints';
 import type Email from 'Frontend/generated/com/bunkermuseum/membermanagement/model/Email';
 import type { PageResponse } from '../types';
+import { getErrorMessage, DialogOpenedChangedEvent } from '../../../types/vaadin';
 import EmailsList from './_EmailsList';
 import { SendEmailModal } from './_SendEmailModal';
 import { useModal } from '../hooks/useModal';
@@ -69,9 +70,10 @@ export default function EmailsTab() {
       setEmails(validEmails);
       setTotalPages(pageResponse.totalPages || 0);
       setTotalElements(pageResponse.totalElements || 0);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error loading emails:', err);
-      setError(err.message || 'Fehler beim Laden der E-Mails');
+      const errorMessage = getErrorMessage(err);
+      setError(errorMessage || 'Fehler beim Laden der E-Mails');
       setEmails([]);
     } finally {
       setIsLoading(false);
@@ -205,7 +207,7 @@ export default function EmailsTab() {
       {/* Export options modal */}
       <Dialog
         opened={exportModal.isOpen}
-        onOpenedChanged={(e: any) => {
+        onOpenedChanged={(e: DialogOpenedChangedEvent) => {
           if (!e.detail.value) exportModal.close();
         }}
         headerTitle="E-Mail-Export Optionen"

@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BookingController } from 'Frontend/generated/endpoints';
 import MemberType from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/MemberType';
+import { getErrorMessage, DialogOpenedChangedEvent } from '../../../types/vaadin';
 import { z } from 'zod';
 
 /**
@@ -358,9 +359,10 @@ export default function AssignBookingModal({
 
       // Close modal on success
       onClose();
-    } catch (e: any) {
+    } catch (e: unknown) {
       // Display error to user with fallback message
-      setError(e?.message || 'Fehler beim Zuweisen der Buchung');
+      const errorMessage = getErrorMessage(e);
+      setError(errorMessage || 'Fehler beim Zuweisen der Buchung');
     } finally {
       // Always reset submission state
       setIsSubmitting(false);
@@ -374,7 +376,7 @@ export default function AssignBookingModal({
   return (
     <Dialog
       opened={isOpen}
-      onOpenedChanged={(e: any) => {
+      onOpenedChanged={(e: DialogOpenedChangedEvent) => {
         if (!e.detail.value) onClose();
       }}
       headerTitle="Buchung zuweisen"

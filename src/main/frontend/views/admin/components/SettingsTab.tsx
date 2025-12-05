@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { AuthController, UserController } from 'Frontend/generated/endpoints';
 import type UserDTO from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/UserDTO';
 import type User from 'Frontend/generated/com/bunkermuseum/membermanagement/model/User';
+import { getErrorMessage } from '../../../types/vaadin';
 import ProfilePictureSection from './_ProfilePictureSection';
 import ProfileInformationForm, { type ProfileFormData } from './_ProfileInformationForm';
 import PasswordChangeForm from './_PasswordChangeForm';
@@ -90,8 +91,9 @@ export default function SettingsTab({ onProfileUpdate }: { onProfileUpdate?: () 
           setProfilePictureUrl(null);
         }
       }
-    } catch (err: any) {
-      toast.error('Fehler beim Laden des Profils');
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(err);
+      toast.error(errorMessage || 'Fehler beim Laden des Profils');
     } finally {
       setIsLoading(false);
     }
@@ -155,8 +157,9 @@ export default function SettingsTab({ onProfileUpdate }: { onProfileUpdate?: () 
         onProfileUpdate();
       }
 
-    } catch (err: any) {
-      toast.error(err.message || 'Fehler beim Aktualisieren des Profils');
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(err);
+      toast.error(errorMessage || 'Fehler beim Aktualisieren des Profils');
     } finally {
       setIsSaving(false);
     }

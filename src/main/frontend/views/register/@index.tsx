@@ -9,6 +9,7 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { z } from 'zod';
 import { subYears } from 'date-fns';
 import { AuthController } from 'Frontend/generated/endpoints';
+import { getErrorMessage } from '../../types/vaadin';
 import logo from 'Frontend/assets/images/logo_bunkermuseum.jpg';
 
 /**
@@ -20,11 +21,22 @@ import logo from 'Frontend/assets/images/logo_bunkermuseum.jpg';
 const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
 /**
+ * Google reCAPTCHA interface.
+ */
+interface ReCaptcha {
+  ready: (callback: () => void) => void;
+  execute: (siteKey: string, options: { action: string }) => Promise<string>;
+  render: (container: string | HTMLElement, parameters: Record<string, unknown>) => number;
+  reset: (widgetId?: number) => void;
+  getResponse: (widgetId?: number) => string;
+}
+
+/**
  * Extend Window interface to include grecaptcha.
  */
 declare global {
   interface Window {
-    grecaptcha: any;
+    grecaptcha: ReCaptcha;
     onRecaptchaLoadCallback?: () => void;
   }
 }
@@ -98,7 +110,7 @@ const registrationSchema = z.object({
       `Passwort muss mindestens ${VALIDATION.MIN_SPECIAL_CHARS} Sonderzeichen enthalten`
     )
     .refine(
-      (password) => !FORBIDDEN_PASSWORDS.includes(password.toLowerCase() as any),
+      (password) => !FORBIDDEN_PASSWORDS.includes(password.toLowerCase() as (typeof FORBIDDEN_PASSWORDS)[number]),
       'Dieses Passwort ist zu häufig verwendet und nicht sicher'
     ),
   confirmPassword: z.string(),
@@ -298,11 +310,12 @@ export default function RegisterView(): JSX.Element {
       } else {
         setError(response?.message || 'Registrierung fehlgeschlagen');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (err instanceof z.ZodError) {
         setError(err.issues[0].message);
       } else {
-        setError(err.message || 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.');
+        const errorMessage = getErrorMessage(err);
+        setError(errorMessage || 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.');
       }
     } finally {
       setIsLoading(false);

@@ -38,11 +38,12 @@ public class SecurityHeadersConfig {
      * <h4>Content-Security-Policy:</h4>
      * <ul>
      *     <li><code>default-src 'self'</code> - Only allow resources from same origin</li>
-     *     <li><code>script-src 'self' 'unsafe-inline' 'unsafe-eval'</code> - Required for Vaadin</li>
+     *     <li><code>script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/</code> - Required for Vaadin and Google reCAPTCHA</li>
      *     <li><code>style-src 'self' 'unsafe-inline'</code> - Required for Vaadin styling</li>
      *     <li><code>img-src 'self' data: https:</code> - Allow images from HTTPS and data URIs</li>
      *     <li><code>font-src 'self' data:</code> - Allow fonts from same origin and data URIs</li>
-     *     <li><code>connect-src 'self'</code> - Only allow AJAX requests to same origin</li>
+     *     <li><code>connect-src 'self' https://www.google.com/recaptcha/</code> - Allow AJAX requests to same origin and Google reCAPTCHA API</li>
+     *     <li><code>frame-src https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/</code> - Allow reCAPTCHA challenge frames</li>
      *     <li><code>frame-ancestors 'none'</code> - Prevent framing (clickjacking protection)</li>
      * </ul>
      *
@@ -88,11 +89,12 @@ public class SecurityHeadersConfig {
 
                 httpResponse.setHeader("Content-Security-Policy",
                         "default-src 'self'; " +
-                        "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+                        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; " +
                         "style-src 'self' 'unsafe-inline'; " +
                         "img-src 'self' data: https:; " +
                         "font-src 'self' data:; " +
-                        "connect-src 'self'; " +
+                        "connect-src 'self' https://www.google.com/recaptcha/; " +
+                        "frame-src https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/; " +
                         "frame-ancestors 'none'; " +
                         "base-uri 'self'; " +
                         "form-action 'self'");

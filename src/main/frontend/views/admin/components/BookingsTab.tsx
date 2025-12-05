@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Icon } from '@vaadin/react-components';
+import { FaSearch, FaPlus, FaDownload, FaCloudDownloadAlt, FaTable, FaFileAlt, FaFileCode, FaCode } from 'react-icons/fa';
 import { Dialog } from '@vaadin/react-components/Dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
@@ -357,14 +357,14 @@ export default function BookingsTab(): JSX.Element {
             onClick={handleOpenExportModal}
             className="text-white bg-black hover:bg-gray-800 border-black h-9 whitespace-nowrap"
           >
-            <Icon icon="vaadin:download" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+            <FaDownload className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
             Exportieren
           </Button>
 
           {/* Assign Button */}
           <div className="flex">
             <Button onClick={() => setIsAssignModalOpen(true)} className="bg-black text-white hover:bg-gray-800 whitespace-nowrap">
-              <Icon icon="vaadin:plus" className="mr-2" style={{ width: 16, height: 16, color: 'white' }} />
+              <FaPlus className="mr-2" style={{ width: 16, height: 16, color: 'white' }} />
               Neue Buchung zuweisen
             </Button>
           </div>
@@ -394,8 +394,7 @@ export default function BookingsTab(): JSX.Element {
 
           {/* Search Bar */}
           <div className="relative w-full sm:w-48">
-            <Icon
-              icon="vaadin:search"
+            <FaSearch
               className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
               style={{ width: '18px', height: '18px' }}
             />
@@ -488,7 +487,7 @@ export default function BookingsTab(): JSX.Element {
           <div className="space-y-6">
             {/* Icon */}
             <div className="flex justify-center">
-              <Icon icon="vaadin:download-alt" className="text-black" style={{ width: '64px', height: '64px' }} />
+              <FaCloudDownloadAlt className="text-black" style={{ width: '64px', height: '64px' }} />
             </div>
 
             {/* Description */}
@@ -579,11 +578,11 @@ export default function BookingsTab(): JSX.Element {
                 </SelectTrigger>
                 <SelectContent className="bg-white border-black z-[9999]">
                   {EXPORT_FORMAT_OPTIONS.map((option) => {
-                    const iconMap: Record<string, string> = {
-                      'xlsx': 'vaadin:file-table',
-                      'pdf': 'vaadin:file-text',
-                      'xml': 'vaadin:file-code',
-                      'json': 'vaadin:curly-brackets'
+                    const iconMap: Record<string, JSX.Element> = {
+                      'xlsx': <FaTable style={{ width: '16px', height: '16px' }} />,
+                      'pdf': <FaFileAlt style={{ width: '16px', height: '16px' }} />,
+                      'xml': <FaFileCode style={{ width: '16px', height: '16px' }} />,
+                      'json': <FaCode style={{ width: '16px', height: '16px' }} />
                     };
                     return (
                       <SelectItem
@@ -592,7 +591,7 @@ export default function BookingsTab(): JSX.Element {
                         className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black"
                       >
                         <div className="flex items-center gap-2">
-                          <Icon icon={iconMap[option.value]} style={{ width: '16px', height: '16px' }} />
+                          {iconMap[option.value]}
                           {option.label}
                         </div>
                       </SelectItem>
@@ -613,7 +612,7 @@ export default function BookingsTab(): JSX.Element {
               onClick={handleExport}
               className="text-white bg-black hover:bg-gray-800 border-black w-full sm:w-auto"
             >
-              <Icon icon="vaadin:download" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+              <FaDownload className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
               Exportieren
             </Button>
           </div>
@@ -633,7 +632,7 @@ export default function BookingsTab(): JSX.Element {
             <div className="space-y-6">
               {/* Icon */}
               <div className="flex justify-center">
-                <Icon icon="vaadin:download-alt" className="text-black" style={{ width: '64px', height: '64px' }} />
+                <FaCloudDownloadAlt className="text-black" style={{ width: '64px', height: '64px' }} />
               </div>
 
               {/* Description */}
@@ -656,11 +655,11 @@ export default function BookingsTab(): JSX.Element {
                   </SelectTrigger>
                   <SelectContent className="bg-white border-black z-[9999]">
                     {EXPORT_FORMAT_OPTIONS.map((option) => {
-                      const iconMap: Record<string, string> = {
-                        'xlsx': 'vaadin:file-table',
-                        'pdf': 'vaadin:file-text',
-                        'xml': 'vaadin:file-code',
-                        'json': 'vaadin:curly-brackets'
+                      const iconMap: Record<string, JSX.Element> = {
+                        'xlsx': <FaTable style={{ width: '16px', height: '16px' }} />,
+                        'pdf': <FaFileAlt style={{ width: '16px', height: '16px' }} />,
+                        'xml': <FaFileCode style={{ width: '16px', height: '16px' }} />,
+                        'json': <FaCode style={{ width: '16px', height: '16px' }} />
                       };
                       return (
                         <SelectItem
@@ -669,7 +668,7 @@ export default function BookingsTab(): JSX.Element {
                           className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black"
                         >
                           <div className="flex items-center gap-2">
-                            <Icon icon={iconMap[option.value]} style={{ width: '16px', height: '16px' }} />
+                            {iconMap[option.value]}
                             {option.label}
                           </div>
                         </SelectItem>
@@ -690,7 +689,7 @@ export default function BookingsTab(): JSX.Element {
                 onClick={handleConfirmSingleBookingExport}
                 className="text-white bg-black hover:bg-gray-800 border-black w-full sm:w-auto"
               >
-                <Icon icon="vaadin:download" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+                <FaDownload className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
                 Exportieren
               </Button>
             </div>

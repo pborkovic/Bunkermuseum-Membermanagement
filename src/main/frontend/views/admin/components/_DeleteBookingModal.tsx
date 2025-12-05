@@ -1,6 +1,6 @@
 import { Dialog } from '@vaadin/react-components/Dialog';
 import { Button } from '@/components/ui/button';
-import { Icon } from '@vaadin/react-components';
+import { FaExclamationTriangle } from 'react-icons/fa';
 import type BookingDTO from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/BookingDTO';
 
 /**
@@ -40,7 +40,7 @@ export default function DeleteBookingModal({
       {booking && (
         <div className="space-y-4 p-4 min-w-[400px]">
           <div className="flex justify-center">
-            <Icon icon="vaadin:warning" className="text-destructive" style={{ width: '64px', height: '64px' }} />
+            <FaExclamationTriangle className="text-destructive" style={{ width: '64px', height: '64px' }} />
           </div>
 
           <div className="text-center space-y-2">

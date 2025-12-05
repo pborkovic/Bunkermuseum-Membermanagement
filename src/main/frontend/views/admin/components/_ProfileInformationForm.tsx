@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Icon } from '@vaadin/react-components';
+import { FaIdCard, FaSpinner } from 'react-icons/fa';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
 
@@ -64,13 +64,13 @@ export default function ProfileInformationForm({
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6">
       <div className="mb-4 flex items-center space-x-3">
-        <Icon icon="vaadin:user-card" className="text-black" style={{ width: '24px', height: '24px' }} />
+        <FaIdCard className="text-black" style={{ width: '24px', height: '24px' }} />
         <h3 className="text-lg font-semibold text-black">Profilinformationen</h3>
       </div>
 
       {isLoading ? (
         <div className="flex items-center justify-center py-8">
-          <Icon icon="vaadin:spinner" className="animate-spin text-black" style={{ width: '32px', height: '32px' }} />
+          <FaSpinner className="animate-spin text-black" style={{ width: '32px', height: '32px' }} />
         </div>
       ) : (
         <form onSubmit={onSubmit} className="space-y-6">

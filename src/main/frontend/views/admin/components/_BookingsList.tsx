@@ -1,5 +1,6 @@
 import { memo, useMemo } from 'react';
-import { Icon } from '@vaadin/react-components';
+import { FaFileInvoice, FaEye, FaDownload, FaTrash } from 'react-icons/fa';
+import { BsThreeDotsVertical } from 'react-icons/bs';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -92,7 +93,7 @@ function BookingsList({
   if (bookings.length === 0) {
     return (
       <EmptyState
-        icon="vaadin:invoice"
+        icon={<FaFileInvoice />}
         title={emptyStateMessage.title}
         description={emptyStateMessage.description}
         className={`h-[${LIST_CONTAINER_HEIGHT}px]`}
@@ -142,8 +143,7 @@ function BookingsList({
                           className="p-2 hover:bg-gray-100 rounded-md transition-colors"
                           aria-label="Aktionen"
                         >
-                          <Icon
-                            icon="vaadin:ellipsis-dots-v"
+                          <BsThreeDotsVertical
                             className="text-black"
                             style={{ width: '18px', height: '18px' }}
                           />
@@ -154,8 +154,7 @@ function BookingsList({
                           onClick={() => onBookingClick(booking)}
                           className="text-black hover:bg-gray-100 focus:bg-gray-100 cursor-pointer"
                         >
-                          <Icon
-                            icon="vaadin:eye"
+                          <FaEye
                             className="mr-2"
                             style={{ width: '16px', height: '16px' }}
                           />
@@ -165,8 +164,7 @@ function BookingsList({
                           onClick={() => onExportClick(booking)}
                           className="text-black hover:bg-gray-100 focus:bg-gray-100 cursor-pointer"
                         >
-                          <Icon
-                            icon="vaadin:download"
+                          <FaDownload
                             className="mr-2"
                             style={{ width: '16px', height: '16px' }}
                           />
@@ -176,8 +174,7 @@ function BookingsList({
                           onClick={() => onDeleteClick(booking)}
                           className="text-red-600 hover:bg-gray-100 focus:bg-gray-100 focus:text-red-600 cursor-pointer"
                         >
-                          <Icon
-                            icon="vaadin:trash"
+                          <FaTrash
                             className="mr-2"
                             style={{ width: '16px', height: '16px' }}
                           />
@@ -211,8 +208,7 @@ function BookingsList({
                       className="p-2 hover:bg-gray-100 rounded-md transition-colors"
                       aria-label="Aktionen"
                     >
-                      <Icon
-                        icon="vaadin:ellipsis-dots-v"
+                      <BsThreeDotsVertical
                         className="text-black"
                         style={{ width: '18px', height: '18px' }}
                       />
@@ -223,8 +219,7 @@ function BookingsList({
                       onClick={() => onBookingClick(booking)}
                       className="text-black hover:bg-gray-100 focus:bg-gray-100 cursor-pointer"
                     >
-                      <Icon
-                        icon="vaadin:eye"
+                      <FaEye
                         className="mr-2"
                         style={{ width: '16px', height: '16px' }}
                       />
@@ -234,8 +229,7 @@ function BookingsList({
                       onClick={() => onExportClick(booking)}
                       className="text-black hover:bg-gray-100 focus:bg-gray-100 cursor-pointer"
                     >
-                      <Icon
-                        icon="vaadin:download"
+                      <FaDownload
                         className="mr-2"
                         style={{ width: '16px', height: '16px' }}
                       />
@@ -245,8 +239,7 @@ function BookingsList({
                       onClick={() => onDeleteClick(booking)}
                       className="text-red-600 hover:bg-gray-100 focus:bg-gray-100 focus:text-red-600 cursor-pointer"
                     >
-                      <Icon
-                        icon="vaadin:trash"
+                      <FaTrash
                         className="mr-2"
                         style={{ width: '16px', height: '16px' }}
                       />

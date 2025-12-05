@@ -1,5 +1,5 @@
 import React from 'react';
-import { Icon } from '@vaadin/react-components';
+import { FaImage, FaUser, FaSpinner } from 'react-icons/fa';
 import { toast } from 'sonner';
 import type UserDTO from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/UserDTO';
 
@@ -80,7 +80,7 @@ export default function ProfilePictureSection({
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6">
       <div className="mb-4 flex items-center space-x-3">
-        <Icon icon="vaadin:picture" className="text-black" style={{ width: '24px', height: '24px' }} />
+        <FaImage className="text-black" style={{ width: '24px', height: '24px' }} />
         <h3 className="text-lg font-semibold text-black">Profilbild</h3>
       </div>
 
@@ -100,7 +100,7 @@ export default function ProfilePictureSection({
                 onLoad={() => console.log('Profile picture loaded successfully')}
               />
             ) : (
-              <Icon icon="vaadin:user" className="text-gray-400" style={{ width: '64px', height: '64px' }} />
+              <FaUser className="text-gray-400" style={{ width: '64px', height: '64px' }} />
             )}
           </div>
         </div>
@@ -119,7 +119,7 @@ export default function ProfilePictureSection({
           />
           {isUploading && (
             <p className="text-sm text-gray-600 mt-2">
-              <Icon icon="vaadin:spinner" className="animate-spin inline mr-2" style={{ width: '16px', height: '16px' }} />
+              <FaSpinner className="animate-spin inline mr-2" style={{ width: '16px', height: '16px' }} />
               Hochladen...
             </p>
           )}

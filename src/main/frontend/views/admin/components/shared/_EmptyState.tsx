@@ -1,5 +1,4 @@
 import { memo } from 'react';
-import { Icon } from '@vaadin/react-components';
 import type { EmptyStateProps } from '../../types';
 
 /**
@@ -29,12 +28,13 @@ function EmptyState({
     <div className={`rounded-lg bg-white flex items-center justify-center ${className}`}>
       <div className="text-center space-y-4">
         {/* Icon */}
-        <Icon
-          icon={icon}
+        <div
           className="text-gray-300 mx-auto"
-          style={{ width: '64px', height: '64px' }}
+          style={{ width: '64px', height: '64px', fontSize: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           aria-hidden="true"
-        />
+        >
+          {icon}
+        </div>
 
         {/* Text Content */}
         <div>

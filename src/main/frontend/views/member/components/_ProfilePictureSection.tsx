@@ -9,7 +9,7 @@
  */
 
 import { useCallback } from 'react';
-import { Icon } from '@vaadin/react-components';
+import { FaImage, FaSpinner } from 'react-icons/fa';
 import { toast } from 'sonner';
 import type UserDTO from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/UserDTO';
 import { useImageLoadError } from '../hooks';
@@ -151,14 +151,18 @@ export default function ProfilePictureSection({
             loading="eager"
           />
         ) : (
-          <Icon
-            icon={PROFILE_PICTURE.DEFAULT_ICON}
+          <div
             className="text-gray-400"
             style={{
               width: `${PROFILE_PICTURE.ICON_SIZE}px`,
               height: `${PROFILE_PICTURE.ICON_SIZE}px`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
-          />
+          >
+            {PROFILE_PICTURE.DEFAULT_ICON}
+          </div>
         )}
       </div>
     );
@@ -167,8 +171,7 @@ export default function ProfilePictureSection({
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6">
       <div className="mb-4 flex items-center space-x-3">
-        <Icon
-          icon="vaadin:picture"
+        <FaImage
           className="text-black"
           style={{ width: '24px', height: '24px' }}
         />
@@ -197,8 +200,7 @@ export default function ProfilePictureSection({
           />
           {isUploading && (
             <p className="text-sm text-gray-600 mt-2 flex items-center">
-              <Icon
-                icon="vaadin:spinner"
+              <FaSpinner
                 className="animate-spin inline mr-2"
                 style={{ width: '16px', height: '16px' }}
               />

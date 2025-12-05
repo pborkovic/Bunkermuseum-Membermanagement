@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Icon } from '@vaadin/react-components';
+import { FaAngleLeft, FaAngleRight } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 
 /**
@@ -59,7 +59,7 @@ function Pagination({
         className="h-9 w-9 p-0 border-black hover:bg-black hover:text-white disabled:opacity-30 disabled:border-gray-300"
         aria-label="Vorherige Seite"
       >
-        <Icon icon="vaadin:angle-left" style={{ width: '18px', height: '18px' }} />
+        <FaAngleLeft style={{ width: '18px', height: '18px' }} />
       </Button>
 
       {/* Current Page Display */}
@@ -81,7 +81,7 @@ function Pagination({
         className="h-9 w-9 p-0 border-black hover:bg-black hover:text-white disabled:opacity-30 disabled:border-gray-300"
         aria-label="Nächste Seite"
       >
-        <Icon icon="vaadin:angle-right" style={{ width: '18px', height: '18px' }} />
+        <FaAngleRight style={{ width: '18px', height: '18px' }} />
       </Button>
     </div>
   );

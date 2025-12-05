@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog } from '@vaadin/react-components/Dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Icon } from '@vaadin/react-components/Icon';
+import { FaDownload, FaEnvelope, FaCloudDownloadAlt, FaTable, FaFileAlt, FaFileCode, FaCode } from 'react-icons/fa';
+import { MdExpandMore } from 'react-icons/md';
 import { EmailController } from 'Frontend/generated/endpoints';
 import type Email from 'Frontend/generated/com/bunkermuseum/membermanagement/model/Email';
 import type { PageResponse } from '../types';
@@ -130,14 +131,14 @@ export default function EmailsTab() {
             onClick={exportModal.open}
             className="text-white bg-black hover:bg-gray-800 border-black"
           >
-            <Icon icon="vaadin:download" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+            <FaDownload className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
             Exportieren
           </Button>
           <Button
             onClick={sendEmailModal.open}
             className="flex items-center gap-2 bg-black text-white hover:bg-gray-800"
           >
-            <Icon icon="vaadin:envelope" style={{ width: '16px', height: '16px' }} />
+            <FaEnvelope style={{ width: '16px', height: '16px' }} />
             Neue E-Mail senden
           </Button>
         </div>
@@ -155,8 +156,7 @@ export default function EmailsTab() {
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-700">Einträge pro Seite:</span>
           <div className="relative">
-            <Icon
-              icon="vaadin:chevron-down"
+            <MdExpandMore
               className="absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none z-10"
               style={{ width: '14px', height: '14px', color: 'black' }}
             />
@@ -214,7 +214,7 @@ export default function EmailsTab() {
           <div className="space-y-6">
             {/* Icon */}
             <div className="flex justify-center">
-              <Icon icon="vaadin:download-alt" className="text-black" style={{ width: '64px', height: '64px' }} />
+              <FaCloudDownloadAlt className="text-black" style={{ width: '64px', height: '64px' }} />
             </div>
 
             {/* Description */}
@@ -261,11 +261,11 @@ export default function EmailsTab() {
                 </SelectTrigger>
                 <SelectContent className="bg-white border-black z-[9999]">
                   {EXPORT_FORMAT_OPTIONS.map((option) => {
-                    const iconMap: Record<string, string> = {
-                      'xlsx': 'vaadin:file-table',
-                      'pdf': 'vaadin:file-text',
-                      'xml': 'vaadin:file-code',
-                      'json': 'vaadin:curly-brackets'
+                    const iconMap: Record<string, JSX.Element> = {
+                      'xlsx': <FaTable style={{ width: '16px', height: '16px' }} />,
+                      'pdf': <FaFileAlt style={{ width: '16px', height: '16px' }} />,
+                      'xml': <FaFileCode style={{ width: '16px', height: '16px' }} />,
+                      'json': <FaCode style={{ width: '16px', height: '16px' }} />
                     };
                     return (
                       <SelectItem
@@ -274,7 +274,7 @@ export default function EmailsTab() {
                         className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black"
                       >
                         <div className="flex items-center gap-2">
-                          <Icon icon={iconMap[option.value]} style={{ width: '16px', height: '16px' }} />
+                          {iconMap[option.value]}
                           {option.label}
                         </div>
                       </SelectItem>
@@ -295,7 +295,7 @@ export default function EmailsTab() {
               onClick={handleExport}
               className="text-white bg-black hover:bg-gray-800 border-black w-full sm:w-auto"
             >
-              <Icon icon="vaadin:download" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+              <FaDownload className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
               Exportieren
             </Button>
           </div>

@@ -12,7 +12,7 @@ import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Icon } from '@vaadin/react-components';
+import { FaLock } from 'react-icons/fa';
 import { toast } from 'sonner';
 import { AuthController } from 'Frontend/generated/endpoints';
 import { passwordChangeSchema } from '../schemas/validation';
@@ -163,8 +163,7 @@ export default function PasswordChangeForm(): JSX.Element {
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6">
       <div className="mb-4 flex items-center space-x-3">
-        <Icon
-          icon="vaadin:lock"
+        <FaLock
           className="text-black"
           style={{ width: '24px', height: '24px' }}
         />

@@ -4,7 +4,6 @@ import { ViewConfig } from '@vaadin/hilla-file-router/types.js';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Icon } from '@vaadin/react-components';
 import { AuthController } from 'Frontend/generated/endpoints';
 import logo from 'Frontend/assets/images/logo_bunkermuseum.jpg';
 

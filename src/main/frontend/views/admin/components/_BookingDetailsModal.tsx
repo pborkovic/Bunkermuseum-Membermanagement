@@ -1,6 +1,6 @@
 import { Dialog } from '@vaadin/react-components/Dialog';
 import { Button } from '@/components/ui/button';
-import { Icon } from '@vaadin/react-components';
+import { FaFileInvoice, FaTimes } from 'react-icons/fa';
 import type BookingDTO from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/BookingDTO';
 
 /**
@@ -69,7 +69,7 @@ export default function BookingDetailsModal({
           {/* Header Section */}
           <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 pb-6 border-b">
             <div className="flex-shrink-0 bg-muted rounded-full p-4">
-              <Icon icon="vaadin:invoice" className="text-foreground" style={{ width: '64px', height: '64px' }} />
+              <FaFileInvoice className="text-foreground" style={{ width: '64px', height: '64px' }} />
             </div>
             <div className="flex-1">
               <h3 className="text-2xl font-semibold mb-1">{booking.code || 'Keine Code'}</h3>
@@ -154,7 +154,7 @@ export default function BookingDetailsModal({
           {/* Action Buttons */}
           <div className="flex justify-end gap-3 pt-6 border-t mt-6">
             <Button variant="destructive" onClick={onClose} className="text-white">
-              <Icon icon="vaadin:close" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+              <FaTimes className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
               Schließen
             </Button>
           </div>

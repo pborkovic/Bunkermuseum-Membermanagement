@@ -1,7 +1,8 @@
 import { memo, useMemo } from 'react';
 import { Grid } from '@vaadin/react-components/Grid';
 import { GridColumn } from '@vaadin/react-components/GridColumn';
-import { Icon } from '@vaadin/react-components';
+import { FaUsers, FaEye, FaDownload, FaTrash } from 'react-icons/fa';
+import { BsThreeDotsVertical } from 'react-icons/bs';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -90,7 +91,7 @@ function UsersList({
   if (users.length === 0) {
     return (
       <EmptyState
-        icon="vaadin:users"
+        icon={<FaUsers />}
         title={emptyStateMessage.title}
         description={emptyStateMessage.description}
         className={`h-[${LIST_CONTAINER_HEIGHT}px]`}
@@ -156,8 +157,7 @@ function UsersList({
                       className="p-2 hover:bg-gray-100 rounded-md transition-colors"
                       aria-label="Aktionen"
                     >
-                      <Icon
-                        icon="vaadin:ellipsis-dots-v"
+                      <BsThreeDotsVertical
                         style={{ width: '18px', height: '18px' }}
                       />
                     </button>
@@ -167,8 +167,7 @@ function UsersList({
                       onClick={() => onUserClick(item)}
                       className="text-black hover:bg-gray-100 focus:bg-gray-100 cursor-pointer"
                     >
-                      <Icon
-                        icon="vaadin:eye"
+                      <FaEye
                         className="mr-2"
                         style={{ width: '16px', height: '16px' }}
                       />
@@ -178,8 +177,7 @@ function UsersList({
                       onClick={() => onExportClick(item)}
                       className="text-black hover:bg-gray-100 focus:bg-gray-100 cursor-pointer"
                     >
-                      <Icon
-                        icon="vaadin:download"
+                      <FaDownload
                         className="mr-2"
                         style={{ width: '16px', height: '16px' }}
                       />
@@ -189,8 +187,7 @@ function UsersList({
                       onClick={() => onDeleteClick(item)}
                       className="text-red-600 hover:bg-gray-100 focus:bg-gray-100 focus:text-red-600 cursor-pointer"
                     >
-                      <Icon
-                        icon="vaadin:trash"
+                      <FaTrash
                         className="mr-2"
                         style={{ width: '16px', height: '16px' }}
                       />

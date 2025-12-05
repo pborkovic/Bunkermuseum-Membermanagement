@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Dialog } from '@vaadin/react-components/Dialog';
 import { Button } from '@/components/ui/button';
-import { Icon } from '@vaadin/react-components';
+import { FaSearch, FaPlus, FaDownload, FaIdCard, FaCheckCircle, FaTimesCircle, FaPhone, FaBirthdayCake, FaHome, FaUser, FaGraduationCap, FaMedal, FaTimes, FaEdit, FaExclamationTriangle, FaCheck, FaCloudDownloadAlt, FaTable, FaFileAlt, FaFileCode, FaCode } from 'react-icons/fa';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
 import { UserController } from 'Frontend/generated/endpoints';
@@ -409,8 +409,7 @@ export default function UsersTab(): JSX.Element {
 
             {/* Search Bar */}
             <div className="relative w-full sm:w-48">
-              <Icon
-                icon="vaadin:search"
+              <FaSearch
                 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                 style={{ width: '18px', height: '18px' }}
               />
@@ -432,7 +431,7 @@ export default function UsersTab(): JSX.Element {
               onClick={handleOpenCreateModal}
               className="text-white bg-green-600 hover:bg-green-700 border-green-600 h-9 self-start sm:self-auto"
             >
-              <Icon icon="vaadin:plus" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+              <FaPlus className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
               Neues Mitglied
             </Button>
             {/* Export Button */}
@@ -441,7 +440,7 @@ export default function UsersTab(): JSX.Element {
               onClick={exportModal.open}
               className="text-white bg-black hover:bg-gray-800 border-black h-9 self-start sm:self-auto"
             >
-              <Icon icon="vaadin:download" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+              <FaDownload className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
               Exportieren
             </Button>
           </div>
@@ -486,7 +485,7 @@ export default function UsersTab(): JSX.Element {
             {/* Header Section */}
             <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 pb-6 border-b">
               <div className="flex-shrink-0 bg-muted rounded-full p-4">
-                <Icon icon="vaadin:user-card" className="text-foreground" style={{ width: '64px', height: '64px' }} />
+                <FaIdCard className="text-foreground" style={{ width: '64px', height: '64px' }} />
               </div>
               <div className="flex-1">
                 <h3 className="text-2xl font-semibold mb-1">{detailsModal.data.name}</h3>
@@ -502,7 +501,7 @@ export default function UsersTab(): JSX.Element {
                 <div className="flex items-center gap-2">
                   {detailsModal.data.emailVerifiedAt ? (
                     <>
-                      <Icon icon="vaadin:check-circle" className="text-success" style={{ width: '20px', height: '20px' }} />
+                      <FaCheckCircle className="text-success" style={{ width: '20px', height: '20px' }} />
                       <div>
                         <div className="text-sm font-medium">Verifiziert</div>
                         <div className="text-xs text-muted-foreground">{formatDate(detailsModal.data.emailVerifiedAt)}</div>
@@ -510,7 +509,7 @@ export default function UsersTab(): JSX.Element {
                     </>
                   ) : (
                     <>
-                      <Icon icon="vaadin:close-circle" className="text-destructive" style={{ width: '20px', height: '20px' }} />
+                      <FaTimesCircle className="text-destructive" style={{ width: '20px', height: '20px' }} />
                       <div className="text-sm font-medium">Nicht verifiziert</div>
                     </>
                   )}
@@ -522,7 +521,7 @@ export default function UsersTab(): JSX.Element {
                 <div className="space-y-1">
                   <label className="text-sm font-medium text-muted-foreground">Telefon</label>
                   <div className="flex items-center gap-2">
-                    <Icon icon="vaadin:phone" className="text-foreground" style={{ width: '20px', height: '20px' }} />
+                    <FaPhone className="text-foreground" style={{ width: '20px', height: '20px' }} />
                     <div className="text-sm font-medium">{detailsModal.data.phone}</div>
                   </div>
                 </div>
@@ -533,7 +532,7 @@ export default function UsersTab(): JSX.Element {
                 <div className="space-y-1">
                   <label className="text-sm font-medium text-muted-foreground">Geburtsdatum</label>
                   <div className="flex items-center gap-2">
-                    <Icon icon="vaadin:cake" className="text-foreground" style={{ width: '20px', height: '20px' }} />
+                    <FaBirthdayCake className="text-foreground" style={{ width: '20px', height: '20px' }} />
                     <div className="text-sm font-medium">{formatDate(detailsModal.data.birthday)}</div>
                   </div>
                 </div>
@@ -544,7 +543,7 @@ export default function UsersTab(): JSX.Element {
                 <div className="space-y-1 sm:col-span-2">
                   <label className="text-sm font-medium text-muted-foreground">Adresse</label>
                   <div className="flex items-start gap-2">
-                    <Icon icon="vaadin:home" className="text-foreground mt-0.5" style={{ width: '20px', height: '20px' }} />
+                    <FaHome className="text-foreground mt-0.5" style={{ width: '20px', height: '20px' }} />
                     <div className="text-sm font-medium">
                       {detailsModal.data.street && <div>{detailsModal.data.street}</div>}
                       {(detailsModal.data.postalCode || detailsModal.data.city) && (
@@ -561,7 +560,7 @@ export default function UsersTab(): JSX.Element {
                 <div className="space-y-1">
                   <label className="text-sm font-medium text-muted-foreground">Anrede</label>
                   <div className="flex items-center gap-2">
-                    <Icon icon="vaadin:user" className="text-foreground" style={{ width: '20px', height: '20px' }} />
+                    <FaUser className="text-foreground" style={{ width: '20px', height: '20px' }} />
                     <div className="text-sm font-medium">{detailsModal.data.salutation}</div>
                   </div>
                 </div>
@@ -572,7 +571,7 @@ export default function UsersTab(): JSX.Element {
                 <div className="space-y-1">
                   <label className="text-sm font-medium text-muted-foreground">Titel</label>
                   <div className="flex items-center gap-2">
-                    <Icon icon="vaadin:academy-cap" className="text-foreground" style={{ width: '20px', height: '20px' }} />
+                    <FaGraduationCap className="text-foreground" style={{ width: '20px', height: '20px' }} />
                     <div className="text-sm font-medium">{detailsModal.data.academicTitle}</div>
                   </div>
                 </div>
@@ -583,7 +582,7 @@ export default function UsersTab(): JSX.Element {
                 <div className="space-y-1">
                   <label className="text-sm font-medium text-muted-foreground">Dienstgrad</label>
                   <div className="flex items-center gap-2">
-                    <Icon icon="vaadin:medal" className="text-foreground" style={{ width: '20px', height: '20px' }} />
+                    <FaMedal className="text-foreground" style={{ width: '20px', height: '20px' }} />
                     <div className="text-sm font-medium">{detailsModal.data.rank}</div>
                   </div>
                 </div>
@@ -593,11 +592,11 @@ export default function UsersTab(): JSX.Element {
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t mt-6">
               <Button variant="destructive" onClick={detailsModal.close} className="text-white w-full sm:w-auto">
-                <Icon icon="vaadin:close" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+                <FaTimes className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
                 Schließen
               </Button>
               <Button variant="outline" onClick={() => handleEditClick(detailsModal.data!)} className="text-white bg-black hover:bg-gray-800 w-full sm:w-auto">
-                <Icon icon="vaadin:edit" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+                <FaEdit className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
                 Bearbeiten
               </Button>
             </div>
@@ -616,7 +615,7 @@ export default function UsersTab(): JSX.Element {
         {deleteModal.data && (
           <div className="space-y-4 p-4 min-w-[400px]">
             <div className="flex justify-center">
-              <Icon icon="vaadin:warning" className="text-destructive" style={{ width: '64px', height: '64px' }} />
+              <FaExclamationTriangle className="text-destructive" style={{ width: '64px', height: '64px' }} />
             </div>
 
             <div className="text-center space-y-2">
@@ -795,11 +794,11 @@ export default function UsersTab(): JSX.Element {
 
             <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t mt-6">
               <Button variant="destructive" onClick={editModal.close} className="text-white w-full sm:w-auto">
-                <Icon icon="vaadin:close" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+                <FaTimes className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
                 Abbrechen
               </Button>
               <Button variant="outline" onClick={handleSaveEdit} className="text-white bg-black hover:bg-gray-800 w-full sm:w-auto">
-                <Icon icon="vaadin:check" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+                <FaCheck className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
                 Speichern
               </Button>
             </div>
@@ -819,7 +818,7 @@ export default function UsersTab(): JSX.Element {
           <div className="space-y-6">
             {/* Icon */}
             <div className="flex justify-center">
-              <Icon icon="vaadin:download-alt" className="text-black" style={{ width: '64px', height: '64px' }} />
+              <FaCloudDownloadAlt className="text-black" style={{ width: '64px', height: '64px' }} />
             </div>
 
             {/* Description */}
@@ -866,11 +865,11 @@ export default function UsersTab(): JSX.Element {
                 </SelectTrigger>
                 <SelectContent className="bg-white border-black z-[9999]">
                   {EXPORT_FORMAT_OPTIONS.map((option) => {
-                    const iconMap: Record<string, string> = {
-                      'xlsx': 'vaadin:file-table',
-                      'pdf': 'vaadin:file-text',
-                      'xml': 'vaadin:file-code',
-                      'json': 'vaadin:curly-brackets'
+                    const iconMap: Record<string, JSX.Element> = {
+                      'xlsx': <FaTable style={{ width: '16px', height: '16px' }} />,
+                      'pdf': <FaFileAlt style={{ width: '16px', height: '16px' }} />,
+                      'xml': <FaFileCode style={{ width: '16px', height: '16px' }} />,
+                      'json': <FaCode style={{ width: '16px', height: '16px' }} />
                     };
                     return (
                       <SelectItem
@@ -879,7 +878,7 @@ export default function UsersTab(): JSX.Element {
                         className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black"
                       >
                         <div className="flex items-center gap-2">
-                          <Icon icon={iconMap[option.value]} style={{ width: '16px', height: '16px' }} />
+                          {iconMap[option.value]}
                           {option.label}
                         </div>
                       </SelectItem>
@@ -900,7 +899,7 @@ export default function UsersTab(): JSX.Element {
               onClick={handleExport}
               className="text-white bg-black hover:bg-gray-800 border-black w-full sm:w-auto"
             >
-              <Icon icon="vaadin:download" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+              <FaDownload className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
               Exportieren
             </Button>
           </div>
@@ -920,7 +919,7 @@ export default function UsersTab(): JSX.Element {
           <div className="space-y-6">
             {/* Icon */}
             <div className="flex justify-center">
-              <Icon icon="vaadin:user-card" className="text-black" style={{ width: '64px', height: '64px' }} />
+              <FaIdCard className="text-black" style={{ width: '64px', height: '64px' }} />
             </div>
 
             {/* Description */}
@@ -1094,8 +1093,7 @@ export default function UsersTab(): JSX.Element {
               onClick={createModal.close}
               className="text-white"
             >
-              <Icon
-                icon="vaadin:close"
+              <FaTimes
                 className="mr-2"
                 style={{ width: '16px', height: '16px', color: 'white' }}
               />
@@ -1105,8 +1103,7 @@ export default function UsersTab(): JSX.Element {
               onClick={handleCreateUser}
               className="bg-black text-white hover:bg-gray-800"
             >
-              <Icon
-                icon="vaadin:check"
+              <FaCheck
                 className="mr-2"
                 style={{ width: '16px', height: '16px', color: 'white' }}
               />
@@ -1129,7 +1126,7 @@ export default function UsersTab(): JSX.Element {
             <div className="space-y-6">
               {/* Icon */}
               <div className="flex justify-center">
-                <Icon icon="vaadin:download-alt" className="text-black" style={{ width: '64px', height: '64px' }} />
+                <FaCloudDownloadAlt className="text-black" style={{ width: '64px', height: '64px' }} />
               </div>
 
               {/* Description */}
@@ -1152,11 +1149,11 @@ export default function UsersTab(): JSX.Element {
                   </SelectTrigger>
                   <SelectContent className="bg-white border-black z-[9999]">
                     {EXPORT_FORMAT_OPTIONS.map((option) => {
-                      const iconMap: Record<string, string> = {
-                        'xlsx': 'vaadin:file-table',
-                        'pdf': 'vaadin:file-text',
-                        'xml': 'vaadin:file-code',
-                        'json': 'vaadin:curly-brackets'
+                      const iconMap: Record<string, JSX.Element> = {
+                        'xlsx': <FaTable style={{ width: '16px', height: '16px' }} />,
+                        'pdf': <FaFileAlt style={{ width: '16px', height: '16px' }} />,
+                        'xml': <FaFileCode style={{ width: '16px', height: '16px' }} />,
+                        'json': <FaCode style={{ width: '16px', height: '16px' }} />
                       };
                       return (
                         <SelectItem
@@ -1165,7 +1162,7 @@ export default function UsersTab(): JSX.Element {
                           className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black"
                         >
                           <div className="flex items-center gap-2">
-                            <Icon icon={iconMap[option.value]} style={{ width: '16px', height: '16px' }} />
+                            {iconMap[option.value]}
                             {option.label}
                           </div>
                         </SelectItem>
@@ -1186,7 +1183,7 @@ export default function UsersTab(): JSX.Element {
                 onClick={handleConfirmSingleUserExport}
                 className="text-white bg-black hover:bg-gray-800 border-black w-full sm:w-auto"
               >
-                <Icon icon="vaadin:download" className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+                <FaDownload className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
                 Exportieren
               </Button>
             </div>

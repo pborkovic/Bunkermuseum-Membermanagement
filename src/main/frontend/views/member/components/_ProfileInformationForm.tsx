@@ -12,7 +12,7 @@ import { useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Icon } from '@vaadin/react-components';
+import { FaIdCard, FaSpinner } from 'react-icons/fa';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
 import { profileFormSchema } from '../schemas/validation';
@@ -151,8 +151,7 @@ export default function ProfileInformationForm({
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-6">
         <div className="mb-4 flex items-center space-x-3">
-          <Icon
-            icon="vaadin:user-card"
+          <FaIdCard
             className="text-black"
             style={{ width: '24px', height: '24px' }}
           />
@@ -161,8 +160,7 @@ export default function ProfileInformationForm({
           </h3>
         </div>
         <div className="flex items-center justify-center py-8">
-          <Icon
-            icon="vaadin:spinner"
+          <FaSpinner
             className="animate-spin text-black"
             style={{ width: '32px', height: '32px' }}
           />
@@ -174,8 +172,7 @@ export default function ProfileInformationForm({
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6">
       <div className="mb-4 flex items-center space-x-3">
-        <Icon
-          icon="vaadin:user-card"
+        <FaIdCard
           className="text-black"
           style={{ width: '24px', height: '24px' }}
         />

@@ -12,7 +12,7 @@
 
 import { useEffect, useState } from 'react';
 import { Dialog } from '@vaadin/react-components/Dialog';
-import { Icon } from '@vaadin/react-components';
+import { FaInfoCircle, FaEuroSign, FaClipboardList, FaExclamationTriangle, FaTimes, FaSpinner, FaCheck } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BookingController } from 'Frontend/generated/endpoints';
@@ -383,8 +383,7 @@ export default function AssignBookingModal({
         {/* Introduction */}
         <div className="mb-6 p-4 bg-gray-50 rounded-md border border-gray-200">
           <div className="flex items-start gap-3">
-            <Icon
-              icon="vaadin:info-circle"
+            <FaInfoCircle
               className="text-black flex-shrink-0 mt-0.5"
               style={{ width: '20px', height: '20px' }}
             />
@@ -430,8 +429,7 @@ export default function AssignBookingModal({
               Erwarteter Betrag (EUR) <span className="text-red-600">*</span>
             </label>
             <div className="relative">
-              <Icon
-                icon="vaadin:euro"
+              <FaEuroSign
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
                 style={{ width: '18px', height: '18px' }}
               />
@@ -455,8 +453,7 @@ export default function AssignBookingModal({
               Tatsächlicher Betrag (EUR) <span className="text-red-600">*</span>
             </label>
             <div className="relative">
-              <Icon
-                icon="vaadin:euro"
+              <FaEuroSign
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
                 style={{ width: '18px', height: '18px' }}
               />
@@ -480,8 +477,7 @@ export default function AssignBookingModal({
               Tatsächlicher Verwendungszweck
             </label>
             <div className="relative">
-              <Icon
-                icon="vaadin:clipboard-text"
+              <FaClipboardList
                 className="absolute left-3 top-3 text-gray-500"
                 style={{ width: '18px', height: '18px' }}
               />
@@ -504,8 +500,7 @@ export default function AssignBookingModal({
         {error && (
           <div className="rounded-md bg-red-50 border border-red-200 p-3 mb-4">
             <div className="flex items-start gap-2">
-              <Icon
-                icon="vaadin:warning"
+              <FaExclamationTriangle
                 className="text-red-600 flex-shrink-0 mt-0.5"
                 style={{ width: '18px', height: '18px' }}
               />
@@ -522,8 +517,7 @@ export default function AssignBookingModal({
             disabled={isSubmitting}
             className="text-white"
           >
-            <Icon
-              icon="vaadin:close"
+            <FaTimes
               className="mr-2"
               style={{ width: '16px', height: '16px', color: 'white' }}
             />
@@ -538,8 +532,7 @@ export default function AssignBookingModal({
           >
             {isSubmitting ? (
               <>
-                <Icon
-                  icon="vaadin:spinner"
+                <FaSpinner
                   className="mr-2 animate-spin"
                   style={{ width: '16px', height: '16px', color: 'white' }}
                 />
@@ -547,8 +540,7 @@ export default function AssignBookingModal({
               </>
             ) : (
               <>
-                <Icon
-                  icon="vaadin:check"
+                <FaCheck
                   className="mr-2"
                   style={{ width: '16px', height: '16px', color: 'white' }}
                 />

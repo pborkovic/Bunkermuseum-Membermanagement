@@ -1,5 +1,5 @@
 import { memo, useMemo } from 'react';
-import { Icon } from '@vaadin/react-components';
+import { FaEnvelopeOpen } from 'react-icons/fa';
 import type Email from 'Frontend/generated/com/bunkermuseum/membermanagement/model/Email';
 import Pagination from './shared/_Pagination';
 import PaginationInfo from './shared/_PaginationInfo';
@@ -71,7 +71,7 @@ function EmailsList({
   if (emails.length === 0) {
     return (
       <EmptyState
-        icon="vaadin:envelope-open"
+        icon={<FaEnvelopeOpen />}
         title={emptyStateMessage.title}
         description={emptyStateMessage.description}
         className={`h-[${LIST_CONTAINER_HEIGHT}px]`}

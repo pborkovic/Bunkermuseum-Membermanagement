@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Icon } from '@vaadin/react-components';
+import { FaSpinner } from 'react-icons/fa';
 import type { LoadingStateProps } from '../../types';
 
 /**
@@ -28,8 +28,7 @@ function LoadingState({ message, className = '' }: LoadingStateProps): JSX.Eleme
     >
       <div className="text-center space-y-3">
         {/* Spinner Icon */}
-        <Icon
-          icon="vaadin:spinner"
+        <FaSpinner
           className="animate-spin text-black mx-auto"
           style={{ width: '40px', height: '40px' }}
           aria-hidden="true"

@@ -9,7 +9,7 @@
 
 import React from 'react';
 import { useTheme } from 'Frontend/contexts/ThemeContext';
-import { Icon } from '@vaadin/react-components';
+import { FaMoon, FaSun } from 'react-icons/fa';
 
 /**
  * Theme toggle button component that allows users to switch between light and dark modes.
@@ -37,7 +37,6 @@ import { Icon } from '@vaadin/react-components';
 export const ThemeToggle: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
   const toggleLabel = `Switch to ${theme === 'light' ? 'dark' : 'light'} mode`;
-  const iconName = theme === 'light' ? 'vaadin:moon' : 'vaadin:sun-o';
 
   return (
     <button
@@ -47,10 +46,11 @@ export const ThemeToggle: React.FC = () => {
       aria-label={toggleLabel}
       type="button"
     >
-      <Icon
-        icon={iconName}
-        className="theme-toggle-icon"
-      />
+      {theme === 'light' ? (
+        <FaMoon className="theme-toggle-icon" />
+      ) : (
+        <FaSun className="theme-toggle-icon" />
+      )}
     </button>
   );
 };

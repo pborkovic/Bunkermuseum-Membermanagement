@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router';
 import { ViewConfig } from '@vaadin/hilla-file-router/types.js';
-import { Icon } from '@vaadin/react-components/Icon.js';
+import { FaUser } from 'react-icons/fa';
+import { MdDashboard } from 'react-icons/md';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export const config: ViewConfig = {
@@ -32,8 +33,7 @@ export default function DashboardSelectionView() {
         >
           <CardHeader className="text-center pb-4 bg-white">
             <div className="mx-auto w-20 h-20 flex items-center justify-center mb-4">
-              <Icon
-                icon="vaadin:user"
+              <FaUser
                 style={{ width: '60px', height: '60px', color: 'black' }}
               />
             </div>
@@ -53,8 +53,7 @@ export default function DashboardSelectionView() {
         >
           <CardHeader className="text-center pb-4 bg-white">
             <div className="mx-auto w-20 h-20 flex items-center justify-center mb-4">
-              <Icon
-                icon="vaadin:dashboard"
+              <MdDashboard
                 style={{ width: '60px', height: '60px', color: 'black' }}
               />
             </div>

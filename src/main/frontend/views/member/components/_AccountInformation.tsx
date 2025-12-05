@@ -9,7 +9,7 @@
  */
 
 import { useMemo } from 'react';
-import { Icon } from '@vaadin/react-components';
+import { FaInfoCircle, FaCheckCircle } from 'react-icons/fa';
 import type UserDTO from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/UserDTO';
 import { formatDate, formatRoles } from '../utils/formatting';
 import { UI_TEXT } from '../constants';
@@ -78,8 +78,7 @@ export default function AccountInformation({
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6">
       <div className="mb-4 flex items-center space-x-3">
-        <Icon
-          icon="vaadin:info-circle"
+        <FaInfoCircle
           className="text-black"
           style={{ width: '24px', height: '24px' }}
         />
@@ -95,8 +94,7 @@ export default function AccountInformation({
           <span className="col-span-2 text-black">
             {isEmailVerified ? (
               <>
-                <Icon
-                  icon="vaadin:check-circle"
+                <FaCheckCircle
                   className="inline text-green-600 mr-1"
                   style={{ width: '16px', height: '16px' }}
                   aria-label="Email verified"

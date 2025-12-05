@@ -11,14 +11,13 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { ViewConfig } from '@vaadin/hilla-file-router/types.js';
-import { Icon } from '@vaadin/react-components';
 import { Toaster } from '@/components/ui/sonner';
 import BookingsTab from './components/_BookingsTab';
 import SettingsTab from './components/_SettingsTab';
 import logo from 'Frontend/assets/images/logo_bunkermuseum.jpg';
 import { useCurrentUser } from './hooks';
 import { TabId, type TabConfig } from './types';
-import { TAB_CONFIGS, UI_TEXT, PROFILE_PICTURE } from './constants';
+import { BookingsIcon, SettingsIcon, UserIcon, UI_TEXT, PROFILE_PICTURE } from './constants';
 
 /**
  * Hilla view configuration for the member dashboard.
@@ -53,6 +52,22 @@ export default function MemberDashboard(): JSX.Element {
   const { user, profilePictureUrl, isLoading: isLoadingUser, refetch } = useCurrentUser();
 
   /**
+   * Tab configurations with JSX icons.
+   */
+  const TAB_CONFIGS: readonly TabConfig[] = useMemo(() => [
+    {
+      tabId: TabId.BOOKINGS,
+      icon: <BookingsIcon style={{ width: '16px', height: '16px' }} />,
+      label: 'Buchungen',
+    },
+    {
+      tabId: TabId.SETTINGS,
+      icon: <SettingsIcon style={{ width: '16px', height: '16px' }} />,
+      label: 'Einstellungen',
+    },
+  ], []);
+
+  /**
    * Handles tab navigation changes.
    *
    * @param {TabId} tabId - The ID of the tab to navigate to
@@ -84,7 +99,9 @@ export default function MemberDashboard(): JSX.Element {
           aria-current={isActive ? 'page' : undefined}
           type="button"
         >
-          <Icon icon={config.icon} style={{ width: '16px', height: '16px' }} />
+          <span style={{ width: '16px', height: '16px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+            {config.icon}
+          </span>
           {config.label}
         </button>
       );
@@ -139,11 +156,7 @@ export default function MemberDashboard(): JSX.Element {
               }}
             />
           ) : (
-            <Icon
-              icon={PROFILE_PICTURE.DEFAULT_ICON}
-              style={{ width: '20px', height: '20px' }}
-              aria-label="Default user avatar"
-            />
+            <UserIcon style={{ width: `${PROFILE_PICTURE.ICON_WIDTH}px`, height: `${PROFILE_PICTURE.ICON_HEIGHT}px` }} />
           )}
         </div>
       </>

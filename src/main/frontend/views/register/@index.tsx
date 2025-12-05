@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
-import { Icon } from '@vaadin/react-components';
 import { z } from 'zod';
 import { subYears } from 'date-fns';
 import { AuthController } from 'Frontend/generated/endpoints';

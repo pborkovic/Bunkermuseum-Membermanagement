@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, memo } from 'react';
 import { ViewConfig } from '@vaadin/hilla-file-router/types.js';
-import { Icon } from '@vaadin/react-components';
+import { FaUsers, FaFileInvoice, FaEnvelope, FaCog, FaUser } from 'react-icons/fa';
 import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
 import { AuthController } from 'Frontend/generated/endpoints';
@@ -138,12 +138,12 @@ export default function AdminDashboard(): JSX.Element {
    *
    * @param {Object} props - Tab button properties
    * @param {TabId} props.tabId - Tab identifier
-   * @param {string} props.icon - Vaadin icon name
+   * @param {JSX.Element} props.icon - React icon element
    * @param {string} props.label - Tab display label
    * @returns {JSX.Element} Rendered tab button
    */
   const renderTabButton = useCallback(
-    ({ tabId, icon, label }: { tabId: TabId; icon: string; label: string }): JSX.Element => {
+    ({ tabId, icon, label }: { tabId: TabId; icon: JSX.Element; label: string }): JSX.Element => {
       const isActive = selectedTab === tabId;
 
       return (
@@ -157,7 +157,9 @@ export default function AdminDashboard(): JSX.Element {
           aria-label={`Navigate to ${label}`}
           aria-current={isActive ? 'page' : undefined}
         >
-          <Icon icon={icon} style={{ width: '16px', height: '16px' }} />
+          <span style={{ width: '16px', height: '16px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+            {icon}
+          </span>
           {label}
         </button>
       );
@@ -187,10 +189,10 @@ export default function AdminDashboard(): JSX.Element {
 
           {/* Tab Navigation */}
           <div className="flex items-center gap-2 sm:gap-8 overflow-x-auto" role="tablist">
-            {renderTabButton({ tabId: TabId.USERS, icon: 'vaadin:users', label: 'Mitglieder' })}
-            {renderTabButton({ tabId: TabId.BOOKINGS, icon: 'vaadin:invoice', label: 'Buchungen' })}
-            {renderTabButton({ tabId: TabId.EMAILS, icon: 'vaadin:envelope', label: 'E-Mails' })}
-            {renderTabButton({ tabId: TabId.SETTINGS, icon: 'vaadin:cog', label: 'Einstellungen' })}
+            {renderTabButton({ tabId: TabId.USERS, icon: <FaUsers style={{ width: '16px', height: '16px' }} />, label: 'Mitglieder' })}
+            {renderTabButton({ tabId: TabId.BOOKINGS, icon: <FaFileInvoice style={{ width: '16px', height: '16px' }} />, label: 'Buchungen' })}
+            {renderTabButton({ tabId: TabId.EMAILS, icon: <FaEnvelope style={{ width: '16px', height: '16px' }} />, label: 'E-Mails' })}
+            {renderTabButton({ tabId: TabId.SETTINGS, icon: <FaCog style={{ width: '16px', height: '16px' }} />, label: 'Einstellungen' })}
           </div>
 
           {/* User Profile Section */}
@@ -218,7 +220,7 @@ export default function AdminDashboard(): JSX.Element {
                       }}
                     />
                   ) : (
-                    <Icon icon="vaadin:user" style={{ width: '20px', height: '20px' }} aria-label="Default user avatar" />
+                    <FaUser style={{ width: '20px', height: '20px' }} aria-label="Default user avatar" />
                   )}
                 </div>
               </>

@@ -1,4 +1,4 @@
-import { Icon } from '@vaadin/react-components';
+import { FaInfoCircle, FaCheckCircle } from 'react-icons/fa';
 import type UserDTO from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/UserDTO';
 
 /**
@@ -28,7 +28,7 @@ export default function AccountInformation({ currentUser }: AccountInformationPr
     return (
         <div className="bg-white rounded-lg border border-gray-200 p-6">
             <div className="mb-4 flex items-center space-x-3">
-                <Icon icon="vaadin:info-circle" className="text-black" style={{ width: '24px', height: '24px' }} />
+                <FaInfoCircle className="text-black" style={{ width: '24px', height: '24px' }} />
                 <h3 className="text-lg font-semibold text-black">Kontoinformationen</h3>
             </div>
 
@@ -38,7 +38,7 @@ export default function AccountInformation({ currentUser }: AccountInformationPr
                     <span className="col-span-2 text-black">
             {currentUser?.emailVerifiedAt ? (
                 <>
-                    <Icon icon="vaadin:check-circle" className="inline text-green-600 mr-1" style={{ width: '16px', height: '16px' }} />
+                    <FaCheckCircle className="inline text-green-600 mr-1" style={{ width: '16px', height: '16px' }} />
                     Verifiziert am {formatDate(currentUser.emailVerifiedAt)}
                 </>
             ) : (

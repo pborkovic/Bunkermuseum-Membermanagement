@@ -1,4 +1,4 @@
-import { Icon } from '@vaadin/react-components';
+import { FaCalendar } from 'react-icons/fa';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
 
@@ -65,8 +65,7 @@ export default function BookingsDateRangeFilter({
     <div className="flex-shrink-0 bg-white rounded-lg p-4 border border-gray-200">
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
         <div className="flex items-center gap-2">
-          <Icon
-            icon="vaadin:calendar"
+          <FaCalendar
             className="text-black"
             style={{ width: '20px', height: '20px' }}
           />

@@ -9,7 +9,7 @@
  */
 
 import { useCallback, useMemo } from 'react';
-import { Icon } from '@vaadin/react-components';
+import { FaFileInvoice, FaCheck, FaClock, FaSpinner, FaExclamationTriangle } from 'react-icons/fa';
 import { BookingController } from 'Frontend/generated/endpoints';
 import type BookingDTO from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/BookingDTO';
 import { useAsyncData, useCategorizedBookings } from '../hooks';
@@ -73,11 +73,17 @@ export default function BookingsTab(): JSX.Element {
                   isFinished ? 'bg-black' : 'bg-gray-200'
                 }`}
               >
-                <Icon
-                  icon={isFinished ? 'vaadin:check' : 'vaadin:clock'}
-                  className={isFinished ? 'text-white' : 'text-gray-600'}
-                  style={{ width: '20px', height: '20px' }}
-                />
+                {isFinished ? (
+                  <FaCheck
+                    className="text-white"
+                    style={{ width: '20px', height: '20px' }}
+                  />
+                ) : (
+                  <FaClock
+                    className="text-gray-600"
+                    style={{ width: '20px', height: '20px' }}
+                  />
+                )}
               </div>
               <div>
                 <h3 className="font-semibold text-black text-base">
@@ -146,7 +152,7 @@ export default function BookingsTab(): JSX.Element {
    * @param {Object} params - Card parameters
    * @param {string} params.label - Card label
    * @param {number} params.count - Number to display
-   * @param {string} params.icon - Vaadin icon name
+   * @param {JSX.Element} params.icon - React icon element
    * @param {boolean} params.highlighted - Whether to highlight with black background
    *
    * @returns {JSX.Element} The rendered stat card
@@ -160,7 +166,7 @@ export default function BookingsTab(): JSX.Element {
     }: {
       label: string;
       count: number;
-      icon: string;
+      icon: JSX.Element;
       highlighted: boolean;
     }): JSX.Element => {
       return (
@@ -175,15 +181,18 @@ export default function BookingsTab(): JSX.Element {
                 highlighted ? 'bg-black' : 'bg-gray-100'
               }`}
             >
-              <Icon
-                icon={icon}
+              <span
                 className={highlighted ? 'text-white' : 'text-black'}
-                style={
-                  highlighted
-                    ? { width: '20px', height: '20px' }
-                    : { width: '24px', height: '24px' }
-                }
-              />
+                style={{
+                  width: highlighted ? '20px' : '24px',
+                  height: highlighted ? '20px' : '24px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {icon}
+              </span>
             </div>
           </div>
         </div>
@@ -201,19 +210,19 @@ export default function BookingsTab(): JSX.Element {
         {renderStatCard({
           label: 'Gesamt',
           count: total,
-          icon: 'vaadin:invoice',
+          icon: <FaFileInvoice style={{ width: '24px', height: '24px' }} />,
           highlighted: false,
         })}
         {renderStatCard({
           label: 'Abgeschlossen',
           count: finished.length,
-          icon: 'vaadin:check',
+          icon: <FaCheck style={{ width: '20px', height: '20px' }} />,
           highlighted: true,
         })}
         {renderStatCard({
           label: 'Ausstehend',
           count: pending.length,
-          icon: 'vaadin:clock',
+          icon: <FaClock style={{ width: '24px', height: '24px' }} />,
           highlighted: false,
         })}
       </>
@@ -227,8 +236,7 @@ export default function BookingsTab(): JSX.Element {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Icon
-          icon="vaadin:spinner"
+        <FaSpinner
           className="animate-spin text-black"
           style={{ width: '48px', height: '48px' }}
         />
@@ -243,8 +251,7 @@ export default function BookingsTab(): JSX.Element {
     return (
       <div className="bg-white border border-gray-200 rounded-lg p-8 text-center">
         <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mx-auto mb-4">
-          <Icon
-            icon="vaadin:warning"
+          <FaExclamationTriangle
             className="text-black"
             style={{ width: '32px', height: '32px' }}
           />
@@ -262,8 +269,7 @@ export default function BookingsTab(): JSX.Element {
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
         <div className="flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 mx-auto mb-4">
-          <Icon
-            icon="vaadin:invoice"
+          <FaFileInvoice
             className="text-gray-400"
             style={{ width: '40px', height: '40px' }}
           />
@@ -291,8 +297,7 @@ export default function BookingsTab(): JSX.Element {
         <div>
           <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
             <div className="flex items-center gap-3">
-              <Icon
-                icon="vaadin:clock"
+              <FaClock
                 className="text-black"
                 style={{ width: '20px', height: '20px' }}
               />
@@ -315,8 +320,7 @@ export default function BookingsTab(): JSX.Element {
         <div>
           <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
             <div className="flex items-center gap-3">
-              <Icon
-                icon="vaadin:check"
+              <FaCheck
                 className="text-black"
                 style={{ width: '20px', height: '20px' }}
               />

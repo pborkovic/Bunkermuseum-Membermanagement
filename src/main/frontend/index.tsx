@@ -1,7 +1,7 @@
-import { createElement, useEffect } from 'react';
+import { createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { RouterProvider } from 'react-router';
-import { router } from 'Frontend/generated/routes.js';
+import { router } from 'Frontend/routes';
 import './styles/globals.css';
 
 /**
@@ -10,21 +10,18 @@ import './styles/globals.css';
  * @description
  * Initializes the React application with:
  * - React Router for navigation
- * - Generated route configuration from Vaadin
+ * - Custom route configuration with error handling
  * - Global Shadcn UI styles and Tailwind CSS
- * - Dark mode support via CSS variables
+ * - Theme management via ThemeProvider (defaults to light mode)
  *
  * This file customizes the default Vaadin Hilla entry point to:
  * 1. Import global styles (globals.css) with Shadcn UI theme variables
- * 2. Maintain compatibility with Vaadin's hot module replacement
+ * 2. Use custom routes.tsx for enhanced error handling (404, 500)
+ * 3. Maintain compatibility with Vaadin's hot module replacement
  *
  * @author Philipp Borkovic
  */
 function App() {
-    useEffect(() => {
-        document.documentElement.classList.add('dark');
-    }, []);
-
     return <RouterProvider router={router} />;
 }
 

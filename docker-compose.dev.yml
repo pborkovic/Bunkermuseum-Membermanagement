@@ -36,6 +36,9 @@ services:
       - SPRING_MAIL_PORT=1025
       - SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH=false
       - SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE=false
+      - RECAPTCHA_SITE_KEY=6LeyACIsAAAAAASaFn6feKREGZB_IWoKXjLfNR8y
+      - RECAPTCHA_SECRET_KEY=6LeyACIsAAAAAFUDfyr2ilWMN1PkILyoBgE1KXA7
+      - RECAPTCHA_VERIFY_URL=https://www.google.com/recaptcha/api/siteverify
     volumes:
       # Mount Java source code for hot reload
       - ./src/main/java:/app/src/main/java:delegated

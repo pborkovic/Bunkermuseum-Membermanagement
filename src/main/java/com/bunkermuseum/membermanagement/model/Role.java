@@ -1,7 +1,6 @@
 package com.bunkermuseum.membermanagement.model;
 
 import com.bunkermuseum.membermanagement.model.base.Model;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -92,8 +91,11 @@ public class Role extends Model {
      *   <li>Foreign keys: user_id, role_id</li>
      *   <li>Lazy loading for performance</li>
      * </ul>
+     *
+     * <p><strong>Note:</strong> This field is ignored during JSON serialization
+     * to prevent circular references. Roles are serialized from the User entity.</p>
      */
-    @JsonBackReference
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY)
     private Set<User> users = new HashSet<>();
 

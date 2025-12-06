@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { AuthController } from 'Frontend/generated/endpoints';
 import { getErrorMessage } from '../../types/vaadin';
 import logo from 'Frontend/assets/images/logo_bunkermuseum.jpg';
+import loginImage from 'Frontend/assets/images/login_image.svg';
 
 /**
  * Error messages for login failures
@@ -37,7 +38,7 @@ export const config: ViewConfig = {
  * - Error handling for invalid credentials and account lockout
  * - Full page reload on successful login to refresh security context
  * - Link to registration page for new users
- * - Responsive split layout (form on right, blank area on left for desktop)
+ * - Responsive split layout (form on right, login image on left for desktop)
  *
  * @component
  *
@@ -107,8 +108,14 @@ export default function LoginView(): JSX.Element {
 
   return (
     <div className="flex min-h-screen w-full">
-      {/* Left side - blank (desktop only) */}
-      <div className="hidden lg:flex lg:w-1/2 bg-muted" />
+      {/* Left side - image (desktop only) */}
+      <div className="hidden lg:flex lg:w-1/2 h-screen items-center justify-start overflow-hidden bg-white">
+        <img
+          src={loginImage}
+          alt="Bunkermuseum Login"
+          className="h-full w-auto object-contain"
+        />
+      </div>
 
       {/* Right side - login form */}
       <div className="flex w-full items-center justify-center p-4 lg:w-1/2 lg:p-8">

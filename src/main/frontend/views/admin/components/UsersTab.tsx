@@ -13,6 +13,73 @@ import { useModalWithData, useModal } from '../hooks/useModal';
 import { formatDate } from '../utils/formatting';
 import { ANREDE_OPTIONS, USER_STATUS_OPTIONS, PAGE_SIZE_OPTIONS, DEFAULT_PAGE_SIZE, EXPORT_USER_TYPE_OPTIONS, EXPORT_FORMAT_OPTIONS } from '../utils/constants';
 import type { ProfileFormData } from '../types';
+import { toast } from 'sonner';
+import { z } from 'zod';
+
+/**
+ * Zod validation schema for creating new users.
+ * Validates all fields according to database constraints defined in User.java entity.
+ *
+ * @see User.java for database field constraints
+ */
+const createUserSchema = z.object({
+  name: z
+    .string()
+    .min(1, 'Name ist ein Pflichtfeld')
+    .min(2, 'Name muss mindestens 2 Zeichen lang sein')
+    .max(100, 'Name darf maximal 100 Zeichen lang sein')
+    .trim(),
+  email: z
+    .string()
+    .min(1, 'E-Mail ist ein Pflichtfeld')
+    .email('Ungültige E-Mail-Adresse')
+    .max(255, 'E-Mail darf maximal 255 Zeichen lang sein')
+    .trim(),
+  salutation: z
+    .string()
+    .max(20, 'Anrede darf maximal 20 Zeichen lang sein')
+    .optional()
+    .or(z.literal('')),
+  academicTitle: z
+    .string()
+    .max(50, 'Akademischer Titel darf maximal 50 Zeichen lang sein')
+    .optional()
+    .or(z.literal('')),
+  rank: z
+    .string()
+    .max(50, 'Dienstgrad darf maximal 50 Zeichen lang sein')
+    .optional()
+    .or(z.literal('')),
+  birthday: z
+    .date()
+    .max(new Date(), 'Geburtsdatum darf nicht in der Zukunft liegen')
+    .optional(),
+  phone: z
+    .string()
+    .max(20, 'Telefonnummer darf maximal 20 Zeichen lang sein')
+    .optional()
+    .or(z.literal('')),
+  street: z
+    .string()
+    .max(255, 'Straße darf maximal 255 Zeichen lang sein')
+    .optional()
+    .or(z.literal('')),
+  city: z
+    .string()
+    .max(100, 'Stadt darf maximal 100 Zeichen lang sein')
+    .optional()
+    .or(z.literal('')),
+  postalCode: z
+    .string()
+    .max(10, 'Postleitzahl darf maximal 10 Zeichen lang sein')
+    .optional()
+    .or(z.literal('')),
+  country: z
+    .string()
+    .max(100, 'Land darf maximal 100 Zeichen lang sein')
+    .optional()
+    .or(z.literal('')),
+});
 
 /**
  * UsersTab component - Displays all users in a grid with detailed modal view.
@@ -75,6 +142,7 @@ export default function UsersTab(): JSX.Element {
   const [exportUserType, setExportUserType] = useState('all');
   const [exportFormat, setExportFormat] = useState('xlsx');
   const [singleUserExportFormat, setSingleUserExportFormat] = useState('xlsx');
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   /**
    * Loads users from the backend with pagination.
@@ -263,21 +331,42 @@ export default function UsersTab(): JSX.Element {
       postalCode: '',
       country: ''
     });
+    setValidationErrors({});
+    setError('');
     createModal.open();
   }, [createModal]);
 
   /**
    * Creates a new user with the provided form data.
+   * Validates all fields using Zod schema before submission.
    *
    * @author Philipp Borkovic
    */
   const handleCreateUser = useCallback(async (): Promise<void> => {
     try {
-      if (!createForm.name || !createForm.email) {
-        setError('Name und E-Mail sind Pflichtfelder');
+      // Reset previous validation errors
+      setValidationErrors({});
+      setError('');
+
+      // Validate form data with Zod schema
+      const validationResult = createUserSchema.safeParse(createForm);
+
+      if (!validationResult.success) {
+        // Extract validation errors
+        const errors: Record<string, string> = {};
+        validationResult.error.issues.forEach((issue) => {
+          const path = issue.path.join('.');
+          errors[path] = issue.message;
+        });
+        setValidationErrors(errors);
+
+        // Show toast with first error
+        const firstError = validationResult.error.issues[0];
+        toast.error(firstError.message);
         return;
       }
 
+      // Create user object with validated data
       const newUser = {
         name: createForm.name,
         email: createForm.email,
@@ -295,11 +384,14 @@ export default function UsersTab(): JSX.Element {
 
       await UserController.createUser(newUser);
       createModal.close();
+      setValidationErrors({});
       setError('');
+      toast.success(`Mitglied "${createForm.name}" wurde erfolgreich erstellt!`);
       await loadUsers();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Fehler beim Erstellen des Benutzers';
       setError(errorMessage);
+      toast.error(errorMessage);
     }
   }, [createForm, createModal, loadUsers]);
 
@@ -654,7 +746,12 @@ export default function UsersTab(): JSX.Element {
         noCloseOnOutsideClick
       >
         {editModal.data && (
-          <div className="p-4 sm:p-6 min-w-[300px] sm:min-w-[600px] lg:min-w-[700px] max-w-[95vw] max-h-[90vh] overflow-y-auto">
+          <div
+            className="p-4 sm:p-6 min-w-[300px] sm:min-w-[600px] lg:min-w-[700px] max-w-[95vw] max-h-[90vh] overflow-y-auto"
+            onKeyDown={(e) => e.stopPropagation()}
+            onKeyUp={(e) => e.stopPropagation()}
+            onKeyPress={(e) => e.stopPropagation()}
+          >
             <div className="space-y-6">
               {/* Basic Information */}
               <div>
@@ -916,7 +1013,12 @@ export default function UsersTab(): JSX.Element {
         headerTitle="Neues Mitglied erstellen"
         noCloseOnOutsideClick
       >
-        <div className="p-4 sm:p-6 min-w-[300px] sm:min-w-[900px] lg:min-w-[1100px] max-w-[95vw] max-h-[90vh] overflow-y-auto">
+        <div
+          className="p-4 sm:p-6 min-w-[300px] sm:min-w-[900px] lg:min-w-[1100px] max-w-[95vw] max-h-[90vh] overflow-y-auto"
+          onKeyDown={(e) => e.stopPropagation()}
+          onKeyUp={(e) => e.stopPropagation()}
+          onKeyPress={(e) => e.stopPropagation()}
+        >
           <div className="space-y-6">
             {/* Icon */}
             <div className="flex justify-center">
@@ -939,24 +1041,34 @@ export default function UsersTab(): JSX.Element {
                   <label className="text-xs text-muted-foreground">Name *</label>
                   <input
                     type="text"
-                    className="w-full px-3 py-2 border border-black rounded-md bg-white text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
+                    className={`w-full px-3 py-2 border rounded-md bg-white text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-black transition-all ${
+                      validationErrors.name ? 'border-red-500 focus:ring-red-500' : 'border-black focus:ring-black'
+                    }`}
                     value={createForm.name}
                     onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
                     placeholder="Max Mustermann"
                     required
                   />
+                  {validationErrors.name && (
+                    <p className="text-xs text-red-600 mt-1">{validationErrors.name}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-xs text-muted-foreground">E-Mail *</label>
                   <input
                     type="email"
-                    className="w-full px-3 py-2 border border-black rounded-md bg-white text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
+                    className={`w-full px-3 py-2 border rounded-md bg-white text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-black transition-all ${
+                      validationErrors.email ? 'border-red-500 focus:ring-red-500' : 'border-black focus:ring-black'
+                    }`}
                     value={createForm.email}
                     onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
                     placeholder="max@example.com"
                     required
                   />
+                  {validationErrors.email && (
+                    <p className="text-xs text-red-600 mt-1">{validationErrors.email}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -971,7 +1083,9 @@ export default function UsersTab(): JSX.Element {
                     value={createForm.salutation}
                     onValueChange={(value) => setCreateForm({ ...createForm, salutation: value })}
                   >
-                    <SelectTrigger className="w-full border-black text-black [&_svg]:text-black [&_svg]:opacity-100 [&_svg]:-mt-4">
+                    <SelectTrigger className={`w-full text-black [&_svg]:text-black [&_svg]:opacity-100 [&_svg]:-mt-4 ${
+                      validationErrors.salutation ? 'border-red-500' : 'border-black'
+                    }`}>
                       <SelectValue placeholder="Wählen" />
                     </SelectTrigger>
                     <SelectContent className="bg-white border-black z-[9999]">
@@ -986,28 +1100,41 @@ export default function UsersTab(): JSX.Element {
                       ))}
                     </SelectContent>
                   </Select>
+                  {validationErrors.salutation && (
+                    <p className="text-xs text-red-600 mt-1">{validationErrors.salutation}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-xs text-muted-foreground">Akademischer Titel</label>
                   <input
                     type="text"
-                    className="w-full px-3 py-2 border border-black rounded-md bg-white text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
+                    className={`w-full px-3 py-2 border rounded-md bg-white text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-black transition-all ${
+                      validationErrors.academicTitle ? 'border-red-500 focus:ring-red-500' : 'border-black focus:ring-black'
+                    }`}
                     value={createForm.academicTitle}
                     onChange={(e) => setCreateForm({ ...createForm, academicTitle: e.target.value })}
                     placeholder="z.B. Dr., Prof."
                   />
+                  {validationErrors.academicTitle && (
+                    <p className="text-xs text-red-600 mt-1">{validationErrors.academicTitle}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-xs text-muted-foreground">Dienstgrad</label>
                   <input
                     type="text"
-                    className="w-full px-3 py-2 border border-black rounded-md bg-white text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
+                    className={`w-full px-3 py-2 border rounded-md bg-white text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-black transition-all ${
+                      validationErrors.rank ? 'border-red-500 focus:ring-red-500' : 'border-black focus:ring-black'
+                    }`}
                     value={createForm.rank}
                     onChange={(e) => setCreateForm({ ...createForm, rank: e.target.value })}
                     placeholder="z.B. Oberst, Major"
                   />
+                  {validationErrors.rank && (
+                    <p className="text-xs text-red-600 mt-1">{validationErrors.rank}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -1016,6 +1143,9 @@ export default function UsersTab(): JSX.Element {
                     value={createForm.birthday}
                     onChange={(date) => setCreateForm(prev => ({ ...prev, birthday: date }))}
                   />
+                  {validationErrors.birthday && (
+                    <p className="text-xs text-red-600 mt-1">{validationErrors.birthday}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -1027,11 +1157,16 @@ export default function UsersTab(): JSX.Element {
                 <label className="text-xs text-muted-foreground">Telefon</label>
                 <input
                   type="tel"
-                  className="w-full px-3 py-2 border border-black rounded-md bg-white text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
+                  className={`w-full px-3 py-2 border rounded-md bg-white text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-black transition-all ${
+                    validationErrors.phone ? 'border-red-500 focus:ring-red-500' : 'border-black focus:ring-black'
+                  }`}
                   value={createForm.phone}
                   onChange={(e) => setCreateForm({ ...createForm, phone: e.target.value })}
                   placeholder="+49 123 456789"
                 />
+                {validationErrors.phone && (
+                  <p className="text-xs text-red-600 mt-1">{validationErrors.phone}</p>
+                )}
               </div>
             </div>
 
@@ -1043,11 +1178,16 @@ export default function UsersTab(): JSX.Element {
                   <label className="text-xs text-muted-foreground">Straße & Hausnummer</label>
                   <input
                     type="text"
-                    className="w-full px-3 py-2 border border-black rounded-md bg-white text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
+                    className={`w-full px-3 py-2 border rounded-md bg-white text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-black transition-all ${
+                      validationErrors.street ? 'border-red-500 focus:ring-red-500' : 'border-black focus:ring-black'
+                    }`}
                     value={createForm.street}
                     onChange={(e) => setCreateForm({ ...createForm, street: e.target.value })}
                     placeholder="Musterstraße 123"
                   />
+                  {validationErrors.street && (
+                    <p className="text-xs text-red-600 mt-1">{validationErrors.street}</p>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1055,22 +1195,32 @@ export default function UsersTab(): JSX.Element {
                     <label className="text-xs text-muted-foreground">Postleitzahl</label>
                     <input
                       type="text"
-                      className="w-full px-3 py-2 border border-black rounded-md bg-white text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
+                      className={`w-full px-3 py-2 border rounded-md bg-white text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-black transition-all ${
+                        validationErrors.postalCode ? 'border-red-500 focus:ring-red-500' : 'border-black focus:ring-black'
+                      }`}
                       value={createForm.postalCode}
                       onChange={(e) => setCreateForm({ ...createForm, postalCode: e.target.value })}
                       placeholder="12345"
                     />
+                    {validationErrors.postalCode && (
+                      <p className="text-xs text-red-600 mt-1">{validationErrors.postalCode}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
                     <label className="text-xs text-muted-foreground">Stadt</label>
                     <input
                       type="text"
-                      className="w-full px-3 py-2 border border-black rounded-md bg-white text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
+                      className={`w-full px-3 py-2 border rounded-md bg-white text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-black transition-all ${
+                        validationErrors.city ? 'border-red-500 focus:ring-red-500' : 'border-black focus:ring-black'
+                      }`}
                       value={createForm.city}
                       onChange={(e) => setCreateForm({ ...createForm, city: e.target.value })}
                       placeholder="Berlin"
                     />
+                    {validationErrors.city && (
+                      <p className="text-xs text-red-600 mt-1">{validationErrors.city}</p>
+                    )}
                   </div>
                 </div>
 
@@ -1078,11 +1228,16 @@ export default function UsersTab(): JSX.Element {
                   <label className="text-xs text-muted-foreground">Land</label>
                   <input
                     type="text"
-                    className="w-full px-3 py-2 border border-black rounded-md bg-white text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
+                    className={`w-full px-3 py-2 border rounded-md bg-white text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-black transition-all ${
+                      validationErrors.country ? 'border-red-500 focus:ring-red-500' : 'border-black focus:ring-black'
+                    }`}
                     value={createForm.country}
                     onChange={(e) => setCreateForm({ ...createForm, country: e.target.value })}
                     placeholder="Deutschland"
                   />
+                  {validationErrors.country && (
+                    <p className="text-xs text-red-600 mt-1">{validationErrors.country}</p>
+                  )}
                 </div>
               </div>
             </div>

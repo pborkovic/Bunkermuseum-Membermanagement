@@ -420,4 +420,63 @@ public class AuthController {
             boolean success,
             String message
     ) {}
+
+    /**
+     * Sets up a user's password using a password setup token.
+     *
+     * <p>This endpoint is used when an admin creates a user account without a password.
+     * The user receives an email with a token link and uses this endpoint to set their
+     * password for the first time.</p>
+     *
+     * <h3>Flow:</h3>
+     * <ol>
+     *     <li>Admin creates user without password</li>
+     *     <li>System sends welcome email with token link</li>
+     *     <li>User clicks link and is directed to password setup page</li>
+     *     <li>User calls this endpoint with token and new password</li>
+     *     <li>System validates token and sets password</li>
+     * </ol>
+     *
+     * @param token The unique password setup token from the email
+     * @param password The new password (must meet OWASP requirements)
+     *
+     * @return A PasswordSetupResponse indicating success or failure
+     *
+     * @throws IllegalArgumentException if token is invalid or password doesn't meet requirements
+     * @throws RuntimeException if password setup fails
+     *
+     * @author Philipp Borkovic
+     */
+    public PasswordSetupResponse setupPassword(String token, String password) {
+        String clientIp = getClientIp();
+
+        try {
+            logger.info("Password setup attempt from IP: {}", clientIp);
+
+            userService.setupPasswordWithToken(token, password);
+
+            return new PasswordSetupResponse(true, "Password erfolgreich eingerichtet");
+        } catch (IllegalArgumentException e) {
+            logger.error("Validation error during password setup from IP: {}", clientIp, e);
+
+            throw e;
+        } catch (Exception e) {
+            logger.error("Unexpected error during password setup from IP: {}", clientIp, e);
+
+            throw new RuntimeException("Fehler beim Einrichten des Passworts. Bitte versuchen Sie es erneut.", e);
+        }
+    }
+
+    /**
+     * Response object for password setup operations.
+     *
+     * @param success Whether the password setup was successful
+     * @param message A message describing the result
+     *
+     * @author Philipp Borkovic
+     */
+    public record PasswordSetupResponse(
+            boolean success,
+            String message
+    ) {}
 }

@@ -1,6 +1,6 @@
 import { memo, useMemo } from 'react';
 import { FaEnvelopeOpen } from 'react-icons/fa';
-import type Email from 'Frontend/generated/com/bunkermuseum/membermanagement/model/Email';
+import type EmailDTO from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/EmailDTO';
 import Pagination from './shared/_Pagination';
 import PaginationInfo from './shared/_PaginationInfo';
 import LoadingState from './shared/_LoadingState';
@@ -12,7 +12,7 @@ import { LIST_CONTAINER_HEIGHT } from '../utils/constants';
  * EmailsList component props.
  */
 interface EmailsListProps {
-  emails: Email[];
+  emails: EmailDTO[];
   isLoading: boolean;
   currentPage: number;
   totalPages: number;

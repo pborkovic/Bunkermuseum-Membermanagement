@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { FaDownload, FaEnvelope, FaCloudDownloadAlt, FaTable, FaFileAlt, FaFileCode, FaCode } from 'react-icons/fa';
 import { MdExpandMore } from 'react-icons/md';
 import { EmailController } from 'Frontend/generated/endpoints';
-import type Email from 'Frontend/generated/com/bunkermuseum/membermanagement/model/Email';
+import type EmailDTO from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/EmailDTO';
 import type { PageResponse } from '../types';
 import { getErrorMessage, DialogOpenedChangedEvent } from '../../../types/vaadin';
 import EmailsList from './_EmailsList';
@@ -29,7 +29,7 @@ import { PAGE_SIZE_OPTIONS, DEFAULT_PAGE_SIZE, EXPORT_EMAIL_TYPE_OPTIONS, EXPORT
  */
 export default function EmailsTab() {
   const { isMobile } = useWindowSize();
-  const [emails, setEmails] = useState<Email[]>([]);
+  const [emails, setEmails] = useState<EmailDTO[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -61,11 +61,11 @@ export default function EmailsTab() {
       const pageResponse = await EmailController.getEmailsPage(
         currentPage - 1,
         emailsPerPage
-      ) as unknown as PageResponse<Email>;
+      ) as unknown as PageResponse<EmailDTO>;
 
       // Filter out null/undefined entries
       const validEmails = (pageResponse.content || [])
-        .filter((email): email is Email => email !== undefined && email !== null);
+        .filter((email): email is EmailDTO => email !== undefined && email !== null);
 
       setEmails(validEmails);
       setTotalPages(pageResponse.totalPages || 0);

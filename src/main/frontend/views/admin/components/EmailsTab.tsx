@@ -118,30 +118,32 @@ export default function EmailsTab() {
   }, [exportEmailType, exportFormat, exportModal]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header with Send Email Button */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
         <div>
-          <h2 className="text-2xl font-bold">E-Mail-Verwaltung</h2>
-          <p className="text-sm text-gray-600 mt-1">
+          <h2 className="text-xl sm:text-2xl font-bold">E-Mail-Verwaltung</h2>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">
             Übersicht aller gesendeten E-Mails
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           <Button
             variant="outline"
             onClick={exportModal.open}
-            className="text-white bg-black hover:bg-gray-800 border-black"
+            className="text-white bg-black hover:bg-gray-800 border-black w-full sm:w-auto"
           >
             <FaDownload className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
-            Exportieren
+            <span className="hidden xs:inline">Exportieren</span>
+            <span className="xs:hidden">Export</span>
           </Button>
           <Button
             onClick={sendEmailModal.open}
-            className="flex items-center gap-2 bg-black text-white hover:bg-gray-800"
+            className="flex items-center justify-center gap-2 bg-black text-white hover:bg-gray-800 w-full sm:w-auto"
           >
             <FaEnvelope style={{ width: '16px', height: '16px' }} />
-            Neue E-Mail senden
+            <span className="hidden xs:inline">Neue E-Mail senden</span>
+            <span className="xs:hidden">Neue E-Mail</span>
           </Button>
         </div>
       </div>
@@ -154,9 +156,9 @@ export default function EmailsTab() {
       )}
 
       {/* Controls Row: Page Size Selector */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-700">Einträge pro Seite:</span>
+          <span className="text-xs sm:text-sm text-gray-700 whitespace-nowrap">Einträge pro Seite:</span>
           <div className="relative">
             <MdExpandMore
               className="absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none z-10"
@@ -212,11 +214,11 @@ export default function EmailsTab() {
         }}
         headerTitle="E-Mail-Export Optionen"
       >
-        <div className="p-4 sm:p-6 min-w-[300px] sm:min-w-[500px] max-w-[95vw]">
-          <div className="space-y-6">
+        <div className="p-4 sm:p-6 w-full sm:min-w-[400px] md:min-w-[500px] max-w-[95vw]">
+          <div className="space-y-4 sm:space-y-6">
             {/* Icon */}
             <div className="flex justify-center">
-              <FaCloudDownloadAlt className="text-black" style={{ width: '64px', height: '64px' }} />
+              <FaCloudDownloadAlt className="text-black" style={{ width: '48px', height: '48px' }} />
             </div>
 
             {/* Description */}

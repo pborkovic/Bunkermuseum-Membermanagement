@@ -175,15 +175,17 @@ export default function AdminDashboard(): JSX.Element {
       <nav className="w-full border-b bg-white z-10 flex-shrink-0" role="navigation" aria-label="Admin navigation">
         <div className="flex flex-col px-3 py-2 gap-2 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4 sm:gap-0">
           {/* Logo and Title */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-shrink-0">
             <img
               src={logo}
               alt="Bunkermuseum Logo"
-              className="h-8 sm:h-12 w-auto object-contain"
+              className="h-7 sm:h-10 md:h-12 w-auto object-contain flex-shrink-0"
             />
-            <div>
-              <h1 className="text-sm sm:text-xl font-semibold text-black">Mitgliederverwaltung</h1>
-              <p className="text-xs sm:text-sm text-gray-600">Admin Dashboard</p>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xs sm:text-base md:text-lg lg:text-xl font-semibold text-black whitespace-nowrap overflow-hidden text-ellipsis">
+                Mitgliederverwaltung
+              </h1>
+              <p className="text-[10px] sm:text-xs md:text-sm text-gray-600 whitespace-nowrap">Admin Dashboard</p>
             </div>
           </div>
 

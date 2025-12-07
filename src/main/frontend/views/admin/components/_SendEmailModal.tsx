@@ -165,11 +165,11 @@ export function SendEmailModal({ isOpen, onClose, onEmailSent }: SendEmailModalP
       headerTitle="Neue E-Mail senden"
       className="email-modal-large"
     >
-      <div className="space-y-6 py-6 w-[1200px] max-w-[95vw]">
+      <div className="space-y-4 sm:space-y-6 py-4 sm:py-6 w-full sm:w-[600px] md:w-[800px] lg:w-[1000px] xl:w-[1200px] max-w-[95vw] px-2 sm:px-0">
         {/* Recipient Type Selection */}
         <div className="space-y-2">
-          <Label>Empfänger-Typ</Label>
-          <div className="flex gap-4">
+          <Label className="text-sm sm:text-base">Empfänger-Typ</Label>
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="radio"
@@ -179,7 +179,7 @@ export function SendEmailModal({ isOpen, onClose, onEmailSent }: SendEmailModalP
                 onChange={() => setRecipientType('user')}
                 className="w-4 h-4 border-black text-black focus:ring-2 focus:ring-black"
               />
-              <span className="text-sm">Benutzer auswählen</span>
+              <span className="text-xs sm:text-sm">Benutzer auswählen</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input
@@ -190,7 +190,7 @@ export function SendEmailModal({ isOpen, onClose, onEmailSent }: SendEmailModalP
                 onChange={() => setRecipientType('custom')}
                 className="w-4 h-4 border-black text-black focus:ring-2 focus:ring-black"
               />
-              <span className="text-sm">Benutzerdefinierte E-Mail</span>
+              <span className="text-xs sm:text-sm">Benutzerdefinierte E-Mail</span>
             </label>
           </div>
         </div>
@@ -198,25 +198,25 @@ export function SendEmailModal({ isOpen, onClose, onEmailSent }: SendEmailModalP
         {/* User Selection Dropdown */}
         {recipientType === 'user' && (
           <div className="space-y-2">
-            <Label htmlFor="user-select">Empfänger</Label>
+            <Label htmlFor="user-select" className="text-sm sm:text-base">Empfänger</Label>
             {isLoadingUsers ? (
-              <p className="text-sm text-gray-500">Lade Benutzer...</p>
+              <p className="text-xs sm:text-sm text-gray-500">Lade Benutzer...</p>
             ) : (
               <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-                <SelectTrigger className="w-full border-black focus:ring-black focus:border-black text-black bg-white">
+                <SelectTrigger className="w-full border-black focus:ring-black focus:border-black text-black bg-white text-sm sm:text-base">
                   <SelectValue placeholder="Benutzer auswählen..." className="text-black" />
                 </SelectTrigger>
-                <SelectContent 
-                  className="bg-white border-black z-[9999] max-h-60 overflow-y-auto"
+                <SelectContent
+                  className="bg-white border-black z-[9999] max-h-48 sm:max-h-60 overflow-y-auto"
                   style={{ zIndex: 9999 }}
                 >
                   {users.map((user) => (
                     <SelectItem
                       key={user.id}
                       value={user.id?.toString() || ''}
-                      className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black"
+                      className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black text-xs sm:text-sm"
                     >
-                      {user.name} ({user.email})
+                      <span className="block truncate">{user.name} ({user.email})</span>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -228,34 +228,34 @@ export function SendEmailModal({ isOpen, onClose, onEmailSent }: SendEmailModalP
         {/* Custom Email Input */}
         {recipientType === 'custom' && (
           <div className="space-y-2">
-            <Label htmlFor="custom-email">E-Mail-Adresse</Label>
+            <Label htmlFor="custom-email" className="text-sm sm:text-base">E-Mail-Adresse</Label>
             <Input
               id="custom-email"
               type="email"
               placeholder="beispiel@email.com"
               value={customEmail}
               onChange={(e) => setCustomEmail(e.target.value)}
-              className="border-black focus:ring-black focus:border-black"
+              className="border-black focus:ring-black focus:border-black text-sm sm:text-base"
             />
           </div>
         )}
 
         {/* Subject Field */}
         <div className="space-y-2">
-          <Label htmlFor="subject">Betreff</Label>
+          <Label htmlFor="subject" className="text-sm sm:text-base">Betreff</Label>
           <Input
             id="subject"
             type="text"
             placeholder="E-Mail Betreff"
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
-            className="border-black focus:ring-black focus:border-black"
+            className="border-black focus:ring-black focus:border-black text-sm sm:text-base"
           />
         </div>
 
         {/* Content Editor (React Quill) */}
         <div className="space-y-2">
-          <Label>Inhalt</Label>
+          <Label className="text-sm sm:text-base">Inhalt</Label>
           <div className="border border-black rounded-md overflow-hidden">
             <ReactQuill
               theme="snow"
@@ -264,24 +264,25 @@ export function SendEmailModal({ isOpen, onClose, onEmailSent }: SendEmailModalP
               modules={modules}
               formats={formats}
               placeholder="Verfassen Sie hier Ihre E-Mail..."
-              style={{ minHeight: '200px' }}
+              style={{ minHeight: '150px' }}
+              className="text-sm sm:text-base"
             />
           </div>
         </div>
 
         {/* Footer Buttons */}
-        <div className="flex justify-end gap-2 pt-4 border-t border-gray-200">
+        <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-4 border-t border-gray-200">
           <Button
             onClick={handleClose}
             disabled={isSending}
-            className="bg-red-600 text-white hover:bg-red-700 disabled:bg-red-300"
+            className="bg-red-600 text-white hover:bg-red-700 disabled:bg-red-300 w-full sm:w-auto text-sm sm:text-base"
           >
             Abbrechen
           </Button>
           <Button
             onClick={handleSendEmail}
             disabled={isSending}
-            className="bg-black text-white hover:bg-gray-800 disabled:bg-gray-400"
+            className="bg-black text-white hover:bg-gray-800 disabled:bg-gray-400 w-full sm:w-auto text-sm sm:text-base"
           >
             {isSending ? 'Senden...' : 'E-Mail senden'}
           </Button>

@@ -1,6 +1,9 @@
 package com.bunkermuseum.membermanagement.controller;
 
+import com.bunkermuseum.membermanagement.dto.EmailDTO;
+import com.bunkermuseum.membermanagement.dto.PageResponse;
 import com.bunkermuseum.membermanagement.dto.UserDTO;
+import com.bunkermuseum.membermanagement.dto.mapper.EmailMapper;
 import com.bunkermuseum.membermanagement.dto.mapper.UserMapper;
 import com.bunkermuseum.membermanagement.model.Email;
 import com.bunkermuseum.membermanagement.model.User;
@@ -19,9 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -74,28 +75,27 @@ public class EmailController {
      * Retrieves a paginated list of emails.
      *
      * <p>Returns emails ordered by creation date (most recent first)
-     * with pagination support for the admin dashboard.
+     * with pagination support for the admin dashboard. Converts entities
+     * to DTOs to avoid Hibernate lazy loading serialization issues.</p>
      *
      * @param page the page number (0-indexed)
      * @param size the number of emails per page
-     * @return map containing email content and pagination metadata
+     * @return PageResponse containing email DTOs and pagination metadata
      *
      * @author Philipp Borkovic
      */
-    public Map<String, Object> getEmailsPage(int page, int size) {
+    public PageResponse<EmailDTO> getEmailsPage(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Email> emailPage = emailRepository.findAll(pageable);
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("content", emailPage.getContent());
-        response.put("number", emailPage.getNumber());
-        response.put("size", emailPage.getSize());
-        response.put("totalElements", emailPage.getTotalElements());
-        response.put("totalPages", emailPage.getTotalPages());
-        response.put("first", emailPage.isFirst());
-        response.put("last", emailPage.isLast());
+        List<EmailDTO> emailDTOs = EmailMapper.toDTOList(emailPage.getContent());
 
-        return response;
+        return new PageResponse<>(
+            emailDTOs,
+            emailPage.getNumber(),
+            emailPage.getSize(),
+            emailPage.getTotalElements()
+        );
     }
 
     /**

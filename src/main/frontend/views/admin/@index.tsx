@@ -260,7 +260,7 @@ export default function AdminDashboard(): JSX.Element {
                 }}
                 className={`flex items-center gap-3 px-6 py-4 text-left transition-colors ${
                   selectedTab === TabId.USERS
-                    ? 'bg-black text-white'
+                    ? 'bg-gray-200 text-black'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
@@ -274,7 +274,7 @@ export default function AdminDashboard(): JSX.Element {
                 }}
                 className={`flex items-center gap-3 px-6 py-4 text-left transition-colors ${
                   selectedTab === TabId.BOOKINGS
-                    ? 'bg-black text-white'
+                    ? 'bg-gray-200 text-black'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
@@ -288,7 +288,7 @@ export default function AdminDashboard(): JSX.Element {
                 }}
                 className={`flex items-center gap-3 px-6 py-4 text-left transition-colors ${
                   selectedTab === TabId.EMAILS
-                    ? 'bg-black text-white'
+                    ? 'bg-gray-200 text-black'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
@@ -302,7 +302,7 @@ export default function AdminDashboard(): JSX.Element {
                 }}
                 className={`flex items-center gap-3 px-6 py-4 text-left transition-colors ${
                   selectedTab === TabId.SETTINGS
-                    ? 'bg-black text-white'
+                    ? 'bg-gray-200 text-black'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >

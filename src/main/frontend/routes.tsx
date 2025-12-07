@@ -16,6 +16,7 @@ import LoginLayout from 'Frontend/views/login/@layout';
 import LoginView from 'Frontend/views/login/@index';
 import RegisterLayout from 'Frontend/views/register/@layout';
 import RegisterView from 'Frontend/views/register/@index';
+import SetupPasswordView from 'Frontend/views/setup-password/@index';
 import DashboardSelectionView from 'Frontend/views/dashboard-selection/@index';
 import AdminView from 'Frontend/views/admin/@index';
 import MemberView from 'Frontend/views/member/@index';
@@ -45,6 +46,7 @@ export const { router, routes } = new RouterConfigurationBuilder()
             { index: true, element: <RegisterView /> },
           ],
         },
+        { path: '/setup-password', element: <SetupPasswordView />, handle: { title: 'Passwort einrichten' } },
         { path: '/dashboard-selection', element: <DashboardSelectionView />, handle: { title: 'Select Dashboard' } },
         { path: '/admin/*', element: <AdminView />, handle: { title: 'Admin Dashboard' } },
         { path: '/member/*', element: <MemberView />, handle: { title: 'Member Dashboard' } },

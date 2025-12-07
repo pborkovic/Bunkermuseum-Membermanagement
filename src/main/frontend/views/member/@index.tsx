@@ -9,16 +9,16 @@
  * @author Philipp Borkovic
  */
 
-import { useState, useCallback, useMemo } from 'react';
-import { ViewConfig } from '@vaadin/hilla-file-router/types.js';
-import { FaBars, FaTimes } from 'react-icons/fa';
-import { Toaster } from '@/components/ui/sonner';
+import {useCallback, useMemo, useState} from 'react';
+import {ViewConfig} from '@vaadin/hilla-file-router/types.js';
+import {FaBars, FaTimes} from 'react-icons/fa';
+import {Toaster} from '@/components/ui/sonner';
 import BookingsTab from './components/_BookingsTab';
 import SettingsTab from './components/_SettingsTab';
 import logo from 'Frontend/assets/images/logo_bunkermuseum.jpg';
-import { useCurrentUser } from './hooks';
-import { TabId, type TabConfig } from './types';
-import { BookingsIcon, SettingsIcon, UserIcon, UI_TEXT, PROFILE_PICTURE } from './constants';
+import {useCurrentUser} from './hooks';
+import {type TabConfig, TabId} from './types';
+import {BookingsIcon, PROFILE_PICTURE, SettingsIcon, UI_TEXT, UserIcon} from './constants';
 
 /**
  * Hilla view configuration for the member dashboard.
@@ -191,26 +191,34 @@ export default function MemberDashboard(): JSX.Element {
         role="navigation"
         aria-label="Member navigation"
       >
-        <div className="flex flex-col px-3 py-2 gap-2 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4 sm:gap-0">
+        <div className="flex items-center justify-between px-3 py-2 sm:px-6 sm:py-4 gap-2">
           {/* Logo and Title */}
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-shrink">
             <img
               src={logo}
               alt="Bunkermuseum Logo"
               className="h-7 sm:h-10 md:h-12 w-auto object-contain flex-shrink-0"
             />
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 overflow-hidden">
               <h1 className="text-xs sm:text-base md:text-lg lg:text-xl font-semibold text-black whitespace-nowrap overflow-hidden text-ellipsis">
                 Mitgliederverwaltung
               </h1>
-              <p className="text-[10px] sm:text-xs md:text-sm text-gray-600 whitespace-nowrap">Member Dashboard</p>
+              <p className="text-[10px] sm:text-xs md:text-sm text-gray-600 whitespace-nowrap overflow-hidden text-ellipsis">Member Dashboard</p>
             </div>
+          </div>
+
+          {/* Desktop Tab Navigation */}
+          <div
+            className="hidden md:flex items-center gap-2 md:gap-8 overflow-x-auto"
+            role="tablist"
+          >
+            {tabButtons}
           </div>
 
           {/* Mobile Hamburger Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"
             aria-label="Toggle menu"
             aria-expanded={mobileMenuOpen}
           >
@@ -221,16 +229,8 @@ export default function MemberDashboard(): JSX.Element {
             )}
           </button>
 
-          {/* Desktop Tab Navigation */}
-          <div
-            className="hidden md:flex items-center gap-2 md:gap-8 overflow-x-auto"
-            role="tablist"
-          >
-            {tabButtons}
-          </div>
-
           {/* User Profile Section */}
-          <div className="hidden sm:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-3">
             {renderUserProfile()}
           </div>
         </div>

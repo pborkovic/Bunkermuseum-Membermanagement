@@ -14,8 +14,6 @@ import java.util.stream.Collectors;
  * <p>This mapper handles the conversion of Email entities to DTOs for safe
  * serialization to the frontend, avoiding Hibernate proxy issues and circular
  * references with User entities.</p>
- *
- * @author Philipp Borkovic
  */
 public class EmailMapper {
 
@@ -35,6 +33,8 @@ public class EmailMapper {
      *
      * @param email the Email entity to convert
      * @return the EmailDTO, or null if the input is null
+     *
+     * @author Philipp Borkovic
      */
     public static EmailDTO toDTO(Email email) {
         if (email == null) {
@@ -65,6 +65,8 @@ public class EmailMapper {
      *
      * @param emails the list of Email entities to convert
      * @return the list of EmailDTOs
+     *
+     * @author Philipp Borkovic
      */
     public static List<EmailDTO> toDTOList(List<Email> emails) {
         if (emails == null) {

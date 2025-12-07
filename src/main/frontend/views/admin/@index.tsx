@@ -182,7 +182,7 @@ export default function AdminDashboard(): JSX.Element {
               className="h-8 sm:h-12 w-auto object-contain"
             />
             <div>
-              <h1 className="text-sm sm:text-xl font-semibold text-black">Membermanagement</h1>
+              <h1 className="text-sm sm:text-xl font-semibold text-black">Mitgliederverwaltung</h1>
               <p className="text-xs sm:text-sm text-gray-600">Admin Dashboard</p>
             </div>
           </div>

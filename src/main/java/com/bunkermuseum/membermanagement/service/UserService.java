@@ -830,4 +830,61 @@ public class UserService extends BaseService<User, UserRepositoryContract>
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @author Philipp Borkovic
+     */
+    @Override
+    @Transactional
+    public void setupPasswordWithToken(String token, String password) {
+        if (token == null || token.isBlank()) {
+            throw new IllegalArgumentException("Token must not be null or blank");
+        }
+        if (password == null || password.isBlank()) {
+            throw new IllegalArgumentException("Password must not be null or blank");
+        }
+
+        try {
+            Optional<PasswordSetupToken> tokenOpt = tokenRepository.findByToken(token);
+            if (tokenOpt.isEmpty()) {
+                logger.warn("Password setup attempted with invalid token");
+
+                throw new IllegalArgumentException("Invalid or expired password setup token");
+            }
+
+            PasswordSetupToken setupToken = tokenOpt.get();
+
+            if (!setupToken.isValid()) {
+                logger.warn("Password setup attempted with expired or used token for user: {}",
+                    setupToken.getUser().getEmail());
+
+                throw new IllegalArgumentException("Invalid or expired password setup token");
+            }
+
+            PasswordValidator.ValidationResult validationResult = PasswordValidator.validate(password);
+
+            if (!validationResult.isValid()) {
+                String errorMessage = "Password validation failed: " + validationResult.getErrorMessage();
+
+                throw new IllegalArgumentException(errorMessage);
+            }
+
+            User user = setupToken.getUser();
+            String hashedPassword = passwordEncoder.encode(password);
+            user.setPassword(hashedPassword);
+
+            setupToken.markAsUsed();
+
+            repository.update(user.getId(), user);
+            tokenRepository.update(setupToken.getId(), setupToken);
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            logger.error("Unexpected error during password setup", e);
+
+            throw new RuntimeException("Failed to set up password", e);
+        }
+    }
+
 }

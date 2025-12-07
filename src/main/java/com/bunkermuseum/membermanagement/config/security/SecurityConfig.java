@@ -68,6 +68,7 @@ public class SecurityConfig extends VaadinWebSecurity {
         http.authorizeHttpRequests(auth -> auth
             .requestMatchers("/connect/AuthController/**").permitAll()
             .requestMatchers("/login", "/login/**").permitAll()
+            .requestMatchers("/setup-password", "/setup-password/**").permitAll()
             .requestMatchers("/VAADIN/**").permitAll()
             .requestMatchers(HttpMethod.GET, "/api/upload/profile-picture/**").permitAll()
             .requestMatchers("/api/upload/**").authenticated()

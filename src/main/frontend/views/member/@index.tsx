@@ -11,6 +11,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { ViewConfig } from '@vaadin/hilla-file-router/types.js';
+import { FaBars, FaTimes } from 'react-icons/fa';
 import { Toaster } from '@/components/ui/sonner';
 import BookingsTab from './components/_BookingsTab';
 import SettingsTab from './components/_SettingsTab';
@@ -49,6 +50,7 @@ export const config: ViewConfig = {
  */
 export default function MemberDashboard(): JSX.Element {
   const [selectedTab, setSelectedTab] = useState<TabId>(TabId.BOOKINGS);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const { user, profilePictureUrl, isLoading: isLoadingUser, refetch } = useCurrentUser();
 
   /**
@@ -205,9 +207,23 @@ export default function MemberDashboard(): JSX.Element {
             </div>
           </div>
 
-          {/* Tab Navigation */}
+          {/* Mobile Hamburger Menu Button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            aria-label="Toggle menu"
+            aria-expanded={mobileMenuOpen}
+          >
+            {mobileMenuOpen ? (
+              <FaTimes style={{ width: '20px', height: '20px' }} />
+            ) : (
+              <FaBars style={{ width: '20px', height: '20px' }} />
+            )}
+          </button>
+
+          {/* Desktop Tab Navigation */}
           <div
-            className="flex items-center gap-2 sm:gap-8 overflow-x-auto"
+            className="hidden md:flex items-center gap-2 md:gap-8 overflow-x-auto"
             role="tablist"
           >
             {tabButtons}
@@ -218,6 +234,42 @@ export default function MemberDashboard(): JSX.Element {
             {renderUserProfile()}
           </div>
         </div>
+
+        {/* Mobile Menu Dropdown */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-gray-200 bg-white">
+            <div className="flex flex-col">
+              <button
+                onClick={() => {
+                  setSelectedTab(TabId.BOOKINGS);
+                  setMobileMenuOpen(false);
+                }}
+                className={`flex items-center gap-3 px-6 py-4 text-left transition-colors ${
+                  selectedTab === TabId.BOOKINGS
+                    ? 'bg-black text-white'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <BookingsIcon style={{ width: '18px', height: '18px' }} />
+                <span className="font-medium">Buchungen</span>
+              </button>
+              <button
+                onClick={() => {
+                  setSelectedTab(TabId.SETTINGS);
+                  setMobileMenuOpen(false);
+                }}
+                className={`flex items-center gap-3 px-6 py-4 text-left transition-colors ${
+                  selectedTab === TabId.SETTINGS
+                    ? 'bg-black text-white'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <SettingsIcon style={{ width: '18px', height: '18px' }} />
+                <span className="font-medium">Einstellungen</span>
+              </button>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Main Content Area */}

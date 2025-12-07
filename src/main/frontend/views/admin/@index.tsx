@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, memo } from 'react';
 import { ViewConfig } from '@vaadin/hilla-file-router/types.js';
-import { FaUsers, FaFileInvoice, FaEnvelope, FaCog, FaUser } from 'react-icons/fa';
+import { FaUsers, FaFileInvoice, FaEnvelope, FaCog, FaUser, FaBars, FaTimes } from 'react-icons/fa';
 import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
 import { AuthController } from 'Frontend/generated/endpoints';
@@ -61,6 +61,7 @@ export default function AdminDashboard(): JSX.Element {
   const [currentUser, setCurrentUser] = useState<UserDTO | null>(null);
   const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
   const [isLoadingUser, setIsLoadingUser] = useState<boolean>(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
 
   /**
    * Loads the current authenticated user's profile data.
@@ -189,8 +190,22 @@ export default function AdminDashboard(): JSX.Element {
             </div>
           </div>
 
-          {/* Tab Navigation */}
-          <div className="flex items-center gap-2 sm:gap-8 overflow-x-auto" role="tablist">
+          {/* Mobile Hamburger Menu Button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            aria-label="Toggle menu"
+            aria-expanded={mobileMenuOpen}
+          >
+            {mobileMenuOpen ? (
+              <FaTimes style={{ width: '20px', height: '20px' }} />
+            ) : (
+              <FaBars style={{ width: '20px', height: '20px' }} />
+            )}
+          </button>
+
+          {/* Desktop Tab Navigation */}
+          <div className="hidden md:flex items-center gap-2 md:gap-8 overflow-x-auto" role="tablist">
             {renderTabButton({ tabId: TabId.USERS, icon: <FaUsers style={{ width: '16px', height: '16px' }} />, label: 'Mitglieder' })}
             {renderTabButton({ tabId: TabId.BOOKINGS, icon: <FaFileInvoice style={{ width: '16px', height: '16px' }} />, label: 'Buchungen' })}
             {renderTabButton({ tabId: TabId.EMAILS, icon: <FaEnvelope style={{ width: '16px', height: '16px' }} />, label: 'E-Mails' })}
@@ -233,6 +248,70 @@ export default function AdminDashboard(): JSX.Element {
             )}
           </div>
         </div>
+
+        {/* Mobile Menu Dropdown */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-gray-200 bg-white">
+            <div className="flex flex-col">
+              <button
+                onClick={() => {
+                  setSelectedTab(TabId.USERS);
+                  setMobileMenuOpen(false);
+                }}
+                className={`flex items-center gap-3 px-6 py-4 text-left transition-colors ${
+                  selectedTab === TabId.USERS
+                    ? 'bg-black text-white'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <FaUsers style={{ width: '18px', height: '18px' }} />
+                <span className="font-medium">Mitglieder</span>
+              </button>
+              <button
+                onClick={() => {
+                  setSelectedTab(TabId.BOOKINGS);
+                  setMobileMenuOpen(false);
+                }}
+                className={`flex items-center gap-3 px-6 py-4 text-left transition-colors ${
+                  selectedTab === TabId.BOOKINGS
+                    ? 'bg-black text-white'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <FaFileInvoice style={{ width: '18px', height: '18px' }} />
+                <span className="font-medium">Buchungen</span>
+              </button>
+              <button
+                onClick={() => {
+                  setSelectedTab(TabId.EMAILS);
+                  setMobileMenuOpen(false);
+                }}
+                className={`flex items-center gap-3 px-6 py-4 text-left transition-colors ${
+                  selectedTab === TabId.EMAILS
+                    ? 'bg-black text-white'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <FaEnvelope style={{ width: '18px', height: '18px' }} />
+                <span className="font-medium">E-Mails</span>
+              </button>
+              <button
+                onClick={() => {
+                  setSelectedTab(TabId.SETTINGS);
+                  setMobileMenuOpen(false);
+                }}
+                className={`flex items-center gap-3 px-6 py-4 text-left transition-colors ${
+                  selectedTab === TabId.SETTINGS
+                    ? 'bg-black text-white'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <FaCog style={{ width: '18px', height: '18px' }} />
+                <span className="font-medium">Einstellungen</span>
+              </button>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Main Content Area */}

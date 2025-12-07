@@ -1,15 +1,15 @@
-import { useState, useEffect, useCallback, memo } from 'react';
-import { ViewConfig } from '@vaadin/hilla-file-router/types.js';
-import { FaUsers, FaFileInvoice, FaEnvelope, FaCog, FaUser, FaBars, FaTimes } from 'react-icons/fa';
-import { Toaster } from '@/components/ui/sonner';
-import { toast } from 'sonner';
-import { AuthController } from 'Frontend/generated/endpoints';
+import {useCallback, useEffect, useState} from 'react';
+import {ViewConfig} from '@vaadin/hilla-file-router/types.js';
+import {FaBars, FaCog, FaEnvelope, FaFileInvoice, FaTimes, FaUser, FaUsers} from 'react-icons/fa';
+import {Toaster} from '@/components/ui/sonner';
+import {toast} from 'sonner';
+import {AuthController} from 'Frontend/generated/endpoints';
 import type UserDTO from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/UserDTO';
 import UsersTab from './components/UsersTab';
 import BookingsTab from './components/BookingsTab';
 import EmailsTab from './components/EmailsTab';
 import SettingsTab from './components/SettingsTab';
-import { TabId } from './types';
+import {TabId} from './types';
 import logo from 'Frontend/assets/images/logo_bunkermuseum.jpg';
 
 /**
@@ -174,26 +174,34 @@ export default function AdminDashboard(): JSX.Element {
 
       {/* Navigation Bar */}
       <nav className="w-full border-b bg-white z-10 flex-shrink-0" role="navigation" aria-label="Admin navigation">
-        <div className="flex flex-col px-3 py-2 gap-2 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4 sm:gap-0">
+        <div className="flex items-center justify-between px-3 py-2 sm:px-6 sm:py-4 gap-2">
           {/* Logo and Title */}
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-shrink">
             <img
               src={logo}
               alt="Bunkermuseum Logo"
               className="h-7 sm:h-10 md:h-12 w-auto object-contain flex-shrink-0"
             />
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 overflow-hidden">
               <h1 className="text-xs sm:text-base md:text-lg lg:text-xl font-semibold text-black whitespace-nowrap overflow-hidden text-ellipsis">
                 Mitgliederverwaltung
               </h1>
-              <p className="text-[10px] sm:text-xs md:text-sm text-gray-600 whitespace-nowrap">Admin Dashboard</p>
+              <p className="text-[10px] sm:text-xs md:text-sm text-gray-600 whitespace-nowrap overflow-hidden text-ellipsis">Admin Dashboard</p>
             </div>
+          </div>
+
+          {/* Desktop Tab Navigation */}
+          <div className="hidden md:flex items-center gap-2 md:gap-8 overflow-x-auto" role="tablist">
+            {renderTabButton({ tabId: TabId.USERS, icon: <FaUsers style={{ width: '16px', height: '16px' }} />, label: 'Mitglieder' })}
+            {renderTabButton({ tabId: TabId.BOOKINGS, icon: <FaFileInvoice style={{ width: '16px', height: '16px' }} />, label: 'Buchungen' })}
+            {renderTabButton({ tabId: TabId.EMAILS, icon: <FaEnvelope style={{ width: '16px', height: '16px' }} />, label: 'E-Mails' })}
+            {renderTabButton({ tabId: TabId.SETTINGS, icon: <FaCog style={{ width: '16px', height: '16px' }} />, label: 'Einstellungen' })}
           </div>
 
           {/* Mobile Hamburger Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"
             aria-label="Toggle menu"
             aria-expanded={mobileMenuOpen}
           >
@@ -204,16 +212,8 @@ export default function AdminDashboard(): JSX.Element {
             )}
           </button>
 
-          {/* Desktop Tab Navigation */}
-          <div className="hidden md:flex items-center gap-2 md:gap-8 overflow-x-auto" role="tablist">
-            {renderTabButton({ tabId: TabId.USERS, icon: <FaUsers style={{ width: '16px', height: '16px' }} />, label: 'Mitglieder' })}
-            {renderTabButton({ tabId: TabId.BOOKINGS, icon: <FaFileInvoice style={{ width: '16px', height: '16px' }} />, label: 'Buchungen' })}
-            {renderTabButton({ tabId: TabId.EMAILS, icon: <FaEnvelope style={{ width: '16px', height: '16px' }} />, label: 'E-Mails' })}
-            {renderTabButton({ tabId: TabId.SETTINGS, icon: <FaCog style={{ width: '16px', height: '16px' }} />, label: 'Einstellungen' })}
-          </div>
-
           {/* User Profile Section */}
-          <div className="hidden sm:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-3">
             {isLoadingUser ? (
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-400">Laden...</p>

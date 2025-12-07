@@ -305,4 +305,27 @@ public interface UserServiceContract {
      * @author Philipp Borkovic
      */
     java.util.Optional<User> findById(UUID userId);
+
+    /**
+     * Sets up a user's password using a password setup token.
+     *
+     * <p>This method is used when an admin creates a user account without a password.
+     * The user receives an email with a token link, and uses this endpoint to set
+     * their password for the first time.</p>
+     *
+     * <h3>Process:</h3>
+     * <ul>
+     *     <li>Validates the token is valid (not used, not expired)</li>
+     *     <li>Validates the password meets OWASP ASVS requirements</li>
+     *     <li>Hashes and sets the user's password</li>
+     *     <li>Marks the token as used to prevent reuse</li>
+     * </ul>
+     *
+     * @param token The unique password setup token from the email
+     * @param password The new password (must meet OWASP requirements)
+     *
+     * @throws IllegalArgumentException if token is invalid, expired, or password doesn't meet requirements
+     * @throws RuntimeException if password setup fails
+     */
+    void setupPasswordWithToken(String token, String password);
 }

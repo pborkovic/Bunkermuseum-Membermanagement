@@ -199,7 +199,7 @@ export default function MemberDashboard(): JSX.Element {
             />
             <div>
               <h1 className="text-sm sm:text-xl font-semibold text-black">
-                Membermanagement
+                Mitgliederverwaltung
               </h1>
               <p className="text-xs sm:text-sm text-gray-600">Member Dashboard</p>
             </div>

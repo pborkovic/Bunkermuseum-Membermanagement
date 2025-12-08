@@ -17,16 +17,16 @@ import java.time.temporal.ChronoUnit;
  * <p>The lockout state is stored in-memory, so the lifetime of the tracking
  * depends on the lifetime of the instance managing it.</p>
  *
- * <p>This class is thread-unsafe; instances should be used in a thread-constrained
- * context or externally synchronized if shared across threads.</p>
+ * <p>This class is thread-safe and uses synchronized methods to ensure
+ * correct behavior in concurrent environments.</p>
  */
 public final class LoginAttemptTracker {
 
     private static final int MAX_LOGIN_ATTEMPTS = 5;
     private static final int LOCKOUT_DURATION_MINUTES = 15;
-    private int failedAttempts = 0;
-    private Instant lockedOutUntil = null;
-    private Instant lastAttempt = Instant.now();
+    private volatile int failedAttempts = 0;
+    private volatile Instant lockedOutUntil = null;
+    private volatile Instant lastAttempt = Instant.now();
 
     /**
      * Resets all tracking values including failed attempts and lockout state.
@@ -34,7 +34,7 @@ public final class LoginAttemptTracker {
      *
      * @author Philipp Borkovic
      */
-    public void reset() {
+    public synchronized void reset() {
         failedAttempts = 0;
         lockedOutUntil = null;
         lastAttempt = Instant.now();
@@ -47,7 +47,7 @@ public final class LoginAttemptTracker {
      *
      * @author Philipp Borkovic
      */
-    public Instant getLastAttempt() {
+    public synchronized Instant getLastAttempt() {
         return lastAttempt;
     }
 
@@ -60,7 +60,7 @@ public final class LoginAttemptTracker {
      *
      * @author Philipp Borkovic
      */
-    public void incrementFailedAttempts() {
+    public synchronized void incrementFailedAttempts() {
         failedAttempts++;
         lastAttempt = Instant.now();
 
@@ -80,7 +80,7 @@ public final class LoginAttemptTracker {
      *
      * @author Philipp Borkovic
      */
-    public boolean isLocked() {
+    public synchronized boolean isLocked() {
         if (lockedOutUntil != null && Instant.now().isBefore(lockedOutUntil)) {
             return true;
         }

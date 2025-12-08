@@ -37,8 +37,6 @@ import java.time.LocalDate;
  *     <li><strong>Audit Logging:</strong> Comprehensive logging of authentication events</li>
  *     <li><strong>IP-based Rate Limiting:</strong> Protection against brute force attacks</li>
  * </ul>
- *
- * @author Philipp Borkovic
  */
 @Endpoint
 @AnonymousAllowed
@@ -203,8 +201,13 @@ public class AuthController {
      */
     public void changePassword(String currentPassword, String newPassword) {
         String email = getCurrentUserEmail();
+
         userService.changePassword(email, currentPassword, newPassword);
-        logger.info("Password changed for user: {}", email);
+
+        SecurityContextHolder.clearContext();
+        request.getSession().invalidate();
+
+        logger.info("Password changed for user: {} - session invalidated", email);
     }
 
     /**

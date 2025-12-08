@@ -1,15 +1,15 @@
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router';
-import { ViewConfig } from '@vaadin/hilla-file-router/types.js';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DatePicker } from '@/components/ui/date-picker';
-import { z } from 'zod';
-import { subYears } from 'date-fns';
-import { AuthController } from 'Frontend/generated/endpoints';
-import { getErrorMessage } from '../../types/vaadin';
+import {useEffect, useRef, useState} from 'react';
+import {useNavigate} from 'react-router';
+import {ViewConfig} from '@vaadin/hilla-file-router/types.js';
+import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
+import {Label} from '@/components/ui/label';
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
+import {DatePicker} from '@/components/ui/date-picker';
+import {z} from 'zod';
+import {subYears} from 'date-fns';
+import {AuthController} from 'Frontend/generated/endpoints';
+import {getErrorMessage} from '../../types/vaadin';
 import logo from 'Frontend/assets/images/logo_bunkermuseum.jpg';
 
 /**
@@ -377,7 +377,7 @@ export default function RegisterView(): JSX.Element {
                 <Input
                   id="dienstgrad"
                   type="text"
-                  placeholder="Optional"
+                  placeholder="z.B. Oberst, Major"
                   value={dienstgrad}
                   onChange={(e) => setDienstgrad(e.target.value)}
                   disabled={isLoading}
@@ -404,7 +404,7 @@ export default function RegisterView(): JSX.Element {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="name@beispiel.de"
+                  placeholder="max@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
@@ -427,7 +427,7 @@ export default function RegisterView(): JSX.Element {
                 <Input
                   id="telefon"
                   type="tel"
-                  placeholder="+49 123 456789"
+                  placeholder="+43 123 456789"
                   value={telefon}
                   onChange={(e) => setTelefon(e.target.value)}
                   disabled={isLoading}
@@ -441,7 +441,7 @@ export default function RegisterView(): JSX.Element {
                 <Input
                   id="strasse"
                   type="text"
-                  placeholder="Musterstraße 123"
+                  placeholder="Krainberg 73"
                   value={strasse}
                   onChange={(e) => setStrasse(e.target.value)}
                   disabled={isLoading}
@@ -455,7 +455,7 @@ export default function RegisterView(): JSX.Element {
                 <Input
                   id="postleitzahl"
                   type="text"
-                  placeholder="1234"
+                  placeholder="9587"
                   value={postleitzahl}
                   onChange={(e) => setPostleitzahl(e.target.value)}
                   disabled={isLoading}
@@ -470,7 +470,7 @@ export default function RegisterView(): JSX.Element {
                 <Input
                   id="stadt"
                   type="text"
-                  placeholder="Berlin"
+                  placeholder="Riegersdorf"
                   value={stadt}
                   onChange={(e) => setStadt(e.target.value)}
                   disabled={isLoading}
@@ -484,7 +484,7 @@ export default function RegisterView(): JSX.Element {
                 <Input
                   id="land"
                   type="text"
-                  placeholder="Deutschland"
+                  placeholder="Österreich"
                   value={land}
                   onChange={(e) => setLand(e.target.value)}
                   disabled={isLoading}

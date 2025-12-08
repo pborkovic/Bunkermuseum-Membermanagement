@@ -1,7 +1,8 @@
-import { createElement } from 'react';
-import { createRoot } from 'react-dom/client';
-import { RouterProvider } from 'react-router';
-import { router } from 'Frontend/routes';
+import {createElement} from 'react';
+import {createRoot} from 'react-dom/client';
+import {RouterProvider} from 'react-router';
+import {router} from 'Frontend/routes';
+import {isRunningAsInstalledPWA, registerServiceWorker} from './utils/pwa-registration';
 import './styles/globals.css';
 
 /**
@@ -13,11 +14,13 @@ import './styles/globals.css';
  * - Custom route configuration with error handling
  * - Global Shadcn UI styles and Tailwind CSS
  * - Theme management via ThemeProvider (defaults to light mode)
+ * - Progressive Web App (PWA) support with service worker registration
  *
  * This file customizes the default Vaadin Hilla entry point to:
  * 1. Import global styles (globals.css) with Shadcn UI theme variables
  * 2. Use custom routes.tsx for enhanced error handling (404, 500)
- * 3. Maintain compatibility with Vaadin's hot module replacement
+ * 3. Register service worker for offline functionality and caching
+ * 4. Maintain compatibility with Vaadin's hot module replacement
  *
  * @author Philipp Borkovic
  */
@@ -29,3 +32,32 @@ const outlet = document.getElementById('outlet')!;
 let root = (outlet as any)._root ?? createRoot(outlet);
 (outlet as any)._root = root;
 root.render(createElement(App));
+
+/**
+ * Register service worker for PWA functionality
+ */
+if (process.env.NODE_ENV === 'production') {
+  registerServiceWorker({
+    onSuccess: (registration) => {
+      console.log('[PWA] App is ready to work offline');
+
+      if (isRunningAsInstalledPWA()) {
+        console.log('[PWA] Running as installed PWA');
+      }
+    },
+    onUpdate: (registration) => {
+      console.log('[PWA] New version available');
+
+      if (confirm('Eine neue Version ist verfügbar. Möchten Sie die App aktualisieren?')) {
+        import('./utils/pwa-registration').then(({ updateServiceWorker }) => {
+          updateServiceWorker(registration);
+        });
+      }
+    },
+    onError: (error) => {
+      console.error('[PWA] Service worker registration failed:', error);
+    },
+  });
+} else {
+  console.log('[PWA] Service worker registration skipped in development mode');
+}

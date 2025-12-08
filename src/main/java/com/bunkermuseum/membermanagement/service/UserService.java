@@ -702,12 +702,7 @@ public class UserService extends BaseService<User, UserRepositoryContract>
     }
 
     /**
-     * Updates user profile and evicts user caches.
-     *
-     * @param userId The user ID
-     * @param name New name (optional)
-     * @param email New email (optional)
-     * @return The updated user
+     * {@inheritDoc}
      *
      * @author Philipp Borkovic
      */
@@ -761,15 +756,11 @@ public class UserService extends BaseService<User, UserRepositoryContract>
     }
 
     /**
-     * Updates comprehensive user information and evicts user caches.
-     *
-     * @param userId The ID of the user to update
-     * @param userData User object containing the fields to update
-     * @return The updated User object
-     * @throws IllegalArgumentException if userId is null or user not found
+     * {@inheritDoc}
      *
      * @author Philipp Borkovic
      */
+    @Override
     @Transactional
     @Caching(evict = {
         @CacheEvict(value = "usersById", key = "#userId"),
@@ -838,13 +829,7 @@ public class UserService extends BaseService<User, UserRepositoryContract>
     }
 
     /**
-     * Retrieves a user by ID with caching.
-     *
-     * <p>Results are cached for 10 minutes to reduce database load for
-     * frequently accessed user profiles (navbar, settings, etc.).</p>
-     *
-     * @param userId The user ID
-     * @return Optional containing the user if found
+     * {@inheritDoc}
      *
      * @author Philipp Borkovic
      */
@@ -865,16 +850,11 @@ public class UserService extends BaseService<User, UserRepositoryContract>
     }
 
     /**
-     * Retrieves a user by email with caching.
-     *
-     * <p>Results are cached for 10 minutes to improve authentication
-     * and user lookup performance.</p>
-     *
-     * @param email The user's email address
-     * @return Optional containing the user if found
+     * {@inheritDoc}
      *
      * @author Philipp Borkovic
      */
+    @Override
     @Cacheable(value = "usersByEmail", key = "#email")
     public Optional<User> findByEmail(String email) {
         if (email == null || email.isBlank()) {

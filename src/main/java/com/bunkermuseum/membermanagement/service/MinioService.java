@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.UUID;
@@ -130,10 +131,13 @@ public class MinioService implements MinioServiceContract {
         String originalFilename = file.getOriginalFilename();
         String extension = "";
         if (originalFilename != null && originalFilename.contains(".")) {
-            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            String rawExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            extension = sanitizeFileExtension(rawExtension);
         }
 
-        String objectName = folder + "/" + UUID.randomUUID() + extension;
+        String sanitizedFolder = sanitizeFolderName(folder);
+
+        String objectName = sanitizedFolder + "/" + UUID.randomUUID() + extension;
 
         try (InputStream inputStream = file.getInputStream()) {
             minioClient.putObject(
@@ -224,5 +228,79 @@ public class MinioService implements MinioServiceContract {
 
             throw new RuntimeException("Failed to download file from MinIO", exception);
         }
+    }
+
+    /**
+     * Sanitizes file extension to prevent path traversal and injection attacks.
+     *
+     * <p>This method removes path separators and ensures the extension only contains
+     * safe characters (alphanumeric, dot, and hyphen).</p>
+     *
+     * <h3>Security Validations:</h3>
+     * <ul>
+     *     <li>Removes path separators (/, \)</li>
+     *     <li>Limits to alphanumeric characters plus dot and hyphen</li>
+     *     <li>Maximum length of 10 characters</li>
+     *     <li>Converts to lowercase for consistency</li>
+     * </ul>
+     *
+     * @param extension The raw file extension including the dot (e.g., ".jpg")
+     * @return Sanitized extension or empty string if invalid
+     *
+     * @author Philipp Borkovic
+     */
+    private String sanitizeFileExtension(String extension) {
+        if (extension == null || extension.isBlank()) {
+            return "";
+        }
+
+        String cleaned = extension.replaceAll("[/\\\\]", "")
+                .replaceAll("[^a-zA-Z0-9.-]", "")
+                .toLowerCase();
+
+        if (cleaned.length() > 10) {
+            cleaned = cleaned.substring(0, 10);
+        }
+
+        return cleaned;
+    }
+
+    /**
+     * Sanitizes folder name to prevent path traversal attacks.
+     *
+     * <p>This method ensures the folder name is safe for use in object storage
+     * paths by removing path traversal sequences and limiting to safe characters.</p>
+     *
+     * <h3>Security Validations:</h3>
+     * <ul>
+     *     <li>Removes path traversal sequences (..)</li>
+     *     <li>Removes leading/trailing slashes</li>
+     *     <li>Limits to alphanumeric characters plus hyphen and underscore</li>
+     *     <li>Maximum length of 50 characters</li>
+     * </ul>
+     *
+     * @param folder The raw folder name
+     * @return Sanitized folder name or "uploads" as fallback
+     *
+     * @author Philipp Borkovic
+     */
+    private String sanitizeFolderName(String folder) {
+        if (folder == null || folder.isBlank()) {
+            return "uploads";
+        }
+
+        String cleaned = folder.replaceAll("\\.\\.", "")
+                .replaceAll("^/+|/+$", "")
+                .replaceAll("[^a-zA-Z0-9_-]", "");
+
+        if (cleaned.length() > 50) {
+            cleaned = cleaned.substring(0, 50);
+        }
+
+        if (cleaned.isBlank()) {
+            return "uploads";
+        }
+
+        return cleaned;
     }
 }

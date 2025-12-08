@@ -215,10 +215,12 @@ public class FileUploadController {
     @GetMapping("/profile-picture/{userId}")
     @PermitAll
     public ResponseEntity<byte[]> getProfilePicture(@PathVariable UUID userId) {
+        User user = null;
+
         try {
             logger.info("Profile picture retrieval request for user: {}", userId);
 
-            User user = userService.findById(userId).orElse(null);
+            user = userService.findById(userId).orElse(null);
             if (user == null) {
                 logger.warn("User not found: {}", userId);
 
@@ -245,8 +247,33 @@ public class FileUploadController {
                         .body(imageBytes);
             }
 
-        } catch (Exception exception) {
+        } catch (RuntimeException exception) {
+            String errorMsg = exception.getMessage();
+            Throwable cause = exception.getCause();
+            String causeMsg = cause != null ? cause.getMessage() : null;
+
+            boolean isKeyNotFoundError = (errorMsg != null && errorMsg.contains("does not exist")) ||
+                                        (causeMsg != null && causeMsg.contains("does not exist"));
+
+            if (isKeyNotFoundError && user != null) {
+                try {
+                    user.setAvatarPath(null);
+                    userService.updateUser(user.getId(), user);
+
+                    logger.info("Cleared invalid avatar path for user {}", userId);
+                } catch (Exception e) {
+                    logger.error("Failed to clear invalid avatar path: {}", e.getMessage());
+                }
+
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+
             logger.error("Error retrieving profile picture for user {}: {}",
+                    userId, exception.getMessage(), exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (Exception exception) {
+            logger.error("Unexpected error retrieving profile picture for user {}: {}",
                     userId, exception.getMessage(), exception);
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

@@ -22,6 +22,7 @@ import {
     FaTable,
     FaTimes,
     FaTimesCircle,
+    FaTrash,
     FaUser
 } from 'react-icons/fa';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
@@ -758,6 +759,7 @@ export default function UsersTab(): JSX.Element {
                 Abbrechen
               </Button>
               <Button variant="destructive" onClick={handleConfirmDelete} className="text-white">
+                <FaTrash className="mr-2" style={{ width: 16, height: 16 }} />
                 Löschen
               </Button>
             </div>

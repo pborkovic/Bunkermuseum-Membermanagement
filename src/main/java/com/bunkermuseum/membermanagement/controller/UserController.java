@@ -9,13 +9,14 @@ import com.bunkermuseum.membermanagement.service.contract.UserServiceContract;
 import com.vaadin.hilla.Endpoint;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -33,7 +34,6 @@ import java.util.UUID;
  * @see User
  */
 @Endpoint
-@PermitAll
 public class UserController {
 
     private final UserServiceContract userService;
@@ -70,6 +70,7 @@ public class UserController {
      *
      * @author Philipp Borkovic
      */
+    @PermitAll
     public User createUser(@Nonnull User user) {
         try {
             return userService.createUser(user);
@@ -96,6 +97,7 @@ public class UserController {
      *
      * @author Philipp Borkovic
      */
+    @RolesAllowed("ADMIN")
     public List<UserDTO> getAllUsers() {
         try {
             List<User> users = userService.getAllUsers();
@@ -125,6 +127,7 @@ public class UserController {
      *
      * @author Philipp Borkovic
      */
+    @RolesAllowed("ADMIN")
     public PageResponse<UserDTO> getUsersPage(int page, int size, @Nullable String searchQuery, @Nullable String status) {
         try {
             if (page < 0) {
@@ -185,6 +188,7 @@ public class UserController {
      *
      * @author Philipp Borkovic
      */
+    @RolesAllowed({"USER", "ADMIN", "MEMBER"})
     public UserDTO updateProfile(@Nonnull UUID userId, String name, String email) {
         try {
             User updatedUser = userService.updateProfile(userId, name, email);
@@ -210,6 +214,7 @@ public class UserController {
      *
      * @author Philipp Borkovic
      */
+    @RolesAllowed("ADMIN")
     public UserDTO updateUser(@Nonnull UUID userId, @Nonnull User userData) {
         try {
             User updatedUser = userService.updateUser(userId, userData);

@@ -242,6 +242,7 @@ export default function UsersTab(): JSX.Element {
 
     try {
       console.log('Deleting user:', deleteModal.data.id);
+      await UserController.deleteUser(deleteModal.data.id!);
       deleteModal.close();
       await loadUsers();
     } catch (err) {

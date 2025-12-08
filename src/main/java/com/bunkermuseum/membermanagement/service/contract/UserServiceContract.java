@@ -4,7 +4,9 @@ import com.bunkermuseum.membermanagement.model.User;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -297,14 +299,50 @@ public interface UserServiceContract {
      * It ensures the user is properly loaded within a transaction context
      * to allow access to lazy-loaded relationships.</p>
      *
+     * <h3>Caching Strategy:</h3>
+     * <ul>
+     *     <li>Results are cached for 10 minutes to reduce database load</li>
+     *     <li>Frequently accessed in authentication, navbar, settings pages</li>
+     *     <li>Cache is evicted when user profile is updated</li>
+     * </ul>
+     *
      * @param userId The UUID of the user to find
      * @return Optional containing the user if found, empty if not found
      *
      * @throws IllegalArgumentException if userId is null
-     *
-     * @author Philipp Borkovic
+     * @throws RuntimeException if database access fails
      */
-    java.util.Optional<User> findById(UUID userId);
+    Optional<User> findById(UUID userId);
+
+    /**
+     * Finds a user by their email address.
+     *
+     * <p>This method retrieves a user from the database by their email address.
+     * Email addresses are case-insensitive and normalized to lowercase during
+     * registration and lookup.</p>
+     *
+     * <h3>Caching Strategy:</h3>
+     * <ul>
+     *     <li>Results are cached for 10 minutes to improve authentication performance</li>
+     *     <li>Frequently accessed during login, user lookups, and authentication</li>
+     *     <li>Cache is evicted when user email is updated</li>
+     * </ul>
+     *
+     * <h3>Use Cases:</h3>
+     * <ul>
+     *     <li>Authentication and login flows</li>
+     *     <li>User profile lookups</li>
+     *     <li>Email uniqueness validation</li>
+     *     <li>Password reset operations</li>
+     * </ul>
+     *
+     * @param email The email address of the user to find (case-insensitive)
+     * @return Optional containing the user if found, empty if not found
+     *
+     * @throws IllegalArgumentException if email is null or blank
+     * @throws RuntimeException if database access fails
+     */
+    Optional<User> findByEmail(String email);
 
     /**
      * Sets up a user's password using a password setup token.

@@ -757,7 +757,7 @@ export default function UsersTab(): JSX.Element {
               <Button variant="outline" onClick={deleteModal.close}>
                 Abbrechen
               </Button>
-              <Button variant="destructive" onClick={handleConfirmDelete}>
+              <Button variant="destructive" onClick={handleConfirmDelete} className="text-white">
                 Löschen
               </Button>
             </div>

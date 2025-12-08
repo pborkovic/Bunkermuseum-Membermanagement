@@ -1,6 +1,7 @@
 package com.bunkermuseum.membermanagement.service;
 
 import com.bunkermuseum.membermanagement.lib.helper.LoginAttemptTracker;
+import com.bunkermuseum.membermanagement.lib.validation.PasswordValidator;
 import com.bunkermuseum.membermanagement.model.PasswordSetupToken;
 import com.bunkermuseum.membermanagement.model.User;
 import com.bunkermuseum.membermanagement.repository.contract.PasswordSetupTokenRepositoryContract;
@@ -8,14 +9,17 @@ import com.bunkermuseum.membermanagement.repository.contract.UserRepositoryContr
 import com.bunkermuseum.membermanagement.service.base.BaseService;
 import com.bunkermuseum.membermanagement.service.contract.EmailServiceContract;
 import com.bunkermuseum.membermanagement.service.contract.UserServiceContract;
-import com.bunkermuseum.membermanagement.lib.validation.PasswordValidator;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -698,12 +702,21 @@ public class UserService extends BaseService<User, UserRepositoryContract>
     }
 
     /**
-     * {@inheritDoc}
+     * Updates user profile and evicts user caches.
+     *
+     * @param userId The user ID
+     * @param name New name (optional)
+     * @param email New email (optional)
+     * @return The updated user
      *
      * @author Philipp Borkovic
      */
     @Override
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "usersById", key = "#userId"),
+        @CacheEvict(value = "usersByEmail", key = "#result.email", condition = "#result != null")
+    })
     public User updateProfile(UUID userId, @Nullable String name, @Nullable String email) {
         if (userId == null) {
             throw new IllegalArgumentException("User ID must not be null");
@@ -717,6 +730,7 @@ public class UserService extends BaseService<User, UserRepositoryContract>
             }
 
             User user = optionalUser.get();
+            String oldEmail = user.getEmail();
 
             if (name != null && !name.isBlank()) {
                 user.setName(name);
@@ -728,7 +742,11 @@ public class UserService extends BaseService<User, UserRepositoryContract>
 
             User updatedUser = repository.update(userId, user);
 
-            logger.info("Profile updated for user: {}", userId);
+            if (!oldEmail.equals(updatedUser.getEmail())) {
+                logger.info("Email changed - evicting old email cache: {}", oldEmail);
+            }
+
+            logger.info("Profile updated for user: {} and cache evicted", userId);
 
             return updatedUser;
         } catch (IllegalArgumentException exception) {
@@ -743,7 +761,7 @@ public class UserService extends BaseService<User, UserRepositoryContract>
     }
 
     /**
-     * Updates comprehensive user information.
+     * Updates comprehensive user information and evicts user caches.
      *
      * @param userId The ID of the user to update
      * @param userData User object containing the fields to update
@@ -753,6 +771,10 @@ public class UserService extends BaseService<User, UserRepositoryContract>
      * @author Philipp Borkovic
      */
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "usersById", key = "#userId"),
+        @CacheEvict(value = "usersByEmail", key = "#result.email", condition = "#result != null")
+    })
     public User updateUser(UUID userId, User userData) {
         if (userId == null) {
             throw new IllegalArgumentException("User ID must not be null");
@@ -801,7 +823,11 @@ public class UserService extends BaseService<User, UserRepositoryContract>
                 user.setPostalCode(userData.getPostalCode());
             }
 
-            return repository.update(userId, user);
+            User updatedUser = repository.update(userId, user);
+
+            logger.info("User {} updated and cache evicted", userId);
+
+            return updatedUser;
         } catch (IllegalArgumentException e) {
             logger.error("Invalid user data for update: {}", userId, e);
             throw e;
@@ -812,20 +838,54 @@ public class UserService extends BaseService<User, UserRepositoryContract>
     }
 
     /**
-     * {@inheritDoc}
+     * Retrieves a user by ID with caching.
+     *
+     * <p>Results are cached for 10 minutes to reduce database load for
+     * frequently accessed user profiles (navbar, settings, etc.).</p>
+     *
+     * @param userId The user ID
+     * @return Optional containing the user if found
      *
      * @author Philipp Borkovic
      */
     @Override
+    @Cacheable(value = "usersById", key = "#userId")
     public Optional<User> findById(UUID userId) {
         if (userId == null) {
             throw new IllegalArgumentException("User ID must not be null");
         }
 
         try {
+            logger.debug("Cache miss - loading user {} from database", userId);
             return repository.findById(userId);
         } catch (Exception e) {
             logger.error("Error finding user by ID: {}", userId, e);
+            throw new RuntimeException("Failed to find user", e);
+        }
+    }
+
+    /**
+     * Retrieves a user by email with caching.
+     *
+     * <p>Results are cached for 10 minutes to improve authentication
+     * and user lookup performance.</p>
+     *
+     * @param email The user's email address
+     * @return Optional containing the user if found
+     *
+     * @author Philipp Borkovic
+     */
+    @Cacheable(value = "usersByEmail", key = "#email")
+    public Optional<User> findByEmail(String email) {
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Email must not be null or blank");
+        }
+
+        try {
+            logger.debug("Cache miss - loading user by email {} from database", email);
+            return repository.findByEmail(email);
+        } catch (Exception e) {
+            logger.error("Error finding user by email: {}", email, e);
             throw new RuntimeException("Failed to find user", e);
         }
     }

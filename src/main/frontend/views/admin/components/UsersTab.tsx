@@ -471,97 +471,100 @@ export default function UsersTab(): JSX.Element {
           </p>
         </div>
 
-        {/* Buttons Section - Above Filters */}
-        <div className="flex flex-col sm:flex-row gap-3 mt-4 sm:ml-auto items-stretch sm:items-center">
-          {/* Create User Button */}
-          <Button
-            variant="outline"
-            onClick={handleOpenCreateModal}
-            className="text-white bg-green-600 hover:bg-green-700 border-green-600 h-9 w-full sm:w-auto"
-          >
-            <FaPlus className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
-            Neues Mitglied
-          </Button>
-          {/* Export Button */}
-          <Button
-            variant="outline"
-            onClick={exportModal.open}
-            className="text-white bg-black hover:bg-gray-800 border-black h-9 w-full sm:w-auto"
-          >
-            <FaDownload className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
-            Exportieren
-          </Button>
-        </div>
+        {/* Controls Row */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4">
+          {/* Left Side: Filters */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Status Filter */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-600 whitespace-nowrap">Status:</label>
+              <Select
+                value={statusFilter}
+                onValueChange={(value) => {
+                  setStatusFilter(value);
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger className="w-[180px] h-9 border-black text-black [&_svg]:text-black [&_svg]:opacity-100 [&_svg]:-mt-4">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-black">
+                  {USER_STATUS_OPTIONS.map((option) => (
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                      className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black"
+                    >
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-        {/* Filters and Controls Row */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-4">
-          {/* Status Filter */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-600 whitespace-nowrap">Status:</label>
-            <Select
-              value={statusFilter}
-              onValueChange={(value) => {
-                setStatusFilter(value);
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger className="w-[180px] h-9 border-black text-black [&_svg]:text-black [&_svg]:opacity-100 [&_svg]:-mt-4">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-white border-black">
-                {USER_STATUS_OPTIONS.map((option) => (
-                  <SelectItem
-                    key={option.value}
-                    value={option.value}
-                    className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black"
-                  >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {/* Page Size Selector */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-600 whitespace-nowrap">Zeilen:</label>
+              <Select
+                value={usersPerPage.toString()}
+                onValueChange={(value) => {
+                  setUsersPerPage(parseInt(value));
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger className="w-[90px] h-9 border-black text-black [&_svg]:text-black [&_svg]:opacity-100 [&_svg]:-mt-4">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-black">
+                  {PAGE_SIZE_OPTIONS.map((size) => (
+                    <SelectItem
+                      key={size}
+                      value={size.toString()}
+                      className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black"
+                    >
+                      {size}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Search Bar */}
+            <div className="relative w-full sm:w-48">
+              <FaSearch
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                style={{ width: '18px', height: '18px' }}
+              />
+              <input
+                type="text"
+                placeholder="Suchen..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 text-sm text-black border border-black rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1 placeholder:text-gray-400"
+              />
+            </div>
           </div>
 
-          {/* Page Size Selector */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-600 whitespace-nowrap">Zeilen:</label>
-            <Select
-              value={usersPerPage.toString()}
-              onValueChange={(value) => {
-                setUsersPerPage(parseInt(value));
-                setCurrentPage(1);
-              }}
+          {/* Right Side: Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Create User Button */}
+            <Button
+              variant="outline"
+              onClick={handleOpenCreateModal}
+              className="text-white bg-green-600 hover:bg-green-700 border-green-600 h-9 w-full sm:w-auto"
             >
-              <SelectTrigger className="w-[90px] h-9 border-black text-black [&_svg]:text-black [&_svg]:opacity-100 [&_svg]:-mt-4">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-white border-black">
-                {PAGE_SIZE_OPTIONS.map((size) => (
-                  <SelectItem
-                    key={size}
-                    value={size.toString()}
-                    className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black"
-                  >
-                    {size}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Search Bar */}
-          <div className="relative w-full sm:w-48">
-            <FaSearch
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-              style={{ width: '18px', height: '18px' }}
-            />
-            <input
-              type="text"
-              placeholder="Suchen..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-sm text-black border border-black rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1 placeholder:text-gray-400"
-            />
+              <FaPlus className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+              Neues Mitglied
+            </Button>
+            {/* Export Button */}
+            <Button
+              variant="outline"
+              onClick={exportModal.open}
+              className="text-white bg-black hover:bg-gray-800 border-black h-9 w-full sm:w-auto"
+            >
+              <FaDownload className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+              Exportieren
+            </Button>
           </div>
         </div>
       </div>

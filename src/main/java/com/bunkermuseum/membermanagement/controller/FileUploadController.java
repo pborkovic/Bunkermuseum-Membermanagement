@@ -47,10 +47,10 @@ public class FileUploadController {
     private static final Logger logger = LoggerFactory.getLogger(FileUploadController.class);
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
     private static final String[] ALLOWED_CONTENT_TYPES = {
-        "image/jpeg",
-        "image/png",
-        "image/jpg",
-        "image/webp"
+            "image/jpeg",
+            "image/png",
+            "image/jpg",
+            "image/webp"
     };
     private static final String PROFILE_PICTURES_BUCKET = "profile-pictures";
     private static final String DEFAULT_CONTENT_TYPE = "image/jpeg";

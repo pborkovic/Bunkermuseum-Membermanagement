@@ -10,15 +10,23 @@
  * @since 1.0.0
  */
 
-import { useEffect, useState } from 'react';
-import { Dialog } from '@vaadin/react-components/Dialog';
-import { FaInfoCircle, FaEuroSign, FaClipboardList, FaExclamationTriangle, FaTimes, FaSpinner, FaCheck } from 'react-icons/fa';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BookingController } from 'Frontend/generated/endpoints';
+import {useEffect, useState} from 'react';
+import {Dialog} from '@vaadin/react-components/Dialog';
+import {
+    FaCheck,
+    FaClipboardList,
+    FaEuroSign,
+    FaExclamationTriangle,
+    FaInfoCircle,
+    FaSpinner,
+    FaTimes
+} from 'react-icons/fa';
+import {Button} from '@/components/ui/button';
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
+import {BookingController} from 'Frontend/generated/endpoints';
 import MemberType from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/MemberType';
-import { getErrorMessage, DialogOpenedChangedEvent } from '../../../types/vaadin';
-import { z } from 'zod';
+import {DialogOpenedChangedEvent, getErrorMessage} from '../../../types/vaadin';
+import {z} from 'zod';
 
 /**
  * Zod validation schema for booking assignment form.
@@ -381,7 +389,7 @@ export default function AssignBookingModal({
       }}
       headerTitle="Buchung zuweisen"
     >
-      <div className="p-6 min-w-[380px] sm:min-w-[560px] max-w-[95vw]">
+      <div className="p-4 sm:p-6 min-w-[300px] sm:min-w-[560px] max-w-[95vw]">
         {/* Introduction */}
         <div className="mb-6 p-4 bg-gray-50 rounded-md border border-gray-200">
           <div className="flex items-start gap-3">

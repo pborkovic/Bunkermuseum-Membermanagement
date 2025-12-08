@@ -1209,7 +1209,7 @@ export default function UsersTab(): JSX.Element {
                     }`}
                     value={createForm.street}
                     onChange={(e) => setCreateForm({ ...createForm, street: e.target.value })}
-                    placeholder="Musterstraße 123"
+                    placeholder="Krainberg 73"
                   />
                   {validationErrors.street && (
                     <p className="text-xs text-red-600 mt-1">{validationErrors.street}</p>
@@ -1226,7 +1226,7 @@ export default function UsersTab(): JSX.Element {
                       }`}
                       value={createForm.postalCode}
                       onChange={(e) => setCreateForm({ ...createForm, postalCode: e.target.value })}
-                      placeholder="12345"
+                      placeholder="9587"
                     />
                     {validationErrors.postalCode && (
                       <p className="text-xs text-red-600 mt-1">{validationErrors.postalCode}</p>
@@ -1242,7 +1242,7 @@ export default function UsersTab(): JSX.Element {
                       }`}
                       value={createForm.city}
                       onChange={(e) => setCreateForm({ ...createForm, city: e.target.value })}
-                      placeholder="Berlin"
+                      placeholder="Riegersdorf"
                     />
                     {validationErrors.city && (
                       <p className="text-xs text-red-600 mt-1">{validationErrors.city}</p>
@@ -1259,7 +1259,7 @@ export default function UsersTab(): JSX.Element {
                     }`}
                     value={createForm.country}
                     onChange={(e) => setCreateForm({ ...createForm, country: e.target.value })}
-                    placeholder="Deutschland"
+                    placeholder="Österreich"
                   />
                   {validationErrors.country && (
                     <p className="text-xs text-red-600 mt-1">{validationErrors.country}</p>

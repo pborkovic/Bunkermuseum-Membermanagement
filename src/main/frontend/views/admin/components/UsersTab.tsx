@@ -473,8 +473,30 @@ export default function UsersTab(): JSX.Element {
 
         {/* Controls Row */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4">
-          {/* Left Side: Filters */}
-          <div className="flex flex-col sm:flex-row gap-3">
+          {/* Right Side: Buttons - First on mobile, second on desktop */}
+          <div className="flex flex-col sm:flex-row gap-3 order-1 sm:order-2">
+            {/* Create User Button */}
+            <Button
+              variant="outline"
+              onClick={handleOpenCreateModal}
+              className="text-white bg-green-600 hover:bg-green-700 border-green-600 h-9 w-full sm:w-auto"
+            >
+              <FaPlus className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+              Neues Mitglied
+            </Button>
+            {/* Export Button */}
+            <Button
+              variant="outline"
+              onClick={exportModal.open}
+              className="text-white bg-black hover:bg-gray-800 border-black h-9 w-full sm:w-auto"
+            >
+              <FaDownload className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+              Exportieren
+            </Button>
+          </div>
+
+          {/* Left Side: Filters - Second on mobile, first on desktop */}
+          <div className="flex flex-col sm:flex-row gap-3 order-2 sm:order-1">
             {/* Status Filter */}
             <div className="flex items-center gap-2">
               <label className="text-sm text-gray-600 whitespace-nowrap">Status:</label>
@@ -543,28 +565,6 @@ export default function UsersTab(): JSX.Element {
                 className="w-full pl-10 pr-4 py-2 text-sm text-black border border-black rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1 placeholder:text-gray-400"
               />
             </div>
-          </div>
-
-          {/* Right Side: Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            {/* Create User Button */}
-            <Button
-              variant="outline"
-              onClick={handleOpenCreateModal}
-              className="text-white bg-green-600 hover:bg-green-700 border-green-600 h-9 w-full sm:w-auto"
-            >
-              <FaPlus className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
-              Neues Mitglied
-            </Button>
-            {/* Export Button */}
-            <Button
-              variant="outline"
-              onClick={exportModal.open}
-              className="text-white bg-black hover:bg-gray-800 border-black h-9 w-full sm:w-auto"
-            >
-              <FaDownload className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
-              Exportieren
-            </Button>
           </div>
         </div>
       </div>

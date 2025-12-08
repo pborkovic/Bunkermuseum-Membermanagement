@@ -4,8 +4,14 @@ import com.bunkermuseum.membermanagement.model.Role;
 import com.bunkermuseum.membermanagement.repository.contract.RoleRepositoryContract;
 import com.bunkermuseum.membermanagement.service.base.BaseService;
 import com.bunkermuseum.membermanagement.service.contract.RoleServiceContract;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Service implementation for Role entity business operations.
@@ -49,6 +55,64 @@ public class RoleService extends BaseService<Role, RoleRepositoryContract>
      */
     public RoleService(RoleRepositoryContract repository) {
         super(repository);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @author Philipp Borkovic
+     */
+    @Override
+    @Cacheable(value = "roles", key = "'all'")
+    public List<Role> findAll() {
+        return repository.findAll();
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @author Philipp Borkovic
+     */
+    @Override
+    @Cacheable(value = "roles", key = "#id")
+    public Optional<Role> findById(UUID id) {
+        return repository.findById(id);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @author Philipp Borkovic
+     */
+    @Override
+    @Transactional
+    @CacheEvict(value = "roles", allEntries = true)
+    public Role create(Role role) {
+        return repository.create(role);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @author Philipp Borkovic
+     */
+    @Override
+    @Transactional
+    @CacheEvict(value = "roles", allEntries = true)
+    public Role update(UUID id, Role role) {
+        return repository.update(id, role);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @author Philipp Borkovic
+     */
+    @Override
+    @Transactional
+    @CacheEvict(value = "roles", allEntries = true)
+    public boolean deleteById(UUID id) {
+        return repository.deleteById(id);
     }
 
 }

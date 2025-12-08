@@ -1,8 +1,8 @@
 import React from 'react';
-import { FaImage, FaUser, FaSpinner } from 'react-icons/fa';
-import { toast } from 'sonner';
+import {FaImage, FaSpinner, FaUser} from 'react-icons/fa';
+import {toast} from 'sonner';
 import type UserDTO from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/UserDTO';
-import { getErrorMessage } from '../../../types/vaadin';
+import {getErrorMessage} from '../../../types/vaadin';
 
 /**
  * ProfilePictureSection component - Profile picture upload and display.
@@ -31,6 +31,7 @@ export default function ProfilePictureSection({
   onUpload
 }: ProfilePictureSectionProps): JSX.Element {
   const [imageError, setImageError] = React.useState(false);
+  const [selectedFileName, setSelectedFileName] = React.useState<string | null>(null);
 
   // Reset error state when URL changes
   React.useEffect(() => {
@@ -39,17 +40,27 @@ export default function ProfilePictureSection({
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      setSelectedFileName(null);
+      return;
+    }
+
+    // Set the selected file name
+    setSelectedFileName(file.name);
 
     // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
       toast.error('Datei ist zu groß. Maximale Größe ist 5MB');
+      setSelectedFileName(null);
+      e.target.value = '';
       return;
     }
 
     // Validate file type
     if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type)) {
       toast.error('Ungültiger Dateityp. Nur JPEG, PNG und WebP sind erlaubt');
+      setSelectedFileName(null);
+      e.target.value = '';
       return;
     }
 
@@ -73,9 +84,15 @@ export default function ProfilePictureSection({
       // Reload profile
       await onUpload();
 
+      // Reset file name after successful upload
+      setSelectedFileName(null);
+      e.target.value = '';
+
     } catch (err: unknown) {
       const errorMessage = getErrorMessage(err);
       toast.error(errorMessage || 'Fehler beim Hochladen des Profilbilds');
+      setSelectedFileName(null);
+      e.target.value = '';
     }
   };
 
@@ -112,13 +129,21 @@ export default function ProfilePictureSection({
           <p className="text-sm text-gray-600 mb-3">
             Laden Sie ein Profilbild hoch (max. 5MB, JPEG/PNG/WebP)
           </p>
-          <input
-            type="file"
-            accept="image/jpeg,image/jpg,image/png,image/webp"
-            onChange={handleFileChange}
-            disabled={isUploading}
-            className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border file:border-black file:text-sm file:font-medium file:bg-white file:text-black hover:file:bg-gray-50 disabled:opacity-50"
-          />
+          <div className="flex items-center gap-3">
+            <label className="inline-flex items-center px-4 py-2 border border-black rounded-md text-sm font-medium text-black bg-white hover:bg-gray-50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+              <input
+                type="file"
+                accept="image/jpeg,image/jpg,image/png,image/webp"
+                onChange={handleFileChange}
+                disabled={isUploading}
+                className="hidden"
+              />
+              Datei auswählen
+            </label>
+            <span className="text-sm text-gray-600">
+              {selectedFileName || 'Keine Datei ausgewählt'}
+            </span>
+          </div>
           {isUploading && (
             <p className="text-sm text-gray-600 mt-2">
               <FaSpinner className="animate-spin inline mr-2" style={{ width: '16px', height: '16px' }} />

@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.Consumer;
@@ -126,12 +127,18 @@ public abstract class BaseRepository<T extends Model, R extends JpaRepository<T,
     @Override
     @Transactional
     public boolean deleteById(UUID id) {
-        return executeWithLogging("Deleting entity: " + id, () -> {
-            if (!repository.existsById(id)) {
+        return executeWithLogging("Soft deleting entity: " + id, () -> {
+            Optional<T> entityOptional = repository.findById(id);
+            if (entityOptional.isEmpty()) {
                 logger.warn("{} entity not found for deletion with ID: {}", getEntityName(), id);
+
                 return false;
             }
-            repository.deleteById(id);
+
+            T entity = entityOptional.get();
+            entity.delete();
+
+            repository.save(entity);
 
             return true;
         }, false);

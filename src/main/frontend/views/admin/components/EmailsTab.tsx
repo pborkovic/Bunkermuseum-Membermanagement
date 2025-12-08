@@ -1,18 +1,23 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { Dialog } from '@vaadin/react-components/Dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FaDownload, FaEnvelope, FaCloudDownloadAlt, FaTable, FaFileAlt, FaFileCode, FaCode } from 'react-icons/fa';
-import { MdExpandMore } from 'react-icons/md';
-import { EmailController } from 'Frontend/generated/endpoints';
+import {useCallback, useEffect, useState} from 'react';
+import {Button} from '@/components/ui/button';
+import {Dialog} from '@vaadin/react-components/Dialog';
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
+import {FaCloudDownloadAlt, FaCode, FaDownload, FaEnvelope, FaFileAlt, FaFileCode, FaTable} from 'react-icons/fa';
+import {MdExpandMore} from 'react-icons/md';
+import {EmailController} from 'Frontend/generated/endpoints';
 import type EmailDTO from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/EmailDTO';
-import type { PageResponse } from '../types';
-import { getErrorMessage, DialogOpenedChangedEvent } from '../../../types/vaadin';
+import type {PageResponse} from '../types';
+import {DialogOpenedChangedEvent, getErrorMessage} from '../../../types/vaadin';
 import EmailsList from './_EmailsList';
-import { SendEmailModal } from './_SendEmailModal';
-import { useModal } from '../hooks/useModal';
-import { useWindowSize } from '../hooks/useWindowSize';
-import { PAGE_SIZE_OPTIONS, DEFAULT_PAGE_SIZE, EXPORT_EMAIL_TYPE_OPTIONS, EXPORT_FORMAT_OPTIONS } from '../utils/constants';
+import {SendEmailModal} from './_SendEmailModal';
+import {useModal} from '../hooks/useModal';
+import {useWindowSize} from '../hooks/useWindowSize';
+import {
+    DEFAULT_PAGE_SIZE,
+    EXPORT_EMAIL_TYPE_OPTIONS,
+    EXPORT_FORMAT_OPTIONS,
+    PAGE_SIZE_OPTIONS
+} from '../utils/constants';
 
 /**
  * Emails tab component for the admin dashboard.
@@ -129,6 +134,14 @@ export default function EmailsTab() {
         </div>
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           <Button
+            onClick={sendEmailModal.open}
+            className="flex items-center justify-center gap-2 bg-green-600 text-white hover:bg-green-700 w-full sm:w-auto"
+          >
+            <FaEnvelope style={{ width: '16px', height: '16px' }} />
+            <span className="hidden xs:inline">Neue E-Mail senden</span>
+            <span className="xs:hidden">Neue E-Mail</span>
+          </Button>
+          <Button
             variant="outline"
             onClick={exportModal.open}
             className="text-white bg-black hover:bg-gray-800 border-black w-full sm:w-auto"
@@ -136,14 +149,6 @@ export default function EmailsTab() {
             <FaDownload className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
             <span className="hidden xs:inline">Exportieren</span>
             <span className="xs:hidden">Export</span>
-          </Button>
-          <Button
-            onClick={sendEmailModal.open}
-            className="flex items-center justify-center gap-2 bg-black text-white hover:bg-gray-800 w-full sm:w-auto"
-          >
-            <FaEnvelope style={{ width: '16px', height: '16px' }} />
-            <span className="hidden xs:inline">Neue E-Mail senden</span>
-            <span className="xs:hidden">Neue E-Mail</span>
           </Button>
         </div>
       </div>

@@ -356,16 +356,6 @@ export default function BookingsTab(): JSX.Element {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4">
           {/* Right Side: Buttons - First on mobile, second on desktop */}
           <div className="flex flex-col sm:flex-row gap-3 order-1 sm:order-2">
-            {/* Export Button */}
-            <Button
-              variant="outline"
-              onClick={handleOpenExportModal}
-              className="text-white bg-black hover:bg-gray-800 border-black h-9 whitespace-nowrap w-full sm:w-auto"
-            >
-              <FaDownload className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
-              Exportieren
-            </Button>
-
             {/* Assign Button */}
             <Button
               variant="outline"
@@ -374,6 +364,16 @@ export default function BookingsTab(): JSX.Element {
             >
               <FaPlus className="mr-2" style={{ width: 16, height: 16, color: 'white' }} />
               Neue Buchung zuweisen
+            </Button>
+
+            {/* Export Button */}
+            <Button
+              variant="outline"
+              onClick={handleOpenExportModal}
+              className="text-white bg-black hover:bg-gray-800 border-black h-9 whitespace-nowrap w-full sm:w-auto"
+            >
+              <FaDownload className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+              Exportieren
             </Button>
           </div>
 

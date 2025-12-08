@@ -1,9 +1,11 @@
 package com.bunkermuseum.membermanagement.controller;
 
+import com.bunkermuseum.membermanagement.lib.validation.FileContentValidator;
 import com.bunkermuseum.membermanagement.model.User;
-import com.bunkermuseum.membermanagement.service.contract.MinioServiceContract;
 import com.bunkermuseum.membermanagement.service.UserService;
+import com.bunkermuseum.membermanagement.service.contract.MinioServiceContract;
 import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -12,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,7 +43,6 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/api/upload")
-@PermitAll
 public class FileUploadController {
     private static final Logger logger = LoggerFactory.getLogger(FileUploadController.class);
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -118,6 +120,7 @@ public class FileUploadController {
      * @author Philipp Borkovic
      */
     @PostMapping("/profile-picture")
+    @RolesAllowed({"USER", "ADMIN", "MEMBER"})
     public ResponseEntity<Map<String, String>> uploadProfilePicture(
             @RequestParam("file") MultipartFile file
     ) {
@@ -210,6 +213,7 @@ public class FileUploadController {
      * @author Philipp Borkovic
      */
     @GetMapping("/profile-picture/{userId}")
+    @PermitAll
     public ResponseEntity<byte[]> getProfilePicture(@PathVariable UUID userId) {
         try {
             logger.info("Profile picture retrieval request for user: {}", userId);
@@ -275,13 +279,14 @@ public class FileUploadController {
     }
 
     /**
-     * Validates the uploaded file against size and type constraints.
+     * Validates the uploaded file against size, type, and content constraints.
      *
      * <p>Performs the following validations:</p>
      * <ul>
      *   <li>File is not empty</li>
      *   <li>File size does not exceed {@link #MAX_FILE_SIZE}</li>
      *   <li>File content type is in {@link #ALLOWED_CONTENT_TYPES}</li>
+     *   <li>File content matches image format (magic bytes validation)</li>
      * </ul>
      *
      * @param file The multipart file to validate
@@ -301,6 +306,13 @@ public class FileUploadController {
         String contentType = file.getContentType();
         if (contentType == null || !Arrays.asList(ALLOWED_CONTENT_TYPES).contains(contentType)) {
             return "Invalid file type. Only JPEG, PNG, and WebP images are allowed";
+        }
+
+        FileContentValidator.ValidationResult contentValidation =
+                FileContentValidator.validateImageContent(file);
+
+        if (!contentValidation.isValid()) {
+            return contentValidation.message();
         }
 
         return null;

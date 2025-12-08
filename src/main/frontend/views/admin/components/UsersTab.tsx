@@ -472,7 +472,7 @@ export default function UsersTab(): JSX.Element {
         </div>
 
         {/* Buttons Section - Above Filters */}
-        <div className="flex flex-col gap-3 mt-4">
+        <div className="flex flex-col sm:flex-row gap-3 mt-4 sm:ml-auto items-stretch sm:items-center">
           {/* Create User Button */}
           <Button
             variant="outline"

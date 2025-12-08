@@ -366,8 +366,9 @@ export default function BookingsTab(): JSX.Element {
 
           {/* Assign Button */}
           <Button
+            variant="outline"
             onClick={() => setIsAssignModalOpen(true)}
-            className="bg-black text-white hover:bg-gray-800 whitespace-nowrap w-full sm:w-auto h-9"
+            className="text-white bg-green-600 hover:bg-green-700 border-green-600 whitespace-nowrap w-full sm:w-auto h-9"
           >
             <FaPlus className="mr-2" style={{ width: 16, height: 16, color: 'white' }} />
             Neue Buchung zuweisen

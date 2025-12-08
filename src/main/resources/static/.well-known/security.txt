@@ -1,0 +1,53 @@
+# Security Policy - Bunkermuseum Member Management Platform
+# This file follows RFC 9116: https://www.rfc-editor.org/rfc/rfc9116.html
+
+Contact: mailto:andreas.scherer@bunkermuseum.com
+Expires: 2026-12-31T23:59:59.000Z
+Preferred-Languages: de, en
+Canonical: https://bunkermuseum.example.com/.well-known/security.txt
+
+# Encryption: https://keys.openpgp.org/vks/v1/by-fingerprint/YOUR_PGP_KEY_FINGERPRINT
+
+# Security Vulnerability Reporting
+
+# We take security vulnerabilities seriously and appreciate responsible disclosure.
+# If you discover a security vulnerability in this application, please report it via
+# the contact method above.
+
+# What to Include in Your Report:
+# - Description of the vulnerability
+# - Steps to reproduce the issue
+# - Potential impact assessment
+# - Any proof-of-concept code (if applicable)
+# - Your contact information for follow-up
+
+# Our Commitment:
+# - We will keep you informed of our progress
+# - We will credit you in our security advisories (unless you prefer to remain anonymous)
+
+# What We Ask:
+# - Give us reasonable time to address the issue before public disclosure
+# - Do not access, modify, or delete user data
+# - Do not perform actions that could negatively impact our users
+
+# Out of Scope:
+# - Social engineering attacks
+# - Physical security attacks
+# - Denial of service attacks
+# - Spam or social engineering
+# - Issues in third-party dependencies (please report to the respective maintainers)
+
+# Security Features:
+# This application implements OWASP Top 10 security controls including:
+# - Role-Based Access Control (RBAC)
+# - BCrypt password hashing (strength 12)
+# - Account lockout (5 attempts, 15-minute duration)
+# - HTTPS enforcement in production
+# - CSRF protection
+# - Content Security Policy
+# - Session security (HttpOnly, Secure, SameSite=Strict)
+# - File upload validation (magic bytes)
+# - Input sanitization and validation
+# - GDPR compliance (data portability, erasure, rectification)
+
+# Thank you for helping keep our platform secure!

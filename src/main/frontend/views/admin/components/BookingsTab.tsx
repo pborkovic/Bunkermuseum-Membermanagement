@@ -1,19 +1,19 @@
-import { useState, useEffect, useCallback } from 'react';
-import { FaSearch, FaPlus, FaDownload, FaCloudDownloadAlt, FaTable, FaFileAlt, FaFileCode, FaCode } from 'react-icons/fa';
-import { Dialog } from '@vaadin/react-components/Dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DatePicker } from '@/components/ui/date-picker';
-import { Button } from '@/components/ui/button';
-import { BookingController } from 'Frontend/generated/endpoints';
+import {useCallback, useEffect, useState} from 'react';
+import {FaCloudDownloadAlt, FaCode, FaDownload, FaFileAlt, FaFileCode, FaPlus, FaSearch, FaTable} from 'react-icons/fa';
+import {Dialog} from '@vaadin/react-components/Dialog';
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
+import {DatePicker} from '@/components/ui/date-picker';
+import {Button} from '@/components/ui/button';
+import {BookingController} from 'Frontend/generated/endpoints';
 import type BookingDTO from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/BookingDTO';
-import { getErrorMessage, DialogOpenedChangedEvent } from '../../../types/vaadin';
+import {DialogOpenedChangedEvent, getErrorMessage} from '../../../types/vaadin';
 import BookingsList from './_BookingsList';
 import BookingDetailsModal from './_BookingDetailsModal';
 import DeleteBookingModal from './_DeleteBookingModal';
 import AssignBookingModal from './_AssignBookingModal';
-import BookingsDateRangeFilter, { DATE_RANGE_PRESETS } from './_BookingsDateRangeFilter';
-import { useModal } from '../hooks/useModal';
-import { EXPORT_BOOKING_TYPE_OPTIONS, EXPORT_FORMAT_OPTIONS } from '../utils/constants';
+import BookingsDateRangeFilter, {DATE_RANGE_PRESETS} from './_BookingsDateRangeFilter';
+import {useModal} from '../hooks/useModal';
+import {EXPORT_BOOKING_TYPE_OPTIONS, EXPORT_FORMAT_OPTIONS} from '../utils/constants';
 
 /**
  * BookingsTab component - Displays all bookings with pagination, search, and date filtering.
@@ -358,19 +358,20 @@ export default function BookingsTab(): JSX.Element {
           <Button
             variant="outline"
             onClick={handleOpenExportModal}
-            className="text-white bg-black hover:bg-gray-800 border-black h-9 whitespace-nowrap"
+            className="text-white bg-black hover:bg-gray-800 border-black h-9 whitespace-nowrap w-full sm:w-auto"
           >
             <FaDownload className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
             Exportieren
           </Button>
 
           {/* Assign Button */}
-          <div className="flex">
-            <Button onClick={() => setIsAssignModalOpen(true)} className="bg-black text-white hover:bg-gray-800 whitespace-nowrap">
-              <FaPlus className="mr-2" style={{ width: 16, height: 16, color: 'white' }} />
-              Neue Buchung zuweisen
-            </Button>
-          </div>
+          <Button
+            onClick={() => setIsAssignModalOpen(true)}
+            className="bg-black text-white hover:bg-gray-800 whitespace-nowrap w-full sm:w-auto h-9"
+          >
+            <FaPlus className="mr-2" style={{ width: 16, height: 16, color: 'white' }} />
+            Neue Buchung zuweisen
+          </Button>
 
           {/* Page Size Selector */}
           <div className="flex items-center gap-2">

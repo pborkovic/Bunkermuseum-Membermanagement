@@ -226,4 +226,36 @@ public class UserController {
         }
     }
 
+    /**
+     * Deletes a user account (soft delete).
+     *
+     * <p>This method performs a soft delete by setting the deleted_at timestamp
+     * on the user record. The user data is preserved for audit purposes but
+     * the account is marked as deleted and excluded from normal queries.</p>
+     *
+     * @param userId The ID of the user to delete
+     * @throws ResponseStatusException with {@link HttpStatus#BAD_REQUEST} if userId is invalid
+     *         or user not found
+     * @throws ResponseStatusException with {@link HttpStatus#INTERNAL_SERVER_ERROR} if
+     *         any unexpected error occurs during deletion
+     *
+     * @author Philipp Borkovic
+     */
+    @RolesAllowed("ADMIN")
+    public void deleteUser(@Nonnull UUID userId) {
+        try {
+            boolean deleted = ((UserService) userService).deleteById(userId);
+
+            if (!deleted) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with ID: " + userId);
+            }
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid user ID: " + exception.getMessage(), exception);
+        } catch (ResponseStatusException exception) {
+            throw exception;
+        } catch (Exception exception) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete user", exception);
+        }
+    }
+
 }

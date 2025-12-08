@@ -343,8 +343,8 @@ export default function BookingsTab(): JSX.Element {
 
   return (
     <div className="flex flex-col h-full space-y-4">
-      {/* Header with Search and Controls */}
-      <div className="flex-shrink-0 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+      {/* Header */}
+      <div className="flex-shrink-0">
         <div>
           <h2 className="text-2xl font-bold text-black">Buchungsverwaltung</h2>
           <p className="text-sm text-gray-600 mt-1">
@@ -352,64 +352,70 @@ export default function BookingsTab(): JSX.Element {
           </p>
         </div>
 
-        {/* Search Bar and Controls */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:ml-auto items-stretch sm:items-center">
-          {/* Export Button */}
-          <Button
-            variant="outline"
-            onClick={handleOpenExportModal}
-            className="text-white bg-black hover:bg-gray-800 border-black h-9 whitespace-nowrap w-full sm:w-auto"
-          >
-            <FaDownload className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
-            Exportieren
-          </Button>
-
-          {/* Assign Button */}
-          <Button
-            variant="outline"
-            onClick={() => setIsAssignModalOpen(true)}
-            className="text-white bg-green-600 hover:bg-green-700 border-green-600 whitespace-nowrap w-full sm:w-auto h-9"
-          >
-            <FaPlus className="mr-2" style={{ width: 16, height: 16, color: 'white' }} />
-            Neue Buchung zuweisen
-          </Button>
-
-          {/* Page Size Selector */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-600 whitespace-nowrap">Zeilen:</label>
-            <Select
-              value={bookingsPerPage.toString()}
-              onValueChange={(value) => {
-                setBookingsPerPage(parseInt(value));
-                setCurrentPage(1);
-              }}
+        {/* Controls Row */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4">
+          {/* Right Side: Buttons - First on mobile, second on desktop */}
+          <div className="flex flex-col sm:flex-row gap-3 order-1 sm:order-2">
+            {/* Export Button */}
+            <Button
+              variant="outline"
+              onClick={handleOpenExportModal}
+              className="text-white bg-black hover:bg-gray-800 border-black h-9 whitespace-nowrap w-full sm:w-auto"
             >
-              <SelectTrigger className="w-[90px] h-9 border-black text-black [&_svg]:text-black [&_svg]:opacity-100 [&_svg]:-mt-4">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-white border-black">
-                <SelectItem value="5" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">5</SelectItem>
-                <SelectItem value="10" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">10</SelectItem>
-                <SelectItem value="25" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">25</SelectItem>
-                <SelectItem value="50" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">50</SelectItem>
-                <SelectItem value="100" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">100</SelectItem>
-              </SelectContent>
-            </Select>
+              <FaDownload className="mr-2" style={{ width: '16px', height: '16px', color: 'white' }} />
+              Exportieren
+            </Button>
+
+            {/* Assign Button */}
+            <Button
+              variant="outline"
+              onClick={() => setIsAssignModalOpen(true)}
+              className="text-white bg-green-600 hover:bg-green-700 border-green-600 whitespace-nowrap w-full sm:w-auto h-9"
+            >
+              <FaPlus className="mr-2" style={{ width: 16, height: 16, color: 'white' }} />
+              Neue Buchung zuweisen
+            </Button>
           </div>
 
-          {/* Search Bar */}
-          <div className="relative w-full sm:w-48">
-            <FaSearch
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-              style={{ width: '18px', height: '18px' }}
-            />
-            <input
-              type="text"
-              placeholder="Suchen..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-sm text-black border border-black rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1 placeholder:text-gray-400"
-            />
+          {/* Left Side: Filters - Second on mobile, first on desktop */}
+          <div className="flex flex-col sm:flex-row gap-3 order-2 sm:order-1">
+            {/* Page Size Selector */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-600 whitespace-nowrap">Zeilen:</label>
+              <Select
+                value={bookingsPerPage.toString()}
+                onValueChange={(value) => {
+                  setBookingsPerPage(parseInt(value));
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger className="w-[90px] h-9 border-black text-black [&_svg]:text-black [&_svg]:opacity-100 [&_svg]:-mt-4">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-black">
+                  <SelectItem value="5" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">5</SelectItem>
+                  <SelectItem value="10" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">10</SelectItem>
+                  <SelectItem value="25" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">25</SelectItem>
+                  <SelectItem value="50" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">50</SelectItem>
+                  <SelectItem value="100" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">100</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Search Bar */}
+            <div className="relative w-full sm:w-48">
+              <FaSearch
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                style={{ width: '18px', height: '18px' }}
+              />
+              <input
+                type="text"
+                placeholder="Suchen..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 text-sm text-black border border-black rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1 placeholder:text-gray-400"
+              />
+            </div>
           </div>
         </div>
       </div>

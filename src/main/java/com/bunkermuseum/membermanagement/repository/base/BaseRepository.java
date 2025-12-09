@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -518,7 +519,7 @@ public abstract class BaseRepository<T extends Model, R extends JpaRepository<T,
     protected T createEntityFromData(Map<String, Object> data) {
         try {
             @SuppressWarnings("unchecked")
-            Class<T> entityClass = (Class<T>) ((java.lang.reflect.ParameterizedType)
+            Class<T> entityClass = (Class<T>) ((ParameterizedType)
                 getClass().getGenericSuperclass()).getActualTypeArguments()[0];
 
             T entity = entityClass.getDeclaredConstructor().newInstance();

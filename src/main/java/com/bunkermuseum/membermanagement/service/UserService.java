@@ -235,7 +235,7 @@ public class UserService extends BaseService<User, UserRepositoryContract>
             String salutation,
             String academicTitle,
             String rank,
-            java.time.LocalDate birthday,
+            LocalDate birthday,
             String phone,
             String street,
             String city,
@@ -324,7 +324,7 @@ public class UserService extends BaseService<User, UserRepositoryContract>
             String salutation,
             String academicTitle,
             String rank,
-            java.time.LocalDate birthday,
+            LocalDate birthday,
             String phone,
             String street,
             String city,
@@ -891,7 +891,7 @@ public class UserService extends BaseService<User, UserRepositoryContract>
      * @author Philipp Borkovic
      */
     private void updateDateField(
-            java.time.@Nullable LocalDate newValue,
+            @Nullable LocalDate newValue,
             Supplier<LocalDate> getter,
             Consumer<LocalDate> setter,
             String fieldName,

@@ -4,7 +4,6 @@ import com.bunkermuseum.membermanagement.model.base.Model;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
  * Entity representing a password setup token for new users.

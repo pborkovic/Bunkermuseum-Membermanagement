@@ -434,8 +434,6 @@ public class User extends Model {
         this.password = password;
     }
 
-    // Getters and Setters
-
     /**
      * Gets the user's display name.
      *

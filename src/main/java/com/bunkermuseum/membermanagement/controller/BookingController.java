@@ -9,6 +9,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+
 /**
  * REST controller for Booking management operations.
  *
@@ -47,7 +49,7 @@ public class BookingController {
      *
      * @author Philipp Borkovic
      */
-    public java.util.List<BookingDTO> getAllBookings() {
+    public List<BookingDTO> getAllBookings() {
         try {
             return bookingService.getAllBookings();
         } catch (Exception exception) {
@@ -109,7 +111,7 @@ public class BookingController {
      *
      * @author Philipp Borkovic
      */
-    public java.util.List<BookingDTO> getCurrentUserBookings() {
+    public List<BookingDTO> getCurrentUserBookings() {
         try {
             return bookingService.getCurrentUserBookings();
         } catch (IllegalArgumentException exception) {

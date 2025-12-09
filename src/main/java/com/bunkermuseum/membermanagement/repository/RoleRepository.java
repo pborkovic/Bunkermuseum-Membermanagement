@@ -5,8 +5,6 @@ import com.bunkermuseum.membermanagement.repository.base.BaseRepository;
 import com.bunkermuseum.membermanagement.repository.contract.RoleRepositoryContract;
 import com.bunkermuseum.membermanagement.repository.jpa.RoleJpaRepository;
 import org.springframework.stereotype.Repository;
-import java.util.List;
-import java.util.Optional;
 
 /**
  * Repository implementation for Role entity operations.

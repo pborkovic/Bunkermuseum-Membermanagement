@@ -14,8 +14,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.Year;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -62,7 +65,7 @@ public class BookingService extends BaseService<Booking, BookingRepositoryContra
      * @author Philipp Borkovic
      */
     @Override
-    public java.util.List<BookingDTO> getAllBookings() {
+    public List<BookingDTO> getAllBookings() {
         try {
             List<Booking> bookings = repository.findAll();
             return bookings.stream()

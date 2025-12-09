@@ -84,13 +84,11 @@ public class EmailService implements EmailServiceContract {
      */
     @Override
     public Email sendSimpleEmail(String from, String to, String subject, String content, @Nullable User user) {
-        // Validate input parameters
         validateEmailParameters(from, to, subject, content);
 
         try {
             logger.info("Sending simple email from {} to {} with subject: {}", from, to, subject);
 
-            // Send the email using JavaMailSender
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(from);
             message.setTo(to);
@@ -101,7 +99,6 @@ public class EmailService implements EmailServiceContract {
 
             logger.info("Email sent successfully from {} to {}", from, to);
 
-            // Create and save email entity to database
             Email email;
             if (user != null) {
                 email = new Email(from, to, subject, content, user);
@@ -154,7 +151,6 @@ public class EmailService implements EmailServiceContract {
         InputStreamSource attachment,
         @Nullable User user
     ) {
-        // Validate input parameters
         validateEmailParameters(from, to, subject, content);
         validateAttachmentParameters(attachmentName, attachment);
 
@@ -162,7 +158,6 @@ public class EmailService implements EmailServiceContract {
             logger.info("Sending email with attachment from {} to {} with subject: {}", from, to, subject);
             logger.debug("Attachment name: {}", attachmentName);
 
-            // Create MIME message for attachment support
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
@@ -171,15 +166,12 @@ public class EmailService implements EmailServiceContract {
             helper.setSubject(subject);
             helper.setText(content);
 
-            // Add the attachment
             helper.addAttachment(attachmentName, attachment);
 
             mailSender.send(mimeMessage);
 
             logger.info("Email with attachment sent successfully from {} to {}", from, to);
 
-            // Create and save email entity to database
-            // Note: We store the original content, not the attachment data
             Email email;
             if (user != null) {
                 email = new Email(from, to, subject, content + "\n[Attachment: " + attachmentName + "]", user);

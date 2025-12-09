@@ -367,4 +367,17 @@ public interface UserServiceContract {
      * @throws RuntimeException if password setup fails
      */
     void setupPasswordWithToken(String token, String password);
+
+    /**
+     * Retrieves the currently authenticated user from the Spring Security context.
+     *
+     * <p>This method extracts the authenticated user from the security context.
+     * It's useful for determining which user is performing an action for
+     * authorization and audit purposes.</p>
+     *
+     * @return The currently authenticated User object
+     *
+     * @throws RuntimeException if no user is authenticated
+     */
+    User getCurrentAuthenticatedUser();
 }

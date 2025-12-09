@@ -5,6 +5,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -78,7 +79,7 @@ public interface UserServiceContract {
             String salutation,
             String academicTitle,
             String rank,
-            java.time.LocalDate birthday,
+            LocalDate birthday,
             String phone,
             String street,
             String city,

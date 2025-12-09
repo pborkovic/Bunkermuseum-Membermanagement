@@ -5,12 +5,18 @@ import com.bunkermuseum.membermanagement.model.Booking;
 import com.bunkermuseum.membermanagement.model.Email;
 import com.bunkermuseum.membermanagement.model.User;
 import com.bunkermuseum.membermanagement.repository.contract.BookingRepositoryContract;
-import com.bunkermuseum.membermanagement.repository.contract.UserRepositoryContract;
 import com.bunkermuseum.membermanagement.repository.contract.EmailRepositoryContract;
+import com.bunkermuseum.membermanagement.repository.contract.UserRepositoryContract;
 import com.bunkermuseum.membermanagement.service.contract.ExportServiceContract;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.jspecify.annotations.NonNull;
@@ -19,6 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -27,20 +35,9 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 
@@ -99,7 +96,6 @@ public class ExportService implements ExportServiceContract {
         this.bookingRepository = bookingRepository;
         this.emailRepository = emailRepository;
 
-        // Configure ObjectMapper for JSON exports
         this.objectMapper = new ObjectMapper();
         this.objectMapper.registerModule(new JavaTimeModule());
         this.objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
@@ -770,10 +766,10 @@ public class ExportService implements ExportServiceContract {
         return switch (emailType.toLowerCase()) {
             case "system" -> allEmails.stream()
                     .filter(Email::isSystemEmail)
-                    .toList(); // System-generated emails (no user association)
+                    .toList();
             case "user" -> allEmails.stream()
                     .filter(Email::isUserEmail)
-                    .toList(); // User-sent emails (has user association)
+                    .toList();
             default -> throw new IllegalArgumentException("Unsupported email type: " + emailType);
         };
     }

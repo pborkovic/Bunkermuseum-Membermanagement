@@ -16,18 +16,18 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * Service implementation for User entity business operations.
@@ -783,40 +783,86 @@ public class UserService extends BaseService<User, UserRepositoryContract>
 
             User user = optionalUser.get();
 
+            // Track changes for admin notification
+            List<String> changes = new ArrayList<>();
+
             if (userData.getName() != null && !userData.getName().isBlank()) {
+                if (!userData.getName().equals(user.getName())) {
+                    changes.add(buildChangeMessage("Name", user.getName(), userData.getName()));
+                }
                 user.setName(userData.getName());
             }
             if (userData.getEmail() != null && !userData.getEmail().isBlank()) {
+                if (!userData.getEmail().equals(user.getEmail())) {
+                    changes.add(buildChangeMessage("E-Mail", user.getEmail(), userData.getEmail()));
+                }
                 user.setEmail(userData.getEmail());
             }
             if (userData.getSalutation() != null) {
+                if (!Objects.equals(userData.getSalutation(), user.getSalutation())) {
+                    changes.add(buildChangeMessage("Anrede", user.getSalutation(), userData.getSalutation()));
+                }
                 user.setSalutation(userData.getSalutation());
             }
             if (userData.getAcademicTitle() != null) {
+                if (!Objects.equals(userData.getAcademicTitle(), user.getAcademicTitle())) {
+                    changes.add(buildChangeMessage("Akademischer Titel", user.getAcademicTitle(), userData.getAcademicTitle()));
+                }
                 user.setAcademicTitle(userData.getAcademicTitle());
             }
             if (userData.getRank() != null) {
+                if (!Objects.equals(userData.getRank(), user.getRank())) {
+                    changes.add(buildChangeMessage("Dienstgrad", user.getRank(), userData.getRank()));
+                }
                 user.setRank(userData.getRank());
             }
             if (userData.getBirthday() != null) {
+                if (!Objects.equals(userData.getBirthday(), user.getBirthday())) {
+                    changes.add(buildChangeMessage("Geburtsdatum",
+                        user.getBirthday() != null ? user.getBirthday().toString() : null,
+                        userData.getBirthday().toString()));
+                }
                 user.setBirthday(userData.getBirthday());
             }
             if (userData.getPhone() != null) {
+                if (!Objects.equals(userData.getPhone(), user.getPhone())) {
+                    changes.add(buildChangeMessage("Telefon", user.getPhone(), userData.getPhone()));
+                }
                 user.setPhone(userData.getPhone());
             }
             if (userData.getStreet() != null) {
+                if (!Objects.equals(userData.getStreet(), user.getStreet())) {
+                    changes.add(buildChangeMessage("Straße", user.getStreet(), userData.getStreet()));
+                }
                 user.setStreet(userData.getStreet());
             }
             if (userData.getCity() != null) {
+                if (!Objects.equals(userData.getCity(), user.getCity())) {
+                    changes.add(buildChangeMessage("Stadt", user.getCity(), userData.getCity()));
+                }
                 user.setCity(userData.getCity());
             }
             if (userData.getPostalCode() != null) {
+                if (!Objects.equals(userData.getPostalCode(), user.getPostalCode())) {
+                    changes.add(buildChangeMessage("Postleitzahl", user.getPostalCode(), userData.getPostalCode()));
+                }
                 user.setPostalCode(userData.getPostalCode());
+            }
+            if (userData.getCountry() != null) {
+                if (!Objects.equals(userData.getCountry(), user.getCountry())) {
+                    changes.add(buildChangeMessage("Land", user.getCountry(), userData.getCountry()));
+                }
+                user.setCountry(userData.getCountry());
             }
 
             User updatedUser = repository.update(userId, user);
 
             logger.info("User {} updated and cache evicted", userId);
+
+            // Send notification to admins if there are any changes
+            if (!changes.isEmpty()) {
+                notifyAdminsOfProfileChanges(updatedUser, changes);
+            }
 
             return updatedUser;
         } catch (IllegalArgumentException e) {
@@ -825,6 +871,122 @@ public class UserService extends BaseService<User, UserRepositoryContract>
         } catch (Exception e) {
             logger.error("Failed to update user: {}", userId, e);
             throw new RuntimeException("Failed to update user profile", e);
+        }
+    }
+
+    /**
+     * Builds a formatted change message showing old value to new value.
+     *
+     * @param fieldName the name of the field that changed
+     * @param oldValue the old value (null if not set)
+     * @param newValue the new value
+     * @return formatted change message
+     *
+     * @author Philipp Borkovic
+     */
+    private String buildChangeMessage(String fieldName, @Nullable String oldValue, String newValue) {
+        String oldValueDisplay = (oldValue == null || oldValue.isBlank()) ? "(leer)" : oldValue;
+        String newValueDisplay = (newValue == null || newValue.isBlank()) ? "(leer)" : newValue;
+
+        return fieldName + ": " + oldValueDisplay + " → " + newValueDisplay;
+    }
+
+    /**
+     * Notifies all admin users about profile changes made by a member.
+     *
+     * <p>This method sends an email notification to all users with the ADMIN role,
+     * informing them about changes made to a member's profile. The email includes:
+     * <ul>
+     *     <li>The name and email of the user who made changes</li>
+     *     <li>A detailed list of all changed fields with old and new values</li>
+     *     <li>Timestamp of when the changes occurred</li>
+     * </ul>
+     *
+     * <p>The notification is sent asynchronously to avoid blocking the update operation.
+     * If email sending fails, the error is logged but does not affect the profile update.</p>
+     *
+     * @param user the user whose profile was updated
+     * @param changes list of change descriptions (field: oldValue → newValue)
+     *
+     * @author Philipp Borkovic
+     */
+    private void notifyAdminsOfProfileChanges(User user, List<String> changes) {
+        try {
+            List<User> adminUsers = repository.findActive().stream()
+                .filter(u -> u.getRoles() != null && u.getRoles().stream()
+                    .anyMatch(role -> "ADMIN".equalsIgnoreCase(role.getName())))
+                .collect(Collectors.toList());
+
+            if (adminUsers.isEmpty()) {
+                logger.warn("No admin users found to notify about profile changes for user: {}", user.getId());
+
+                return;
+            }
+
+            String subject = "Mitglied hat Profildaten geändert - " + user.getName();
+
+            StringBuilder changesHtml = new StringBuilder();
+            for (String change : changes) {
+                changesHtml.append("<li style='margin: 8px 0; padding: 8px; background-color: #f8f9fa; border-left: 3px solid #3498db;'>")
+                    .append(change)
+                    .append("</li>");
+            }
+
+            String content = String.format("""
+                <html>
+                <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                        <h2 style="color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px;">
+                            Profildatenänderung durch Mitglied
+                        </h2>
+
+                        <div style="background-color: #ecf0f1; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                            <p style="margin: 5px 0;"><strong>Mitglied:</strong> %s</p>
+                            <p style="margin: 5px 0;"><strong>E-Mail:</strong> %s</p>
+                            <p style="margin: 5px 0;"><strong>Zeitpunkt:</strong> %s</p>
+                        </div>
+
+                        <h3 style="color: #2c3e50; margin-top: 30px;">Geänderte Felder:</h3>
+                        <ul style="list-style: none; padding: 0;">
+                            %s
+                        </ul>
+
+                        <p style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ecf0f1; color: #7f8c8d; font-size: 12px;">
+                            Diese automatische Benachrichtigung wurde vom Bunkermuseum-Verwaltungssystem gesendet.<br>
+                            Sie können die vollständigen Mitgliederdaten im Admin-Dashboard einsehen.
+                        </p>
+                    </div>
+                </body>
+                </html>
+                """,
+                user.getName(),
+                user.getEmail(),
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss")),
+                changesHtml.toString()
+            );
+
+            for (User admin : adminUsers) {
+                try {
+                    emailService.sendSimpleEmail(
+                        "noreply@bunkermuseum.com",
+                        admin.getEmail(),
+                        subject,
+                        content,
+                        null
+                    );
+                    logger.info("Profile change notification sent to admin: {} ({})", admin.getName(), admin.getEmail());
+                } catch (Exception e) {
+                    logger.error("Failed to send profile change notification to admin: {} ({})",
+                        admin.getName(), admin.getEmail(), e);
+                }
+            }
+
+            logger.info("Profile change notifications sent to {} admin(s) for user: {} ({})",
+                adminUsers.size(), user.getName(), user.getEmail());
+
+        } catch (Exception e) {
+            logger.error("Error while notifying admins of profile changes for user: {} ({})",
+                    user.getName(), user.getEmail(), e);
         }
     }
 
@@ -925,6 +1087,25 @@ public class UserService extends BaseService<User, UserRepositoryContract>
 
             throw new RuntimeException("Failed to set up password", e);
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @author Philipp Borkovic
+     */
+    @Override
+    public User getCurrentAuthenticatedUser() {
+        Object principal = SecurityContextHolder
+            .getContext()
+            .getAuthentication()
+            .getPrincipal();
+
+        if (principal instanceof User user) {
+            return user;
+        }
+
+        throw new RuntimeException("User not authenticated");
     }
 
 }

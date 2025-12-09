@@ -6,7 +6,9 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.jspecify.annotations.Nullable;
+
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -292,7 +294,7 @@ public class User extends Model {
      * @author Philipp Borkovic
      */
     @Column(name = "birthday")
-    private java.time.LocalDate birthday;
+    private LocalDate birthday;
 
     /**
      * The user's phone number.
@@ -688,7 +690,7 @@ public class User extends Model {
      *
      * @author Philipp Borkovic
      */
-    public java.time.LocalDate getBirthday() {
+    public LocalDate getBirthday() {
         return birthday;
     }
 
@@ -699,7 +701,7 @@ public class User extends Model {
      *
      * @author Philipp Borkovic
      */
-    public void setBirthday(java.time.LocalDate birthday) {
+    public void setBirthday(LocalDate birthday) {
         this.birthday = birthday;
     }
 

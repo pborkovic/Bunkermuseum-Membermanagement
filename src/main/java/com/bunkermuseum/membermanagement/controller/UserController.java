@@ -203,22 +203,43 @@ public class UserController {
     /**
      * Updates comprehensive user information including all profile fields.
      *
+     * <p><strong>Security:</strong> Admins can update any user. Regular users (MEMBER, USER)
+     * can only update their own profile. Attempting to update another user's profile
+     * will result in a FORBIDDEN response.</p>
+     *
      * @param userId The ID of the user to update
      * @param userData User object containing the fields to update
      *
      * @return The updated User as DTO (excludes sensitive fields and prevents circular references)
      * @throws ResponseStatusException with {@link HttpStatus#BAD_REQUEST} if userId is invalid
      *         or user not found
+     * @throws ResponseStatusException with {@link HttpStatus#FORBIDDEN} if non-admin user
+     *         attempts to update another user's profile
      * @throws ResponseStatusException with {@link HttpStatus#INTERNAL_SERVER_ERROR} if
      *         any unexpected error occurs during update
      *
      * @author Philipp Borkovic
      */
-    @RolesAllowed("ADMIN")
+    @RolesAllowed({"ADMIN", "MEMBER", "USER"})
     public UserDTO updateUser(@Nonnull UUID userId, @Nonnull User userData) {
         try {
+            User currentUser = userService.getCurrentAuthenticatedUser();
+
+            boolean isAdmin = currentUser.getRoles() != null && currentUser.getRoles().stream()
+                .anyMatch(role -> "ADMIN".equalsIgnoreCase(role.getName()));
+
+            if (!isAdmin && !userId.equals(currentUser.getId())) {
+                throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Sie können nur Ihr eigenes Profil bearbeiten"
+                );
+            }
+
             User updatedUser = userService.updateUser(userId, userData);
+
             return UserMapper.toDTO(updatedUser);
+        } catch (ResponseStatusException exception) {
+            throw exception;
         } catch (IllegalArgumentException exception) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid data: " + exception.getMessage(), exception);
         } catch (Exception exception) {

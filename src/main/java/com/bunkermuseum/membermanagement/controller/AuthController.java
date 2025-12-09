@@ -1,5 +1,6 @@
 package com.bunkermuseum.membermanagement.controller;
 
+import com.bunkermuseum.membermanagement.dto.RoleDTO;
 import com.bunkermuseum.membermanagement.dto.UserDTO;
 import com.bunkermuseum.membermanagement.dto.mapper.UserMapper;
 import com.bunkermuseum.membermanagement.model.User;
@@ -13,12 +14,16 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Hilla endpoint for authentication operations.
@@ -109,14 +114,14 @@ public class AuthController {
             }
 
             var authorities = user.getRoles().stream()
-                    .map(role -> new org.springframework.security.core.authority.SimpleGrantedAuthority(
+                    .map(role -> new SimpleGrantedAuthority(
                             "ROLE_" + role.getName().toUpperCase()
                     ))
-                    .collect(java.util.stream.Collectors.toList());
+                    .collect(Collectors.toList());
 
             if (authorities.isEmpty()) {
-                authorities = java.util.Collections.singletonList(
-                        new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_USER")
+                authorities = Collections.singletonList(
+                        new SimpleGrantedAuthority("ROLE_USER")
                 );
             }
 
@@ -133,12 +138,12 @@ public class AuthController {
                     context
             );
 
-            java.util.Set<com.bunkermuseum.membermanagement.dto.RoleDTO> roleDTOs = user.getRoles().stream()
-                    .map(role -> new com.bunkermuseum.membermanagement.dto.RoleDTO(
+            Set<RoleDTO> roleDTOs = user.getRoles().stream()
+                    .map(role -> new RoleDTO(
                             role.getId(),
                             role.getName()
                     ))
-                    .collect(java.util.stream.Collectors.toSet());
+                    .collect(Collectors.toSet());
 
             return new LoginResponse(
                     user.getId().toString(),
@@ -374,7 +379,7 @@ public class AuthController {
             String name,
             String email,
             boolean emailVerified,
-            java.util.Set<com.bunkermuseum.membermanagement.dto.RoleDTO> roles
+            Set<com.bunkermuseum.membermanagement.dto.RoleDTO> roles
     ) {}
 
     /**

@@ -22,12 +22,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * Service implementation for User entity business operations.
@@ -775,102 +777,137 @@ public class UserService extends BaseService<User, UserRepositoryContract>
         }
 
         try {
-            Optional<User> optionalUser = repository.findById(userId);
+            User user = repository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
 
-            if (optionalUser.isEmpty()) {
-                throw new IllegalArgumentException("User not found with ID: " + userId);
-            }
-
-            User user = optionalUser.get();
-
-            // Track changes for admin notification
             List<String> changes = new ArrayList<>();
 
-            if (userData.getName() != null && !userData.getName().isBlank()) {
-                if (!userData.getName().equals(user.getName())) {
-                    changes.add(buildChangeMessage("Name", user.getName(), userData.getName()));
-                }
-                user.setName(userData.getName());
-            }
-            if (userData.getEmail() != null && !userData.getEmail().isBlank()) {
-                if (!userData.getEmail().equals(user.getEmail())) {
-                    changes.add(buildChangeMessage("E-Mail", user.getEmail(), userData.getEmail()));
-                }
-                user.setEmail(userData.getEmail());
-            }
-            if (userData.getSalutation() != null) {
-                if (!Objects.equals(userData.getSalutation(), user.getSalutation())) {
-                    changes.add(buildChangeMessage("Anrede", user.getSalutation(), userData.getSalutation()));
-                }
-                user.setSalutation(userData.getSalutation());
-            }
-            if (userData.getAcademicTitle() != null) {
-                if (!Objects.equals(userData.getAcademicTitle(), user.getAcademicTitle())) {
-                    changes.add(buildChangeMessage("Akademischer Titel", user.getAcademicTitle(), userData.getAcademicTitle()));
-                }
-                user.setAcademicTitle(userData.getAcademicTitle());
-            }
-            if (userData.getRank() != null) {
-                if (!Objects.equals(userData.getRank(), user.getRank())) {
-                    changes.add(buildChangeMessage("Dienstgrad", user.getRank(), userData.getRank()));
-                }
-                user.setRank(userData.getRank());
-            }
-            if (userData.getBirthday() != null) {
-                if (!Objects.equals(userData.getBirthday(), user.getBirthday())) {
-                    changes.add(buildChangeMessage("Geburtsdatum",
-                        user.getBirthday() != null ? user.getBirthday().toString() : null,
-                        userData.getBirthday().toString()));
-                }
-                user.setBirthday(userData.getBirthday());
-            }
-            if (userData.getPhone() != null) {
-                if (!Objects.equals(userData.getPhone(), user.getPhone())) {
-                    changes.add(buildChangeMessage("Telefon", user.getPhone(), userData.getPhone()));
-                }
-                user.setPhone(userData.getPhone());
-            }
-            if (userData.getStreet() != null) {
-                if (!Objects.equals(userData.getStreet(), user.getStreet())) {
-                    changes.add(buildChangeMessage("Straße", user.getStreet(), userData.getStreet()));
-                }
-                user.setStreet(userData.getStreet());
-            }
-            if (userData.getCity() != null) {
-                if (!Objects.equals(userData.getCity(), user.getCity())) {
-                    changes.add(buildChangeMessage("Stadt", user.getCity(), userData.getCity()));
-                }
-                user.setCity(userData.getCity());
-            }
-            if (userData.getPostalCode() != null) {
-                if (!Objects.equals(userData.getPostalCode(), user.getPostalCode())) {
-                    changes.add(buildChangeMessage("Postleitzahl", user.getPostalCode(), userData.getPostalCode()));
-                }
-                user.setPostalCode(userData.getPostalCode());
-            }
-            if (userData.getCountry() != null) {
-                if (!Objects.equals(userData.getCountry(), user.getCountry())) {
-                    changes.add(buildChangeMessage("Land", user.getCountry(), userData.getCountry()));
-                }
-                user.setCountry(userData.getCountry());
-            }
+            updateStringField(userData.getName(), user::getName, user::setName, "Name", changes);
+            updateStringField(userData.getEmail(), user::getEmail, user::setEmail, "E-Mail", changes);
+
+            updateField(userData.getSalutation(), user::getSalutation, user::setSalutation, "Anrede", changes);
+            updateField(userData.getAcademicTitle(), user::getAcademicTitle, user::setAcademicTitle, "Akademischer Titel", changes);
+            updateField(userData.getRank(), user::getRank, user::setRank, "Dienstgrad", changes);
+            updateDateField(userData.getBirthday(), user::getBirthday, user::setBirthday, "Geburtsdatum", changes);
+            updateField(userData.getPhone(), user::getPhone, user::setPhone, "Telefon", changes);
+            updateField(userData.getStreet(), user::getStreet, user::setStreet, "Straße", changes);
+            updateField(userData.getCity(), user::getCity, user::setCity, "Stadt", changes);
+            updateField(userData.getPostalCode(), user::getPostalCode, user::setPostalCode, "Postleitzahl", changes);
+            updateField(userData.getCountry(), user::getCountry, user::setCountry, "Land", changes);
 
             User updatedUser = repository.update(userId, user);
 
-            logger.info("User {} updated and cache evicted", userId);
-
-            // Send notification to admins if there are any changes
             if (!changes.isEmpty()) {
                 notifyAdminsOfProfileChanges(updatedUser, changes);
             }
 
             return updatedUser;
-        } catch (IllegalArgumentException e) {
-            logger.error("Invalid user data for update: {}", userId, e);
-            throw e;
-        } catch (Exception e) {
-            logger.error("Failed to update user: {}", userId, e);
-            throw new RuntimeException("Failed to update user profile", e);
+        } catch (IllegalArgumentException exception) {
+            logger.error("Invalid user data for update: {}", userId, exception);
+
+            throw exception;
+        } catch (Exception exception) {
+            logger.error("Failed to update user: {}", userId, exception);
+
+            throw new RuntimeException("Failed to update user profile", exception);
+        }
+    }
+
+    /**
+     * Updates a string field if the new value is not null and not blank.
+     * Tracks the change if the value differs from the current value.
+     *
+     * @param newValue the new value to set (null or blank values are ignored)
+     * @param getter the getter method reference to retrieve current value
+     * @param setter the setter method reference to set new value
+     * @param fieldName the display name of the field for change tracking
+     * @param changes the list to add change messages to
+     *
+     * @author Philipp Borkovic
+     */
+    private void updateStringField(
+            @Nullable String newValue,
+            Supplier<String> getter,
+            Consumer<String> setter,
+            String fieldName,
+            List<String> changes
+    ) {
+        if (newValue != null && !newValue.isBlank()) {
+            String currentValue = getter.get();
+
+            if (!newValue.equals(currentValue)) {
+                changes.add(buildChangeMessage(fieldName, currentValue, newValue));
+            }
+
+            setter.accept(newValue);
+        }
+    }
+
+    /**
+     * Updates a generic field if the new value is not null.
+     * Tracks the change if the value differs from the current value.
+     *
+     * @param newValue the new value to set (null values are ignored)
+     * @param getter the getter method reference to retrieve current value
+     * @param setter the setter method reference to set new value
+     * @param fieldName the display name of the field for change tracking
+     * @param changes the list to add change messages to
+     * @param <T> the type of the field value
+     *
+     * @author Philipp Borkovic
+     */
+    private <T> void updateField(
+            @Nullable T newValue,
+            Supplier<T> getter,
+            Consumer<T> setter,
+            String fieldName,
+            List<String> changes
+    ) {
+        if (newValue != null) {
+            T currentValue = getter.get();
+
+            if (!Objects.equals(newValue, currentValue)) {
+                String oldValueStr = currentValue != null ? currentValue.toString() : null;
+                String newValueStr = newValue.toString();
+
+                changes.add(buildChangeMessage(fieldName, oldValueStr, newValueStr));
+            }
+
+            setter.accept(newValue);
+        }
+    }
+
+    /**
+     * Updates a LocalDate field if the new value is not null.
+     * Tracks the change if the value differs from the current value.
+     * Converts LocalDate to String for change message display.
+     *
+     * @param newValue the new date value to set (null values are ignored)
+     * @param getter the getter method reference to retrieve current LocalDate value
+     * @param setter the setter method reference to set new LocalDate value
+     * @param fieldName the display name of the field for change tracking
+     * @param changes the list to add change messages to
+     *
+     * @author Philipp Borkovic
+     */
+    private void updateDateField(
+            java.time.@Nullable LocalDate newValue,
+            Supplier<LocalDate> getter,
+            Consumer<LocalDate> setter,
+            String fieldName,
+            List<String> changes
+    ) {
+        if (newValue != null) {
+            LocalDate currentValue = getter.get();
+
+            if (!Objects.equals(newValue, currentValue)) {
+                String oldValueStr = currentValue != null ? currentValue.toString() : null;
+                String newValueStr = newValue.toString();
+
+                changes.add(buildChangeMessage(fieldName, oldValueStr, newValueStr));
+            }
+
+            setter.accept(newValue);
         }
     }
 
@@ -915,7 +952,7 @@ public class UserService extends BaseService<User, UserRepositoryContract>
             List<User> adminUsers = repository.findActive().stream()
                 .filter(u -> u.getRoles() != null && u.getRoles().stream()
                     .anyMatch(role -> "ADMIN".equalsIgnoreCase(role.getName())))
-                .collect(Collectors.toList());
+                .toList();
 
             if (adminUsers.isEmpty()) {
                 logger.warn("No admin users found to notify about profile changes for user: {}", user.getId());

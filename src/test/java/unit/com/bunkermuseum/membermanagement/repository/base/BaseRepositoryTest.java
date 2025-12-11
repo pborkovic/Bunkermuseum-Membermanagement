@@ -8,7 +8,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.*;
@@ -319,21 +322,23 @@ class BaseRepositoryTest {
      *
      * <p>This test verifies that:</p>
      * <ul>
-     *   <li>The entity existence is checked before deletion</li>
-     *   <li>The entity is deleted using the underlying JPA repository</li>
+     *   <li>The entity is fetched before soft deletion</li>
+     *   <li>The entity.delete() method is called to set deletedAt timestamp</li>
+     *   <li>The entity is saved back to persist the soft delete</li>
      *   <li>The method returns true indicating successful deletion</li>
-     *   <li>Both existsById and deleteById methods are called</li>
      * </ul>
      */
     @Test
     void deleteById_ShouldReturnTrue_WhenEntityExists() {
-        when(mockJpaRepository.existsById(testId)).thenReturn(true);
+        when(mockJpaRepository.findById(testId)).thenReturn(Optional.of(testEntity));
+        when(mockJpaRepository.save(testEntity)).thenReturn(testEntity);
 
         boolean result = testRepository.deleteById(testId);
 
         assertTrue(result);
-        verify(mockJpaRepository).existsById(testId);
-        verify(mockJpaRepository).deleteById(testId);
+        verify(mockJpaRepository).findById(testId);
+        verify(mockJpaRepository).save(testEntity);
+        assertTrue(testEntity.isDeleted(), "Entity should be marked as deleted");
     }
 
     /**
@@ -341,21 +346,21 @@ class BaseRepositoryTest {
      *
      * <p>This test verifies that:</p>
      * <ul>
-     *   <li>The entity existence is checked</li>
+     *   <li>The entity is attempted to be fetched</li>
      *   <li>The method returns false when entity is not found</li>
-     *   <li>The deleteById method is never called on the JPA repository</li>
+     *   <li>The save method is never called on the JPA repository</li>
      *   <li>No exceptions are thrown</li>
      * </ul>
      */
     @Test
     void deleteById_ShouldReturnFalse_WhenEntityDoesNotExist() {
-        when(mockJpaRepository.existsById(testId)).thenReturn(false);
+        when(mockJpaRepository.findById(testId)).thenReturn(Optional.empty());
 
         boolean result = testRepository.deleteById(testId);
 
         assertFalse(result);
-        verify(mockJpaRepository).existsById(testId);
-        verify(mockJpaRepository, never()).deleteById(any());
+        verify(mockJpaRepository).findById(testId);
+        verify(mockJpaRepository, never()).save(any());
     }
 
     /**

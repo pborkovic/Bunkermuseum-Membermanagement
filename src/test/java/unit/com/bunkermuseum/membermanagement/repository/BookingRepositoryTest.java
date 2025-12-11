@@ -14,7 +14,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -333,9 +332,9 @@ class BookingRepositoryTest {
      *
      * <p>This test verifies that:</p>
      * <ul>
-     *   <li>The method successfully deletes an existing booking</li>
+     *   <li>The method successfully soft deletes an existing booking</li>
      *   <li>Returns true to indicate successful deletion</li>
-     *   <li>The JPA repository checks existence and deletes the booking</li>
+     *   <li>The entity is fetched, marked as deleted, and saved</li>
      * </ul>
      *
      * @author Philipp Borkovic
@@ -345,16 +344,18 @@ class BookingRepositoryTest {
     void testDeleteById_ExistingBooking_ReturnsTrue() {
         // Arrange
         UUID id = UUID.randomUUID();
-        when(jpaRepository.existsById(id)).thenReturn(true);
-        doNothing().when(jpaRepository).deleteById(id);
+        Booking booking = mock(Booking.class);
+        when(jpaRepository.findById(id)).thenReturn(Optional.of(booking));
+        when(jpaRepository.save(booking)).thenReturn(booking);
 
         // Act
         boolean result = bookingRepository.deleteById(id);
 
         // Assert
         assertTrue(result);
-        verify(jpaRepository).existsById(id);
-        verify(jpaRepository).deleteById(id);
+        verify(jpaRepository).findById(id);
+        verify(booking).delete();
+        verify(jpaRepository).save(booking);
     }
 
     /**
@@ -364,7 +365,7 @@ class BookingRepositoryTest {
      * <ul>
      *   <li>The method returns false when booking doesn't exist</li>
      *   <li>No exception is thrown for non-existent bookings</li>
-     *   <li>The delete method is never called</li>
+     *   <li>The save method is never called</li>
      * </ul>
      *
      * @author Philipp Borkovic
@@ -374,15 +375,15 @@ class BookingRepositoryTest {
     void testDeleteById_NonExistentBooking_ReturnsFalse() {
         // Arrange
         UUID id = UUID.randomUUID();
-        when(jpaRepository.existsById(id)).thenReturn(false);
+        when(jpaRepository.findById(id)).thenReturn(Optional.empty());
 
         // Act
         boolean result = bookingRepository.deleteById(id);
 
         // Assert
         assertFalse(result);
-        verify(jpaRepository).existsById(id);
-        verify(jpaRepository, never()).deleteById(any());
+        verify(jpaRepository).findById(id);
+        verify(jpaRepository, never()).save(any());
     }
 
     /**

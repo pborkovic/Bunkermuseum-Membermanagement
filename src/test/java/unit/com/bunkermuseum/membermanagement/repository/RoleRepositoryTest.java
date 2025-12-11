@@ -327,9 +327,9 @@ class RoleRepositoryTest {
      *
      * <p>This test verifies that:</p>
      * <ul>
-     *   <li>The method successfully deletes an existing role</li>
+     *   <li>The method successfully soft deletes an existing role</li>
      *   <li>Returns true to indicate successful deletion</li>
-     *   <li>The JPA repository checks existence and deletes the role</li>
+     *   <li>The entity is fetched, marked as deleted, and saved</li>
      * </ul>
      *
      * @author Philipp Borkovic
@@ -339,16 +339,18 @@ class RoleRepositoryTest {
     void testDeleteById_ExistingRole_ReturnsTrue() {
         // Arrange
         UUID id = UUID.randomUUID();
-        when(jpaRepository.existsById(id)).thenReturn(true);
-        doNothing().when(jpaRepository).deleteById(id);
+        Role role = mock(Role.class);
+        when(jpaRepository.findById(id)).thenReturn(Optional.of(role));
+        when(jpaRepository.save(role)).thenReturn(role);
 
         // Act
         boolean result = roleRepository.deleteById(id);
 
         // Assert
         assertTrue(result);
-        verify(jpaRepository).existsById(id);
-        verify(jpaRepository).deleteById(id);
+        verify(jpaRepository).findById(id);
+        verify(role).delete();
+        verify(jpaRepository).save(role);
     }
 
     /**
@@ -358,7 +360,7 @@ class RoleRepositoryTest {
      * <ul>
      *   <li>The method returns false when role doesn't exist</li>
      *   <li>No exception is thrown for non-existent roles</li>
-     *   <li>The delete method is never called</li>
+     *   <li>The save method is never called</li>
      * </ul>
      *
      * @author Philipp Borkovic
@@ -368,15 +370,15 @@ class RoleRepositoryTest {
     void testDeleteById_NonExistentRole_ReturnsFalse() {
         // Arrange
         UUID id = UUID.randomUUID();
-        when(jpaRepository.existsById(id)).thenReturn(false);
+        when(jpaRepository.findById(id)).thenReturn(Optional.empty());
 
         // Act
         boolean result = roleRepository.deleteById(id);
 
         // Assert
         assertFalse(result);
-        verify(jpaRepository).existsById(id);
-        verify(jpaRepository, never()).deleteById(any());
+        verify(jpaRepository).findById(id);
+        verify(jpaRepository, never()).save(any());
     }
 
     /**

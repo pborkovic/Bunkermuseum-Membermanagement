@@ -13,11 +13,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -112,7 +110,6 @@ class FileUploadControllerTest {
 
         testUser = new User("Test User", "test@example.com", "hashedPassword123");
 
-        // Set ID using reflection
         try {
             java.lang.reflect.Field idField = testUser.getClass().getSuperclass().getDeclaredField("id");
             idField.setAccessible(true);
@@ -144,7 +141,10 @@ class FileUploadControllerTest {
     @DisplayName("Should successfully upload valid JPEG profile picture")
     void testUploadProfilePicture_ValidJpegFile_Success() throws Exception {
         // Arrange
-        byte[] imageContent = "fake-jpeg-content".getBytes();
+        byte[] imageContent = new byte[]{
+                (byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0,
+                0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01
+        };
         MockMultipartFile file = new MockMultipartFile(
                 "file",
                 "profile.jpg",
@@ -193,7 +193,10 @@ class FileUploadControllerTest {
     @DisplayName("Should successfully upload valid PNG profile picture")
     void testUploadProfilePicture_ValidPngFile_Success() throws Exception {
         // Arrange
-        byte[] imageContent = "fake-png-content".getBytes();
+        byte[] imageContent = new byte[]{
+                (byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+                0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52
+        };
         MockMultipartFile file = new MockMultipartFile(
                 "file",
                 "profile.png",
@@ -235,7 +238,11 @@ class FileUploadControllerTest {
     @DisplayName("Should successfully upload valid WebP profile picture")
     void testUploadProfilePicture_ValidWebPFile_Success() throws Exception {
         // Arrange
-        byte[] imageContent = "fake-webp-content".getBytes();
+        byte[] imageContent = new byte[]{
+                0x52, 0x49, 0x46, 0x46,  // RIFF
+                0x00, 0x00, 0x00, 0x00,  // File size (placeholder)
+                0x57, 0x45, 0x42, 0x50   // WEBP
+        };
         MockMultipartFile file = new MockMultipartFile(
                 "file",
                 "profile.webp",
@@ -453,11 +460,16 @@ class FileUploadControllerTest {
         String oldAvatarPath = "profile-pictures/old-avatar.jpg";
         testUser.setAvatarPath(oldAvatarPath);
 
+        // Valid JPEG magic bytes
+        byte[] imageContent = new byte[]{
+                (byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0,
+                0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01
+        };
         MockMultipartFile file = new MockMultipartFile(
                 "file",
                 "profile.jpg",
                 "image/jpeg",
-                "content".getBytes()
+                imageContent
         );
 
         String objectName = "profile-pictures/" + UUID.randomUUID() + "-profile.jpg";
@@ -500,11 +512,15 @@ class FileUploadControllerTest {
     @DisplayName("Should return 500 when MinIO upload fails")
     void testUploadProfilePicture_MinioUploadFails_Returns500() throws Exception {
         // Arrange
+        byte[] imageContent = new byte[]{
+                (byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0,
+                0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01
+        };
         MockMultipartFile file = new MockMultipartFile(
                 "file",
                 "profile.jpg",
                 "image/jpeg",
-                "content".getBytes()
+                imageContent
         );
 
         SecurityContextHolder.setContext(securityContext);

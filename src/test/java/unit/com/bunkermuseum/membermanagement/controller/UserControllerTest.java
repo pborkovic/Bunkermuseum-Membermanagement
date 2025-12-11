@@ -4,6 +4,7 @@ import com.bunkermuseum.membermanagement.controller.UserController;
 import com.bunkermuseum.membermanagement.dto.PageResponse;
 import com.bunkermuseum.membermanagement.dto.UserDTO;
 import com.bunkermuseum.membermanagement.model.User;
+import com.bunkermuseum.membermanagement.repository.contract.RoleRepositoryContract;
 import com.bunkermuseum.membermanagement.service.contract.UserServiceContract;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -64,6 +65,13 @@ class UserControllerTest {
     private UserServiceContract userService;
 
     /**
+     * Mock instance of the role repository contract for role operations.
+     * This mock allows us to control role management behavior and responses.
+     */
+    @Mock
+    private RoleRepositoryContract roleRepository;
+
+    /**
      * Test instance of UserController for testing endpoint behavior.
      */
     private UserController userController;
@@ -91,7 +99,7 @@ class UserControllerTest {
      */
     @BeforeEach
     void setUp() {
-        userController = new UserController(userService);
+        userController = new UserController(userService, roleRepository);
 
         testUser = new User("Test User", "test@example.com", "hashedPassword123");
         testUser2 = new User("Another User", "another@example.com", "hashedPassword456");

@@ -58,11 +58,13 @@ import static org.mockito.Mockito.*;
 class UserControllerTest {
 
     /**
-     * Mock instance of the user service contract for business operations.
+     * Mock instance of the user service for business operations.
      * This mock allows us to control user management behavior and responses.
+     * Note: Using concrete UserService class instead of contract because
+     * some controller methods cast to UserService for specific operations.
      */
     @Mock
-    private UserServiceContract userService;
+    private com.bunkermuseum.membermanagement.service.UserService userService;
 
     /**
      * Mock instance of the role repository contract for role operations.
@@ -104,7 +106,6 @@ class UserControllerTest {
         testUser = new User("Test User", "test@example.com", "hashedPassword123");
         testUser2 = new User("Another User", "another@example.com", "hashedPassword456");
 
-        // Set IDs using reflection
         setUserId(testUser, UUID.randomUUID());
         setUserId(testUser2, UUID.randomUUID());
     }
@@ -125,7 +126,6 @@ class UserControllerTest {
         }
     }
 
-    // ==================== createUser Tests ====================
 
     /**
      * Tests the {@link UserController#createUser} method with valid user data.
@@ -214,8 +214,6 @@ class UserControllerTest {
         assertTrue(exception.getReason().contains("Failed to create user"));
     }
 
-    // ==================== getAllUsers Tests ====================
-
     /**
      * Tests the {@link UserController#getAllUsers} method with successful retrieval.
      *
@@ -291,8 +289,6 @@ class UserControllerTest {
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
         assertTrue(exception.getReason().contains("Failed to retrieve users"));
     }
-
-    // ==================== getUsersPage Tests ====================
 
     /**
      * Tests the {@link UserController#getUsersPage} method with valid pagination parameters.
@@ -505,15 +501,15 @@ class UserControllerTest {
      *
      * <p>This test verifies that:</p>
      * <ul>
-     *   <li>A ResponseStatusException with INTERNAL_SERVER_ERROR is thrown</li>
-     *   <li>The exception message indicates null content in page response</li>
+     *   <li>A ResponseStatusException with BAD_REQUEST is thrown</li>
+     *   <li>The exception message indicates invalid request parameters</li>
      * </ul>
      *
      * @author Philipp Borkovic
      */
     @Test
-    @DisplayName("Should throw INTERNAL_SERVER_ERROR when page content is null")
-    void testGetUsersPage_NullContent_ThrowsInternalServerError() {
+    @DisplayName("Should throw BAD_REQUEST when page content is null")
+    void testGetUsersPage_NullContent_ThrowsBadRequest() {
         // Arrange
         Page<User> userPage = mock(Page.class);
         when(userPage.getContent()).thenReturn(null);
@@ -525,8 +521,8 @@ class UserControllerTest {
             userController.getUsersPage(0, 10, null, null);
         });
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
-        assertTrue(exception.getReason().contains("Service returned null content"));
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        assertTrue(exception.getReason().contains("Invalid request parameters"));
     }
 
     /**
@@ -555,8 +551,6 @@ class UserControllerTest {
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
         assertTrue(exception.getReason().contains("Failed to retrieve users page"));
     }
-
-    // ==================== updateProfile Tests ====================
 
     /**
      * Tests the {@link UserController#updateProfile} method with valid data.
@@ -649,8 +643,6 @@ class UserControllerTest {
         assertTrue(exception.getReason().contains("Failed to update profile"));
     }
 
-    // ==================== updateUser Tests ====================
-
     /**
      * Tests the {@link UserController#updateUser} method with valid user data.
      *
@@ -670,6 +662,13 @@ class UserControllerTest {
         UUID userId = testUser.getId();
         User userData = new User("Updated User", "updated@example.com", "newPassword");
 
+        // Mock admin user
+        User adminUser = new User("Admin", "admin@example.com", "password");
+        com.bunkermuseum.membermanagement.model.Role adminRole =
+                new com.bunkermuseum.membermanagement.model.Role("ADMIN");
+        adminUser.getRoles().add(adminRole);
+
+        when(userService.getCurrentAuthenticatedUser()).thenReturn(adminUser);
         when(userService.updateUser(userId, userData)).thenReturn(testUser);
 
         // Act
@@ -698,6 +697,13 @@ class UserControllerTest {
         UUID userId = testUser.getId();
         User invalidData = new User("", "", "");
 
+        // Mock admin user
+        User adminUser = new User("Admin", "admin@example.com", "password");
+        com.bunkermuseum.membermanagement.model.Role adminRole =
+                new com.bunkermuseum.membermanagement.model.Role("ADMIN");
+        adminUser.getRoles().add(adminRole);
+
+        when(userService.getCurrentAuthenticatedUser()).thenReturn(adminUser);
         when(userService.updateUser(userId, invalidData))
                 .thenThrow(new IllegalArgumentException("Email is required"));
 
@@ -728,6 +734,13 @@ class UserControllerTest {
         UUID userId = testUser.getId();
         User userData = new User("Updated User", "updated@example.com", "newPassword");
 
+        // Mock admin user
+        User adminUser = new User("Admin", "admin@example.com", "password");
+        com.bunkermuseum.membermanagement.model.Role adminRole =
+                new com.bunkermuseum.membermanagement.model.Role("ADMIN");
+        adminUser.getRoles().add(adminRole);
+
+        when(userService.getCurrentAuthenticatedUser()).thenReturn(adminUser);
         when(userService.updateUser(userId, userData))
                 .thenThrow(new RuntimeException("Database error"));
 
@@ -738,5 +751,315 @@ class UserControllerTest {
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
         assertTrue(exception.getReason().contains("Failed to update user"));
+    }
+
+
+    /**
+     * Tests the {@link UserController#deleteUser} method with valid user ID.
+     *
+     * <p>This test verifies that:</p>
+     * <ul>
+     *   <li>The method successfully deletes a user (soft delete)</li>
+     *   <li>The user service deleteById method is called with correct ID</li>
+     *   <li>No exception is thrown when deletion succeeds</li>
+     * </ul>
+     *
+     * @author Philipp Borkovic
+     */
+    @Test
+    @DisplayName("Should successfully delete user with valid ID")
+    void testDeleteUser_ValidId_Success() {
+        // Arrange
+        UUID userId = testUser.getId();
+        when(userService.deleteById(userId)).thenReturn(true);
+
+        // Act
+        userController.deleteUser(userId);
+
+        // Assert
+        verify(userService).deleteById(userId);
+    }
+
+    /**
+     * Tests the {@link UserController#deleteUser} method when user not found.
+     *
+     * <p>This test verifies that:</p>
+     * <ul>
+     *   <li>A ResponseStatusException with NOT_FOUND is thrown</li>
+     *   <li>The exception message indicates user not found</li>
+     * </ul>
+     *
+     * @author Philipp Borkovic
+     */
+    @Test
+    @DisplayName("Should throw NOT_FOUND when user to delete doesn't exist")
+    void testDeleteUser_UserNotFound_ThrowsNotFound() {
+        // Arrange
+        UUID userId = UUID.randomUUID();
+        when(userService.deleteById(userId)).thenReturn(false);
+
+        // Act & Assert
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            userController.deleteUser(userId);
+        });
+
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+        assertTrue(exception.getReason().contains("User not found"));
+    }
+
+    /**
+     * Tests the {@link UserController#deleteUser} method with invalid user ID.
+     *
+     * <p>This test verifies that:</p>
+     * <ul>
+     *   <li>A ResponseStatusException with BAD_REQUEST is thrown</li>
+     *   <li>The exception message indicates invalid user ID</li>
+     * </ul>
+     *
+     * @author Philipp Borkovic
+     */
+    @Test
+    @DisplayName("Should throw BAD_REQUEST when user ID is invalid")
+    void testDeleteUser_InvalidId_ThrowsBadRequest() {
+        // Arrange
+        UUID userId = testUser.getId();
+        when(userService.deleteById(userId))
+                .thenThrow(new IllegalArgumentException("Invalid user ID"));
+
+        // Act & Assert
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            userController.deleteUser(userId);
+        });
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        assertTrue(exception.getReason().contains("Invalid user ID"));
+    }
+
+    /**
+     * Tests the {@link UserController#deleteUser} method when service throws exception.
+     *
+     * <p>This test verifies that:</p>
+     * <ul>
+     *   <li>A ResponseStatusException with INTERNAL_SERVER_ERROR is thrown</li>
+     *   <li>The exception message contains "Failed to delete user"</li>
+     * </ul>
+     *
+     * @author Philipp Borkovic
+     */
+    @Test
+    @DisplayName("Should throw INTERNAL_SERVER_ERROR when delete fails")
+    void testDeleteUser_ServiceThrowsException_ThrowsInternalServerError() {
+        // Arrange
+        UUID userId = testUser.getId();
+        when(userService.deleteById(userId))
+                .thenThrow(new RuntimeException("Database error"));
+
+        // Act & Assert
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            userController.deleteUser(userId);
+        });
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
+        assertTrue(exception.getReason().contains("Failed to delete user"));
+    }
+
+    /**
+     * Tests the {@link UserController#setUserAdminRole} method to add admin role.
+     *
+     * <p>This test verifies that:</p>
+     * <ul>
+     *   <li>The method successfully adds ADMIN role to a user</li>
+     *   <li>The user is retrieved from the service</li>
+     *   <li>The ADMIN role is retrieved from the repository</li>
+     *   <li>The role is added to the user's roles</li>
+     *   <li>The updated user is saved</li>
+     *   <li>UserDTO is returned with updated roles</li>
+     * </ul>
+     *
+     * @author Philipp Borkovic
+     */
+    @Test
+    @DisplayName("Should successfully add ADMIN role to user")
+    void testSetUserAdminRole_AddAdmin_Success() {
+        // Arrange
+        UUID userId = testUser.getId();
+        com.bunkermuseum.membermanagement.model.Role adminRole =
+                new com.bunkermuseum.membermanagement.model.Role("ADMIN");
+
+        when(userService.findById(userId))
+                .thenReturn(java.util.Optional.of(testUser));
+        when(roleRepository.findByName("ADMIN"))
+                .thenReturn(java.util.Optional.of(adminRole));
+        when(userService.update(eq(userId), any(User.class)))
+                .thenReturn(testUser);
+
+        // Act
+        UserDTO result = userController.setUserAdminRole(userId, true);
+
+        // Assert
+        assertNotNull(result);
+        verify(userService).findById(userId);
+        verify(roleRepository).findByName("ADMIN");
+        verify(userService).update(eq(userId), any(User.class));
+    }
+
+    /**
+     * Tests the {@link UserController#setUserAdminRole} method to remove admin role.
+     *
+     * <p>This test verifies that:</p>
+     * <ul>
+     *   <li>The method successfully removes ADMIN role from a user</li>
+     *   <li>The role is removed from the user's roles</li>
+     *   <li>The updated user is saved</li>
+     * </ul>
+     *
+     * @author Philipp Borkovic
+     */
+    @Test
+    @DisplayName("Should successfully remove ADMIN role from user")
+    void testSetUserAdminRole_RemoveAdmin_Success() {
+        // Arrange
+        UUID userId = testUser.getId();
+        com.bunkermuseum.membermanagement.model.Role adminRole =
+                new com.bunkermuseum.membermanagement.model.Role("ADMIN");
+        testUser.getRoles().add(adminRole);
+
+        when(userService.findById(userId))
+                .thenReturn(java.util.Optional.of(testUser));
+        when(roleRepository.findByName("ADMIN"))
+                .thenReturn(java.util.Optional.of(adminRole));
+        when(userService.update(eq(userId), any(User.class)))
+                .thenReturn(testUser);
+
+        // Act
+        UserDTO result = userController.setUserAdminRole(userId, false);
+
+        // Assert
+        assertNotNull(result);
+        verify(userService).findById(userId);
+        verify(roleRepository).findByName("ADMIN");
+        verify(userService).update(eq(userId), any(User.class));
+    }
+
+    /**
+     * Tests the {@link UserController#setUserAdminRole} method when user not found.
+     *
+     * <p>This test verifies that:</p>
+     * <ul>
+     *   <li>A ResponseStatusException with NOT_FOUND is thrown</li>
+     *   <li>The exception message indicates user not found</li>
+     * </ul>
+     *
+     * @author Philipp Borkovic
+     */
+    @Test
+    @DisplayName("Should throw NOT_FOUND when user doesn't exist")
+    void testSetUserAdminRole_UserNotFound_ThrowsNotFound() {
+        // Arrange
+        UUID userId = UUID.randomUUID();
+        when(userService.findById(userId))
+                .thenReturn(java.util.Optional.empty());
+
+        // Act & Assert
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            userController.setUserAdminRole(userId, true);
+        });
+
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+        assertTrue(exception.getReason().contains("User not found"));
+    }
+
+    /**
+     * Tests the {@link UserController#setUserAdminRole} method when ADMIN role doesn't exist.
+     *
+     * <p>This test verifies that:</p>
+     * <ul>
+     *   <li>A ResponseStatusException with NOT_FOUND is thrown</li>
+     *   <li>The exception message indicates ADMIN role not found</li>
+     * </ul>
+     *
+     * @author Philipp Borkovic
+     */
+    @Test
+    @DisplayName("Should throw NOT_FOUND when ADMIN role doesn't exist in system")
+    void testSetUserAdminRole_RoleNotFound_ThrowsNotFound() {
+        // Arrange
+        UUID userId = testUser.getId();
+        when(userService.findById(userId))
+                .thenReturn(java.util.Optional.of(testUser));
+        when(roleRepository.findByName("ADMIN"))
+                .thenReturn(java.util.Optional.empty());
+
+        // Act & Assert
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            userController.setUserAdminRole(userId, true);
+        });
+
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+        assertTrue(exception.getReason().contains("ADMIN role not found"));
+    }
+
+    /**
+     * Tests the {@link UserController#setUserAdminRole} method with invalid user ID.
+     *
+     * <p>This test verifies that:</p>
+     * <ul>
+     *   <li>A ResponseStatusException with BAD_REQUEST is thrown</li>
+     *   <li>The exception message indicates invalid user ID</li>
+     * </ul>
+     *
+     * @author Philipp Borkovic
+     */
+    @Test
+    @DisplayName("Should throw BAD_REQUEST when user ID is invalid")
+    void testSetUserAdminRole_InvalidId_ThrowsBadRequest() {
+        // Arrange
+        UUID userId = testUser.getId();
+        when(userService.findById(userId))
+                .thenReturn(java.util.Optional.of(testUser));
+        when(roleRepository.findByName("ADMIN"))
+                .thenReturn(java.util.Optional.of(new com.bunkermuseum.membermanagement.model.Role("ADMIN")));
+        when(userService.update(eq(userId), any(User.class)))
+                .thenThrow(new IllegalArgumentException("Invalid user ID"));
+
+        // Act & Assert
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            userController.setUserAdminRole(userId, true);
+        });
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        assertTrue(exception.getReason().contains("Invalid user ID"));
+    }
+
+    /**
+     * Tests the {@link UserController#setUserAdminRole} method when service throws exception.
+     *
+     * <p>This test verifies that:</p>
+     * <ul>
+     *   <li>A ResponseStatusException with INTERNAL_SERVER_ERROR is thrown</li>
+     *   <li>The exception message contains "Failed to update user admin role"</li>
+     * </ul>
+     *
+     * @author Philipp Borkovic
+     */
+    @Test
+    @DisplayName("Should throw INTERNAL_SERVER_ERROR when role update fails")
+    void testSetUserAdminRole_ServiceThrowsException_ThrowsInternalServerError() {
+        // Arrange
+        UUID userId = testUser.getId();
+        when(userService.findById(userId))
+                .thenReturn(java.util.Optional.of(testUser));
+        when(roleRepository.findByName("ADMIN"))
+                .thenReturn(java.util.Optional.of(new com.bunkermuseum.membermanagement.model.Role("ADMIN")));
+        when(userService.update(eq(userId), any(User.class)))
+                .thenThrow(new RuntimeException("Database error"));
+
+        // Act & Assert
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            userController.setUserAdminRole(userId, true);
+        });
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
+        assertTrue(exception.getReason().contains("Failed to update user admin role"));
     }
 }

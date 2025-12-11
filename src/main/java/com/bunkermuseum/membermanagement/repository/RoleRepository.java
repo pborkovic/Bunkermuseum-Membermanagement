@@ -6,6 +6,8 @@ import com.bunkermuseum.membermanagement.repository.contract.RoleRepositoryContr
 import com.bunkermuseum.membermanagement.repository.jpa.RoleJpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 /**
  * Repository implementation for Role entity operations.
  *
@@ -37,6 +39,16 @@ public class RoleRepository extends BaseRepository<Role, RoleJpaRepository>
      */
     public RoleRepository(RoleJpaRepository repository) {
         super(repository);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @author Philipp Borkovic
+     */
+    @Override
+    public Optional<Role> findByName(String name) {
+        return repository.findByName(name);
     }
 
 }

@@ -3,7 +3,9 @@ package com.bunkermuseum.membermanagement.controller;
 import com.bunkermuseum.membermanagement.dto.PageResponse;
 import com.bunkermuseum.membermanagement.dto.UserDTO;
 import com.bunkermuseum.membermanagement.dto.mapper.UserMapper;
+import com.bunkermuseum.membermanagement.model.Role;
 import com.bunkermuseum.membermanagement.model.User;
+import com.bunkermuseum.membermanagement.repository.contract.RoleRepositoryContract;
 import com.bunkermuseum.membermanagement.service.UserService;
 import com.bunkermuseum.membermanagement.service.contract.UserServiceContract;
 import com.vaadin.hilla.Endpoint;
@@ -18,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -37,16 +40,19 @@ import java.util.UUID;
 public class UserController {
 
     private final UserServiceContract userService;
+    private final RoleRepositoryContract roleRepository;
 
     /**
-     * Constructs a new UserController with the provided service.
+     * Constructs a new UserController with the provided service and role repository.
      *
      * @param userService The user service for business operations
+     * @param roleRepository The role repository for role management
      *
      * @author Philipp Borkovic
      */
-    public UserController(UserServiceContract userService) {
+    public UserController(UserServiceContract userService, RoleRepositoryContract roleRepository) {
         this.userService = userService;
+        this.roleRepository = roleRepository;
     }
 
 
@@ -276,6 +282,71 @@ public class UserController {
             throw exception;
         } catch (Exception exception) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete user", exception);
+        }
+    }
+
+    /**
+     * Sets or removes the ADMIN role for a user.
+     *
+     * <p>This method allows administrators to grant or revoke admin privileges
+     * for a specific user. When isAdmin is true, the ADMIN role is added to the user's
+     * roles. When false, the ADMIN role is removed.</p>
+     *
+     * @param userId The ID of the user to modify
+     * @param isAdmin True to add ADMIN role, false to remove it
+     * @return The updated User as DTO with the modified roles
+     * @throws ResponseStatusException with {@link HttpStatus#BAD_REQUEST} if userId is invalid
+     *         or user not found
+     * @throws ResponseStatusException with {@link HttpStatus#NOT_FOUND} if ADMIN role doesn't exist
+     * @throws ResponseStatusException with {@link HttpStatus#INTERNAL_SERVER_ERROR} if
+     *         any unexpected error occurs during update
+     *
+     * @author Philipp Borkovic
+     */
+    @RolesAllowed("ADMIN")
+    public UserDTO setUserAdminRole(@Nonnull UUID userId, boolean isAdmin) {
+        try {
+            User user = ((UserService) userService).findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "User not found with ID: " + userId
+                ));
+
+            Optional<Role> adminRoleOpt = roleRepository.findByName("ADMIN");
+            if (adminRoleOpt.isEmpty()) {
+                throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "ADMIN role not found in the system"
+                );
+            }
+
+            Role adminRole = adminRoleOpt.get();
+
+            if (isAdmin) {
+                if (!user.getRoles().contains(adminRole)) {
+                    user.getRoles().add(adminRole);
+                }
+            } else {
+                user.getRoles().remove(adminRole);
+            }
+
+            User updatedUser = ((UserService) userService).update(userId, user);
+
+            return UserMapper.toDTO(updatedUser);
+        } catch (ResponseStatusException exception) {
+            throw exception;
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Invalid user ID: " + exception.getMessage(),
+                exception
+            );
+        } catch (Exception exception) {
+            throw new ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Failed to update user admin role",
+                exception
+            );
         }
     }
 

@@ -149,6 +149,7 @@ export default function UsersTab(): JSX.Element {
     postalCode: '',
     country: ''
   });
+  const [isAdmin, setIsAdmin] = useState(false);
   const [createForm, setCreateForm] = useState<ProfileFormData>({
     name: '',
     email: '',
@@ -273,6 +274,10 @@ export default function UsersTab(): JSX.Element {
       postalCode: user.postalCode || '',
       country: user.country || ''
     });
+
+    const hasAdminRole = user.roles?.some(role => role?.name === 'ADMIN') || false;
+    setIsAdmin(hasAdminRole);
+
     editModal.openWith(user);
     detailsModal.close();
   }, [editModal, detailsModal]);
@@ -302,13 +307,21 @@ export default function UsersTab(): JSX.Element {
       };
 
       await UserController.updateUser(editModal.data.id!, updatedUser);
+
+      const hadAdminRole = editModal.data.roles?.some(role => role?.name === 'ADMIN') || false;
+      if (isAdmin !== hadAdminRole) {
+        await UserController.setUserAdminRole(editModal.data.id!, isAdmin);
+      }
+
       editModal.close();
+      toast.success(`Benutzer "${editForm.name}" wurde erfolgreich aktualisiert!`);
       await loadUsers();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Fehler beim Aktualisieren des Benutzers';
       setError(errorMessage);
+      toast.error(errorMessage);
     }
-  }, [editModal, editForm, loadUsers]);
+  }, [editModal, editForm, isAdmin, loadUsers]);
 
   /**
    * Handles page navigation with bounds checking.
@@ -919,6 +932,28 @@ export default function UsersTab(): JSX.Element {
                       />
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Roles and Permissions */}
+              <div>
+                <h3 className="text-sm font-semibold mb-3 text-muted-foreground">Berechtigungen</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      id="isAdmin"
+                      checked={isAdmin}
+                      onChange={(e) => setIsAdmin(e.target.checked)}
+                      className="w-4 h-4 rounded border-black text-black focus:ring-2 focus:ring-black focus:ring-offset-2"
+                    />
+                    <label htmlFor="isAdmin" className="text-sm font-medium cursor-pointer">
+                      Administrator
+                    </label>
+                  </div>
+                  <p className="text-xs text-muted-foreground ml-7">
+                    Administratoren haben vollen Zugriff auf alle Funktionen des Systems
+                  </p>
                 </div>
               </div>
             </div>

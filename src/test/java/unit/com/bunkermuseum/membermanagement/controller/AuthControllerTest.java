@@ -357,6 +357,7 @@ class AuthControllerTest {
         SecurityContextHolder.setContext(securityContext);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(testUser);
+        when(request.getSession()).thenReturn(session);
 
         doNothing().when(userService).changePassword(testUser.getEmail(), currentPassword, newPassword);
 
@@ -365,6 +366,7 @@ class AuthControllerTest {
 
         // Assert
         verify(userService).changePassword(testUser.getEmail(), currentPassword, newPassword);
+        verify(session).invalidate();
 
         SecurityContextHolder.clearContext();
     }
@@ -766,5 +768,531 @@ class AuthControllerTest {
         // Assert
         assertNotNull(response);
         verify(request).getRemoteAddr();
+    }
+
+
+    /**
+     * Tests the {@link AuthController#register} method with valid registration data.
+     *
+     * <p>This test verifies that:</p>
+     * <ul>
+     *   <li>The method successfully registers a new user</li>
+     *   <li>reCAPTCHA verification is performed</li>
+     *   <li>User service register method is called with correct parameters</li>
+     *   <li>Success response is returned with appropriate message</li>
+     * </ul>
+     *
+     * @author Philipp Borkovic
+     */
+    @Test
+    @DisplayName("Should successfully register user with valid data")
+    void testRegister_ValidData_Success() {
+        // Arrange
+        String recaptchaToken = "valid-recaptcha-token";
+        AuthController.RegistrationRequest registrationRequest = new AuthController.RegistrationRequest(
+                "New User",
+                "newuser@example.com",
+                "StrongPassword123!",
+                "Mr",
+                "Dr",
+                "Captain",
+                java.time.LocalDate.of(1990, 1, 1),
+                "+1234567890",
+                "123 Main St",
+                "City",
+                "12345",
+                "USA",
+                recaptchaToken
+        );
+
+        when(request.getRemoteAddr()).thenReturn("192.168.1.1");
+        when(reCaptchaService.verifyToken(recaptchaToken)).thenReturn(true);
+
+        // Act
+        AuthController.RegistrationResponse response = authController.register(registrationRequest);
+
+        // Assert
+        assertNotNull(response);
+        assertTrue(response.success());
+        assertEquals("Registration successful", response.message());
+        verify(reCaptchaService).verifyToken(recaptchaToken);
+        verify(userService).register(
+                registrationRequest.name(),
+                registrationRequest.email(),
+                registrationRequest.password(),
+                registrationRequest.salutation(),
+                registrationRequest.academicTitle(),
+                registrationRequest.rank(),
+                registrationRequest.birthday(),
+                registrationRequest.phone(),
+                registrationRequest.street(),
+                registrationRequest.city(),
+                registrationRequest.postalCode(),
+                registrationRequest.country()
+        );
+    }
+
+    /**
+     * Tests the {@link AuthController#register} method with failed reCAPTCHA verification.
+     *
+     * <p>This test verifies that:</p>
+     * <ul>
+     *   <li>An IllegalArgumentException is thrown when reCAPTCHA verification fails</li>
+     *   <li>The exception message contains "reCAPTCHA verification failed"</li>
+     *   <li>User registration is not attempted</li>
+     * </ul>
+     *
+     * @author Philipp Borkovic
+     */
+    @Test
+    @DisplayName("Should throw exception when reCAPTCHA verification fails")
+    void testRegister_InvalidRecaptcha_ThrowsException() {
+        // Arrange
+        String recaptchaToken = "invalid-token";
+        AuthController.RegistrationRequest registrationRequest = new AuthController.RegistrationRequest(
+                "New User",
+                "newuser@example.com",
+                "StrongPassword123!",
+                "Mr",
+                null,
+                null,
+                java.time.LocalDate.of(1990, 1, 1),
+                "+1234567890",
+                "123 Main St",
+                "City",
+                "12345",
+                "USA",
+                recaptchaToken
+        );
+
+        when(request.getRemoteAddr()).thenReturn("192.168.1.1");
+        when(reCaptchaService.verifyToken(recaptchaToken)).thenReturn(false);
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            authController.register(registrationRequest);
+        });
+
+        assertTrue(exception.getMessage().contains("reCAPTCHA verification failed"));
+        verify(userService, never()).register(
+                anyString(), anyString(), anyString(), anyString(),
+                anyString(), anyString(), any(), anyString(),
+                anyString(), anyString(), anyString(), anyString()
+        );
+    }
+
+    /**
+     * Tests the {@link AuthController#register} method with invalid email.
+     *
+     * <p>This test verifies that:</p>
+     * <ul>
+     *   <li>An IllegalArgumentException is thrown when email is invalid</li>
+     *   <li>The exception is propagated from the user service layer</li>
+     * </ul>
+     *
+     * @author Philipp Borkovic
+     */
+    @Test
+    @DisplayName("Should throw exception when registration email is invalid")
+    void testRegister_InvalidEmail_ThrowsException() {
+        // Arrange
+        String recaptchaToken = "valid-token";
+        AuthController.RegistrationRequest registrationRequest = new AuthController.RegistrationRequest(
+                "New User",
+                "invalid-email",
+                "StrongPassword123!",
+                "Mr",
+                null,
+                null,
+                java.time.LocalDate.of(1990, 1, 1),
+                "+1234567890",
+                "123 Main St",
+                "City",
+                "12345",
+                "USA",
+                recaptchaToken
+        );
+
+        when(request.getRemoteAddr()).thenReturn("192.168.1.1");
+        when(reCaptchaService.verifyToken(recaptchaToken)).thenReturn(true);
+        doThrow(new IllegalArgumentException("Invalid email format"))
+                .when(userService).register(
+                        eq(registrationRequest.name()),
+                        eq(registrationRequest.email()),
+                        eq(registrationRequest.password()),
+                        eq(registrationRequest.salutation()),
+                        any(),
+                        any(),
+                        any(),
+                        eq(registrationRequest.phone()),
+                        eq(registrationRequest.street()),
+                        eq(registrationRequest.city()),
+                        eq(registrationRequest.postalCode()),
+                        eq(registrationRequest.country())
+                );
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            authController.register(registrationRequest);
+        });
+
+        assertTrue(exception.getMessage().contains("Invalid email format"));
+    }
+
+    /**
+     * Tests the {@link AuthController#register} method with weak password.
+     *
+     * <p>This test verifies that:</p>
+     * <ul>
+     *   <li>An IllegalArgumentException is thrown when password is weak</li>
+     *   <li>Password validation is enforced at service layer</li>
+     * </ul>
+     *
+     * @author Philipp Borkovic
+     */
+    @Test
+    @DisplayName("Should throw exception when registration password is weak")
+    void testRegister_WeakPassword_ThrowsException() {
+        // Arrange
+        String recaptchaToken = "valid-token";
+        AuthController.RegistrationRequest registrationRequest = new AuthController.RegistrationRequest(
+                "New User",
+                "newuser@example.com",
+                "weak",
+                "Mr",
+                null,
+                null,
+                java.time.LocalDate.of(1990, 1, 1),
+                "+1234567890",
+                "123 Main St",
+                "City",
+                "12345",
+                "USA",
+                recaptchaToken
+        );
+
+        when(request.getRemoteAddr()).thenReturn("192.168.1.1");
+        when(reCaptchaService.verifyToken(recaptchaToken)).thenReturn(true);
+        doThrow(new IllegalArgumentException("Password does not meet security requirements"))
+                .when(userService).register(
+                        eq(registrationRequest.name()),
+                        eq(registrationRequest.email()),
+                        eq(registrationRequest.password()),
+                        eq(registrationRequest.salutation()),
+                        any(),
+                        any(),
+                        any(),
+                        eq(registrationRequest.phone()),
+                        eq(registrationRequest.street()),
+                        eq(registrationRequest.city()),
+                        eq(registrationRequest.postalCode()),
+                        eq(registrationRequest.country())
+                );
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            authController.register(registrationRequest);
+        });
+
+        assertTrue(exception.getMessage().contains("Password does not meet security requirements"));
+    }
+
+    /**
+     * Tests the {@link AuthController#register} method when email already exists.
+     *
+     * <p>This test verifies that:</p>
+     * <ul>
+     *   <li>An IllegalArgumentException is thrown when email is already registered</li>
+     *   <li>Duplicate email detection prevents account creation</li>
+     * </ul>
+     *
+     * @author Philipp Borkovic
+     */
+    @Test
+    @DisplayName("Should throw exception when email already exists")
+    void testRegister_DuplicateEmail_ThrowsException() {
+        // Arrange
+        String recaptchaToken = "valid-token";
+        AuthController.RegistrationRequest registrationRequest = new AuthController.RegistrationRequest(
+                "New User",
+                "existing@example.com",
+                "StrongPassword123!",
+                "Mr",
+                null,
+                null,
+                java.time.LocalDate.of(1990, 1, 1),
+                "+1234567890",
+                "123 Main St",
+                "City",
+                "12345",
+                "USA",
+                recaptchaToken
+        );
+
+        when(request.getRemoteAddr()).thenReturn("192.168.1.1");
+        when(reCaptchaService.verifyToken(recaptchaToken)).thenReturn(true);
+        doThrow(new IllegalArgumentException("Email already exists"))
+                .when(userService).register(
+                        eq(registrationRequest.name()),
+                        eq(registrationRequest.email()),
+                        eq(registrationRequest.password()),
+                        eq(registrationRequest.salutation()),
+                        any(),
+                        any(),
+                        any(),
+                        eq(registrationRequest.phone()),
+                        eq(registrationRequest.street()),
+                        eq(registrationRequest.city()),
+                        eq(registrationRequest.postalCode()),
+                        eq(registrationRequest.country())
+                );
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            authController.register(registrationRequest);
+        });
+
+        assertTrue(exception.getMessage().contains("Email already exists"));
+    }
+
+    /**
+     * Tests the {@link AuthController#setupPassword} method with valid token.
+     *
+     * <p>This test verifies that:</p>
+     * <ul>
+     *   <li>The method successfully sets up password with valid token</li>
+     *   <li>User service setupPasswordWithToken is called</li>
+     *   <li>Success response is returned</li>
+     * </ul>
+     *
+     * @author Philipp Borkovic
+     */
+    @Test
+    @DisplayName("Should successfully setup password with valid token")
+    void testSetupPassword_ValidToken_Success() {
+        // Arrange
+        String token = "valid-token-123";
+        String password = "StrongPassword123!";
+
+        when(request.getRemoteAddr()).thenReturn("192.168.1.1");
+        doNothing().when(userService).setupPasswordWithToken(token, password);
+
+        // Act
+        AuthController.PasswordSetupResponse response = authController.setupPassword(token, password);
+
+        // Assert
+        assertNotNull(response);
+        assertTrue(response.success());
+        assertEquals("Password erfolgreich eingerichtet", response.message());
+        verify(userService).setupPasswordWithToken(token, password);
+    }
+
+    /**
+     * Tests the {@link AuthController#setupPassword} method with invalid token.
+     *
+     * <p>This test verifies that:</p>
+     * <ul>
+     *   <li>An IllegalArgumentException is thrown when token is invalid</li>
+     *   <li>The exception is propagated from service layer</li>
+     * </ul>
+     *
+     * @author Philipp Borkovic
+     */
+    @Test
+    @DisplayName("Should throw exception when setup token is invalid")
+    void testSetupPassword_InvalidToken_ThrowsException() {
+        // Arrange
+        String token = "invalid-token";
+        String password = "StrongPassword123!";
+
+        when(request.getRemoteAddr()).thenReturn("192.168.1.1");
+        doThrow(new IllegalArgumentException("Invalid or expired token"))
+                .when(userService).setupPasswordWithToken(token, password);
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            authController.setupPassword(token, password);
+        });
+
+        assertTrue(exception.getMessage().contains("Invalid or expired token"));
+    }
+
+    /**
+     * Tests the {@link AuthController#setupPassword} method with weak password.
+     *
+     * <p>This test verifies that:</p>
+     * <ul>
+     *   <li>An IllegalArgumentException is thrown when password is weak</li>
+     *   <li>Password validation is enforced</li>
+     * </ul>
+     *
+     * @author Philipp Borkovic
+     */
+    @Test
+    @DisplayName("Should throw exception when setup password is weak")
+    void testSetupPassword_WeakPassword_ThrowsException() {
+        // Arrange
+        String token = "valid-token";
+        String password = "weak";
+
+        when(request.getRemoteAddr()).thenReturn("192.168.1.1");
+        doThrow(new IllegalArgumentException("Password does not meet security requirements"))
+                .when(userService).setupPasswordWithToken(token, password);
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            authController.setupPassword(token, password);
+        });
+
+        assertTrue(exception.getMessage().contains("Password does not meet security requirements"));
+    }
+
+    /**
+     * Tests the {@link AuthController#setupPassword} method with expired token.
+     *
+     * <p>This test verifies that:</p>
+     * <ul>
+     *   <li>An IllegalArgumentException is thrown when token is expired</li>
+     *   <li>Expired tokens cannot be used</li>
+     * </ul>
+     *
+     * @author Philipp Borkovic
+     */
+    @Test
+    @DisplayName("Should throw exception when setup token is expired")
+    void testSetupPassword_ExpiredToken_ThrowsException() {
+        // Arrange
+        String token = "expired-token";
+        String password = "StrongPassword123!";
+
+        when(request.getRemoteAddr()).thenReturn("192.168.1.1");
+        doThrow(new IllegalArgumentException("Token has expired"))
+                .when(userService).setupPasswordWithToken(token, password);
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            authController.setupPassword(token, password);
+        });
+
+        assertTrue(exception.getMessage().contains("Token has expired"));
+    }
+
+    /**
+     * Tests the {@link AuthController#getCurrentUser} method with authenticated user.
+     *
+     * <p>This test verifies that:</p>
+     * <ul>
+     *   <li>The method successfully retrieves current authenticated user</li>
+     *   <li>User is reloaded from database to ensure fresh data</li>
+     *   <li>UserDTO is returned with correct information</li>
+     * </ul>
+     *
+     * @author Philipp Borkovic
+     */
+    @Test
+    @DisplayName("Should successfully retrieve current authenticated user")
+    void testGetCurrentUser_Authenticated_ReturnsUserDTO() {
+        // Arrange
+        SecurityContextHolder.setContext(securityContext);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(testUser);
+        when(userService.findById(testUser.getId())).thenReturn(java.util.Optional.of(testUser));
+
+        // Act
+        var result = authController.getCurrentUser();
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(testUser.getName(), result.getName());
+        assertEquals(testUser.getEmail(), result.getEmail());
+        verify(userService).findById(testUser.getId());
+
+        SecurityContextHolder.clearContext();
+    }
+
+    /**
+     * Tests the {@link AuthController#getCurrentUser} method when not authenticated.
+     *
+     * <p>This test verifies that:</p>
+     * <ul>
+     *   <li>Null is returned when user is not authenticated</li>
+     *   <li>No exception is thrown</li>
+     * </ul>
+     *
+     * @author Philipp Borkovic
+     */
+    @Test
+    @DisplayName("Should return null when user is not authenticated")
+    void testGetCurrentUser_NotAuthenticated_ReturnsNull() {
+        // Arrange
+        SecurityContextHolder.setContext(securityContext);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn("anonymousUser");
+
+        // Act
+        var result = authController.getCurrentUser();
+
+        // Assert
+        assertNull(result);
+
+        SecurityContextHolder.clearContext();
+    }
+
+    /**
+     * Tests the {@link AuthController#getCurrentUser} method when user not found in database.
+     *
+     * <p>This test verifies that:</p>
+     * <ul>
+     *   <li>Null is returned when user is not found in database</li>
+     *   <li>Handles case where authenticated user was deleted</li>
+     * </ul>
+     *
+     * @author Philipp Borkovic
+     */
+    @Test
+    @DisplayName("Should return null when user not found in database")
+    void testGetCurrentUser_UserNotFound_ReturnsNull() {
+        // Arrange
+        SecurityContextHolder.setContext(securityContext);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(testUser);
+        when(userService.findById(testUser.getId())).thenReturn(java.util.Optional.empty());
+
+        // Act
+        var result = authController.getCurrentUser();
+
+        // Assert
+        assertNull(result);
+
+        SecurityContextHolder.clearContext();
+    }
+
+    /**
+     * Tests the {@link AuthController#getCurrentUser} method when exception occurs.
+     *
+     * <p>This test verifies that:</p>
+     * <ul>
+     *   <li>Null is returned when an exception occurs</li>
+     *   <li>Exception is caught and logged</li>
+     * </ul>
+     *
+     * @author Philipp Borkovic
+     */
+    @Test
+    @DisplayName("Should return null when exception occurs")
+    void testGetCurrentUser_Exception_ReturnsNull() {
+        // Arrange
+        SecurityContextHolder.setContext(securityContext);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(testUser);
+        when(userService.findById(testUser.getId())).thenThrow(new RuntimeException("Database error"));
+
+        // Act
+        var result = authController.getCurrentUser();
+
+        // Assert
+        assertNull(result);
+
+        SecurityContextHolder.clearContext();
     }
 }

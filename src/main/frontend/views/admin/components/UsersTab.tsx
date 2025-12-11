@@ -45,7 +45,15 @@ import {
 } from '../utils/constants';
 import type {ProfileFormData} from '../types';
 import {toast} from 'sonner';
-import {z} from 'zod';
+import {z, ZodIssue} from 'zod';
+
+/**
+ * Role interface matching the backend Role entity.
+ */
+interface Role {
+  id?: string;
+  name?: string;
+}
 
 /**
  * Zod validation schema for creating new users.
@@ -200,7 +208,7 @@ export default function UsersTab(): JSX.Element {
       );
 
       if (pageResponse) {
-        setUsers((pageResponse.content || []).filter((user): user is User => user !== undefined && user !== null));
+        setUsers((pageResponse.content || []).filter((user: User | null | undefined): user is User => user !== undefined && user !== null));
         setTotalPages(pageResponse.totalPages || 0);
         setTotalElements(pageResponse.totalElements || 0);
       }
@@ -275,7 +283,7 @@ export default function UsersTab(): JSX.Element {
       country: user.country || ''
     });
 
-    const hasAdminRole = user.roles?.some(role => role?.name === 'ADMIN') || false;
+    const hasAdminRole = user.roles?.some((role: Role) => role?.name === 'ADMIN') || false;
     setIsAdmin(hasAdminRole);
 
     editModal.openWith(user);
@@ -308,7 +316,7 @@ export default function UsersTab(): JSX.Element {
 
       await UserController.updateUser(editModal.data.id!, updatedUser);
 
-      const hadAdminRole = editModal.data.roles?.some(role => role?.name === 'ADMIN') || false;
+      const hadAdminRole = editModal.data.roles?.some((role: Role) => role?.name === 'ADMIN') || false;
       if (isAdmin !== hadAdminRole) {
         await UserController.setUserAdminRole(editModal.data.id!, isAdmin);
       }
@@ -399,7 +407,7 @@ export default function UsersTab(): JSX.Element {
       if (!validationResult.success) {
         // Extract validation errors
         const errors: Record<string, string> = {};
-        validationResult.error.issues.forEach((issue) => {
+        validationResult.error.issues.forEach((issue: ZodIssue) => {
           const path = issue.path.join('.');
           errors[path] = issue.message;
         });
@@ -518,7 +526,7 @@ export default function UsersTab(): JSX.Element {
               <label className="text-sm text-gray-600 whitespace-nowrap">Status:</label>
               <Select
                 value={statusFilter}
-                onValueChange={(value) => {
+                onValueChange={(value: string) => {
                   setStatusFilter(value);
                   setCurrentPage(1);
                 }}
@@ -545,7 +553,7 @@ export default function UsersTab(): JSX.Element {
               <label className="text-sm text-gray-600 whitespace-nowrap">Zeilen:</label>
               <Select
                 value={usersPerPage.toString()}
-                onValueChange={(value) => {
+                onValueChange={(value: string) => {
                   setUsersPerPage(parseInt(value));
                   setCurrentPage(1);
                 }}
@@ -835,7 +843,7 @@ export default function UsersTab(): JSX.Element {
                     <label className="text-sm font-medium">Anrede</label>
                     <Select
                       value={editForm.salutation}
-                      onValueChange={(value) => setEditForm({ ...editForm, salutation: value })}
+                      onValueChange={(value: string) => setEditForm({ ...editForm, salutation: value })}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Wählen" />
@@ -1000,7 +1008,7 @@ export default function UsersTab(): JSX.Element {
               <label className="text-sm font-medium">Mitgliedertyp</label>
               <Select
                 value={exportUserType}
-                onValueChange={(value) => setExportUserType(value)}
+                onValueChange={(value: string) => setExportUserType(value)}
               >
                 <SelectTrigger className="w-full border-black text-black [&_svg]:text-black [&_svg]:opacity-100">
                   <SelectValue />
@@ -1024,7 +1032,7 @@ export default function UsersTab(): JSX.Element {
               <label className="text-sm font-medium">Exportformat</label>
               <Select
                 value={exportFormat}
-                onValueChange={(value) => setExportFormat(value)}
+                onValueChange={(value: string) => setExportFormat(value)}
               >
                 <SelectTrigger className="w-full border-black text-black [&_svg]:text-black [&_svg]:opacity-100">
                   <SelectValue />
@@ -1111,7 +1119,7 @@ export default function UsersTab(): JSX.Element {
                 <label className="text-sm font-medium">Exportformat</label>
                 <Select
                   value={singleUserExportFormat}
-                  onValueChange={(value) => setSingleUserExportFormat(value)}
+                  onValueChange={(value: string) => setSingleUserExportFormat(value)}
                 >
                   <SelectTrigger className="w-full border-black text-black [&_svg]:text-black [&_svg]:opacity-100">
                     <SelectValue />

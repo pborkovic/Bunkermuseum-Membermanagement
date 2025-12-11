@@ -3,6 +3,8 @@ package com.bunkermuseum.membermanagement.repository.contract;
 import com.bunkermuseum.membermanagement.model.Role;
 import com.bunkermuseum.membermanagement.repository.base.contract.BaseRepositoryContract;
 
+import java.util.Optional;
+
 /**
  * Repository contract interface for Role entity operations.
  *
@@ -24,4 +26,13 @@ import com.bunkermuseum.membermanagement.repository.base.contract.BaseRepository
  * @see com.bunkermuseum.membermanagement.repository.RoleRepository
  */
 public interface RoleRepositoryContract extends BaseRepositoryContract<Role> {
+
+    /**
+     * Finds a role by its name.
+     *
+     * @param name The role name to search for (e.g., "ADMIN", "USER")
+     * @return An Optional containing the role if found, or empty if not found
+     */
+    Optional<Role> findByName(String name);
+
 }

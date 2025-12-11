@@ -4,6 +4,7 @@ import com.bunkermuseum.membermanagement.model.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -21,5 +22,13 @@ import java.util.UUID;
  */
 @Repository
 public interface RoleJpaRepository extends JpaRepository<Role, UUID> {
+
+    /**
+     * Finds a role by its name.
+     *
+     * @param name The role name to search for (e.g., "ADMIN", "USER")
+     * @return An Optional containing the role if found, or empty if not found
+     */
+    Optional<Role> findByName(String name);
 
 }

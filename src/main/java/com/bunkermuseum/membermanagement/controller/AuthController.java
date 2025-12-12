@@ -194,6 +194,40 @@ public class AuthController {
     }
 
     /**
+     * Logs out the current authenticated user by terminating their session and clearing security context.
+     *
+     * <p>This endpoint provides a secure logout mechanism that completely terminates the user's
+     * session and removes all authentication information from the Spring Security context. The logout
+     * process is designed to be fail-safe and will always clear the security context and invalidate
+     * the session, even if errors occur during the process.</p>
+     *
+     * <h3>Error Handling:</h3>
+     * <p>If any error occurs during logout (e.g., user email cannot be retrieved or user is not
+     * authenticated), the method will still proceed with clearing the security context and invalidating
+     * the session. This ensures that logout always succeeds from a security perspective, even if
+     * audit logging is incomplete.</p>
+     *
+     * @author Philipp Borkovic
+     */
+    public void logout() {
+        try {
+            String email = getCurrentUserEmail();
+
+            SecurityContextHolder.clearContext();
+            request.getSession().invalidate();
+
+            logger.info("User logged out successfully: {}", email);
+        } catch (Exception e) {
+            SecurityContextHolder.clearContext();
+            if (request.getSession(false) != null) {
+                request.getSession().invalidate();
+            }
+
+            logger.info("User logged out (anonymous or error retrieving email)");
+        }
+    }
+
+    /**
      * Changes the current user's password (GDPR Article 16 - Right to Rectification).
      *
      * @param currentPassword The current password for verification

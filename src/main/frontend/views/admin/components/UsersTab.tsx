@@ -208,7 +208,7 @@ export default function UsersTab(): JSX.Element {
       );
 
       if (pageResponse) {
-        setUsers((pageResponse.content || []).filter((user: User | null | undefined): user is User => user !== undefined && user !== null));
+        setUsers((pageResponse.content || []).filter((user): user is User => user !== undefined && user !== null));
         setTotalPages(pageResponse.totalPages || 0);
         setTotalElements(pageResponse.totalElements || 0);
       }
@@ -283,7 +283,7 @@ export default function UsersTab(): JSX.Element {
       country: user.country || ''
     });
 
-    const hasAdminRole = user.roles?.some((role: Role) => role?.name === 'ADMIN') || false;
+    const hasAdminRole = user.roles?.some((role: Role | undefined) => role?.name === 'ADMIN') || false;
     setIsAdmin(hasAdminRole);
 
     editModal.openWith(user);
@@ -316,7 +316,7 @@ export default function UsersTab(): JSX.Element {
 
       await UserController.updateUser(editModal.data.id!, updatedUser);
 
-      const hadAdminRole = editModal.data.roles?.some((role: Role) => role?.name === 'ADMIN') || false;
+      const hadAdminRole = editModal.data.roles?.some((role: Role | undefined) => role?.name === 'ADMIN') || false;
       if (isAdmin !== hadAdminRole) {
         await UserController.setUserAdminRole(editModal.data.id!, isAdmin);
       }

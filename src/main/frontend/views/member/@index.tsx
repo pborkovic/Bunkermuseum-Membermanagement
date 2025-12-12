@@ -9,10 +9,12 @@
  * @author Philipp Borkovic
  */
 
-import {useCallback, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ViewConfig} from '@vaadin/hilla-file-router/types.js';
-import {FaBars, FaTimes} from 'react-icons/fa';
+import {useNavigate} from 'react-router';
+import {FaBars, FaSignOutAlt, FaTh, FaTimes} from 'react-icons/fa';
 import {Toaster} from '@/components/ui/sonner';
+import {AuthController} from 'Frontend/generated/endpoints';
 import BookingsTab from './components/_BookingsTab';
 import SettingsTab from './components/_SettingsTab';
 import logo from 'Frontend/assets/images/logo_bunkermuseum.jpg';
@@ -51,7 +53,57 @@ export const config: ViewConfig = {
 export default function MemberDashboard(): JSX.Element {
   const [selectedTab, setSelectedTab] = useState<TabId>(TabId.BOOKINGS);
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState<boolean>(false);
   const { user, profilePictureUrl, isLoading: isLoadingUser, refetch } = useCurrentUser();
+  const navigate = useNavigate();
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * Handles clicking outside the dropdown to close it.
+   */
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent): void => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setProfileDropdownOpen(false);
+      }
+    };
+
+    if (profileDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [profileDropdownOpen]);
+
+  /**
+   * Checks if the current user has the ADMIN role.
+   */
+  const isAdmin = useMemo(() => {
+    return user?.roles?.some((role) => role?.name === 'ADMIN') || false;
+  }, [user]);
+
+  /**
+   * Handles user logout.
+   */
+  const handleLogout = useCallback(async (): Promise<void> => {
+    try {
+      await AuthController.logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+      // Still navigate to login even if there's an error
+      navigate('/login');
+    }
+  }, [navigate]);
+
+  /**
+   * Navigates to the dashboard selection page.
+   */
+  const handleGoToDashboardSelection = useCallback((): void => {
+    navigate('/dashboard-selection');
+  }, [navigate]);
 
   /**
    * Tab configurations with JSX icons.
@@ -142,28 +194,63 @@ export default function MemberDashboard(): JSX.Element {
     }
 
     return (
-      <>
-        <div className="text-right">
-          <p className="text-sm font-medium text-black">{user.name}</p>
-          <p className="text-xs text-gray-600">{user.email}</p>
-        </div>
-        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
-          {profilePictureUrl ? (
-            <img
-              src={profilePictureUrl}
-              alt={`${user.name} profile picture`}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
+      <div className="relative" ref={dropdownRef}>
+        <button
+          onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+          className="flex items-center gap-3 hover:bg-gray-100 rounded-lg p-2 transition-colors"
+          aria-label="User menu"
+          aria-expanded={profileDropdownOpen}
+        >
+          <div className="text-right">
+            <p className="text-sm font-medium text-black">{user.name}</p>
+            <p className="text-xs text-gray-600">{user.email}</p>
+          </div>
+          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
+            {profilePictureUrl ? (
+              <img
+                src={profilePictureUrl}
+                alt={`${user.name} profile picture`}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            ) : (
+              <UserIcon style={{ width: `${PROFILE_PICTURE.ICON_WIDTH}px`, height: `${PROFILE_PICTURE.ICON_HEIGHT}px` }} />
+            )}
+          </div>
+        </button>
+
+        {/* Dropdown Menu */}
+        {profileDropdownOpen && (
+          <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+            {isAdmin && (
+              <button
+                onClick={() => {
+                  setProfileDropdownOpen(false);
+                  handleGoToDashboardSelection();
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+              >
+                <FaTh style={{ width: '16px', height: '16px' }} />
+                <span>Dashboard Auswahl</span>
+              </button>
+            )}
+            <button
+              onClick={() => {
+                setProfileDropdownOpen(false);
+                handleLogout();
               }}
-            />
-          ) : (
-            <UserIcon style={{ width: `${PROFILE_PICTURE.ICON_WIDTH}px`, height: `${PROFILE_PICTURE.ICON_HEIGHT}px` }} />
-          )}
-        </div>
-      </>
+              className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+            >
+              <FaSignOutAlt style={{ width: '16px', height: '16px' }} />
+              <span>Abmelden</span>
+            </button>
+          </div>
+        )}
+      </div>
     );
-  }, [isLoadingUser, user, profilePictureUrl]);
+  }, [isLoadingUser, user, profilePictureUrl, profileDropdownOpen, isAdmin, handleLogout, handleGoToDashboardSelection]);
 
   /**
    * Renders the appropriate tab content based on selected tab.

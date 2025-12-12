@@ -1,6 +1,7 @@
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {ViewConfig} from '@vaadin/hilla-file-router/types.js';
-import {FaBars, FaCog, FaEnvelope, FaFileInvoice, FaTimes, FaUser, FaUsers} from 'react-icons/fa';
+import {useNavigate} from 'react-router';
+import {FaBars, FaCog, FaEnvelope, FaFileInvoice, FaSignOutAlt, FaTh, FaTimes, FaUser, FaUsers} from 'react-icons/fa';
 import {Toaster} from '@/components/ui/sonner';
 import {toast} from 'sonner';
 import {AuthController} from 'Frontend/generated/endpoints';
@@ -62,6 +63,9 @@ export default function AdminDashboard(): JSX.Element {
   const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
   const [isLoadingUser, setIsLoadingUser] = useState<boolean>(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState<boolean>(false);
+  const navigate = useNavigate();
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   /**
    * Loads the current authenticated user's profile data.
@@ -122,6 +126,46 @@ export default function AdminDashboard(): JSX.Element {
   useEffect(() => {
     loadCurrentUser();
   }, [loadCurrentUser]);
+
+  /**
+   * Handles clicking outside the dropdown to close it.
+   */
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent): void => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setProfileDropdownOpen(false);
+      }
+    };
+
+    if (profileDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [profileDropdownOpen]);
+
+  /**
+   * Handles user logout.
+   */
+  const handleLogout = useCallback(async (): Promise<void> => {
+    try {
+      await AuthController.logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+      // Still navigate to login even if there's an error
+      navigate('/login');
+    }
+  }, [navigate]);
+
+  /**
+   * Navigates to the dashboard selection page.
+   */
+  const handleGoToDashboardSelection = useCallback((): void => {
+    navigate('/dashboard-selection');
+  }, [navigate]);
 
   /**
    * Handles tab navigation changes.
@@ -219,28 +263,61 @@ export default function AdminDashboard(): JSX.Element {
                 <p className="text-sm font-medium text-gray-400">Laden...</p>
               </div>
             ) : currentUser ? (
-              <>
-                <div className="text-right">
-                  <p className="text-sm font-medium text-black">{currentUser.name}</p>
-                  <p className="text-xs text-gray-600">{currentUser.email}</p>
-                </div>
-                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
-                  {profilePictureUrl ? (
-                    <img
-                      src={profilePictureUrl}
-                      alt={`${currentUser.name} profile picture`}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        console.error('Failed to load profile picture');
-                        // Hide broken image
-                        e.currentTarget.style.display = 'none';
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                  className="flex items-center gap-3 hover:bg-gray-100 rounded-lg p-2 transition-colors"
+                  aria-label="User menu"
+                  aria-expanded={profileDropdownOpen}
+                >
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-black">{currentUser.name}</p>
+                    <p className="text-xs text-gray-600">{currentUser.email}</p>
+                  </div>
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
+                    {profilePictureUrl ? (
+                      <img
+                        src={profilePictureUrl}
+                        alt={`${currentUser.name} profile picture`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          console.error('Failed to load profile picture');
+                          // Hide broken image
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      <FaUser style={{ width: '20px', height: '20px' }} aria-label="Default user avatar" />
+                    )}
+                  </div>
+                </button>
+
+                {/* Dropdown Menu */}
+                {profileDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                    <button
+                      onClick={() => {
+                        setProfileDropdownOpen(false);
+                        handleGoToDashboardSelection();
                       }}
-                    />
-                  ) : (
-                    <FaUser style={{ width: '20px', height: '20px' }} aria-label="Default user avatar" />
-                  )}
-                </div>
-              </>
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    >
+                      <FaTh style={{ width: '16px', height: '16px' }} />
+                      <span>Dashboard Auswahl</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setProfileDropdownOpen(false);
+                        handleLogout();
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    >
+                      <FaSignOutAlt style={{ width: '16px', height: '16px' }} />
+                      <span>Abmelden</span>
+                    </button>
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="text-right">
                 <p className="text-sm font-medium text-red-600">Fehler beim Laden</p>

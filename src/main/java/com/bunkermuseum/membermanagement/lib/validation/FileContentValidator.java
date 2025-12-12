@@ -26,8 +26,6 @@ import java.util.Arrays;
  *     <li>PNG (89 50 4E 47 0D 0A 1A 0A)</li>
  *     <li>WebP (52 49 46 46 ... 57 45 42 50)</li>
  * </ul>
- *
- * @author Philipp Borkovic
  */
 public class FileContentValidator {
     private static final byte[] JPEG_MAGIC = {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF};

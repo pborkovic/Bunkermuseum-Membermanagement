@@ -57,7 +57,7 @@ public class FileContentValidator {
                 return new ValidationResult(false, "File is too small to be a valid image");
             }
 
-            if (bytesRead >= 3 && startsWith(fileHeader, JPEG_MAGIC)) {
+            if (startsWith(fileHeader, JPEG_MAGIC)) {
                 return new ValidationResult(true, "Valid JPEG file");
             }
 

@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -92,7 +93,7 @@ public class ReCaptchaService implements ReCaptchaServiceContract {
                 String hostname = jsonResponse.path("hostname").asText("unknown");
 
                 logger.warn("reCAPTCHA verification failed. Success: {}, Error codes: {}, Hostname: {}",
-                           success, errorCodes, hostname);
+                        false, errorCodes, hostname);
 
                 return false;
             }

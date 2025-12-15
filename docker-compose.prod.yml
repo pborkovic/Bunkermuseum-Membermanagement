@@ -10,7 +10,7 @@
 #   2. Place SSL certificates in ./nginx/ssl/ directory
 #   3. Review and adjust resource limits based on your server capacity
 
-version: '3.9'
+# version: '3.9'  # Removed - obsolete in Docker Compose V2
 
 services:
   # PostgreSQL Database
@@ -35,14 +35,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
-    deploy:
-      resources:
-        limits:
-          cpus: '2'
-          memory: 2G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
     # Only expose if you need external access (not recommended for production)
     # ports:
     #   - "5432:5432"
@@ -69,14 +61,6 @@ services:
       timeout: 20s
       retries: 3
       start_period: 60s
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 1G
-        reservations:
-          cpus: '0.25'
-          memory: 256M
     # MinIO API and Console (accessible via Nginx proxy)
     ports:
       - "${MINIO_API_PORT:-9000}:9000"
@@ -154,14 +138,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 90s
-    deploy:
-      resources:
-        limits:
-          cpus: '4'
-          memory: 4G
-        reservations:
-          cpus: '1'
-          memory: 1G
     # Internal port only, not exposed directly
     # Access via Nginx reverse proxy
 
@@ -196,14 +172,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 512M
-        reservations:
-          cpus: '0.25'
-          memory: 128M
 
   # Certbot for Let's Encrypt SSL (Optional - only if using Let's Encrypt)
   certbot:

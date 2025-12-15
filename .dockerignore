@@ -2,6 +2,9 @@
 target/
 node_modules/
 .mvn/wrapper/maven-wrapper.jar
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
 
 # IDE files
 .idea/
@@ -10,29 +13,70 @@ node_modules/
 .classpath
 .project
 .settings/
+*.swp
+*.swo
+*~
 
 # Git
 .git/
 .gitignore
+.gitattributes
 
 # Logs
 *.log
+logs/
 
 # OS
 .DS_Store
 Thumbs.db
+*.tmp
+*.bak
 
-# Environment files
+# Environment files (NEVER include in Docker images)
 .env
-.env.local
+.env.*
+!.env.prod.template
 
 # Documentation
 *.md
+!README.md
 LICENSE*
 
 # Docker files (avoid recursive copying)
 docker-compose*.yml
+Dockerfile*
 .dockerignore
 
-# Keep nginx directory - it contains needed files
+# Test files
+src/test/
+**/test/
+*.test.js
+*.spec.js
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+Jenkinsfile
+
+# Backup files
+backups/
+*.sql
+*.sql.gz
+*.tar.gz
+*.dump
+
+# Scripts (not needed in container)
+scripts/
+
+# Vaadin development files
+node/
+pnpm-lock.yaml
+webpack.generated.js
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# Keep nginx directory - contains needed configuration
 # nginx/

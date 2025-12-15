@@ -1,0 +1,87 @@
+# Production Multi-Stage Dockerfile for Bunkermuseum Member Management Platform
+# Stage 1: Build Stage with Maven
+FROM eclipse-temurin:21-jdk AS build
+
+# Install jq for secret handling
+COPY --from=ghcr.io/jqlang/jq:latest /jq /usr/bin/jq
+RUN jq --version
+
+# Set working directory
+ENV HOME=/app
+WORKDIR $HOME
+
+# Copy Maven wrapper and pom.xml first (better layer caching)
+COPY .mvn .mvn
+COPY mvnw pom.xml ./
+RUN chmod +x ./mvnw
+
+# Download dependencies (cached layer if pom.xml doesn't change)
+RUN --mount=type=cache,target=/root/.m2 \
+    ./mvnw dependency:go-offline -B
+
+# Copy source code
+COPY src ./src
+
+# Build application with production profile
+# Supports optional Vaadin Pro/Offline keys via Docker secrets
+RUN --mount=type=cache,target=/root/.m2 \
+    --mount=type=secret,id=proKey \
+    --mount=type=secret,id=offlineKey \
+    sh -c 'PRO_KEY=$(jq -r ".proKey // empty" /run/secrets/proKey 2>/dev/null || echo "") && \
+    OFFLINE_KEY=$(cat /run/secrets/offlineKey 2>/dev/null || echo "") && \
+    ./mvnw clean package -Pproduction -DskipTests \
+    -Dvaadin.proKey=${PRO_KEY} \
+    -Dvaadin.offlineKey=${OFFLINE_KEY}'
+
+# Stage 2: Runtime Stage (Minimal Alpine-based JRE)
+FROM eclipse-temurin:21-jre-alpine
+
+# Add metadata
+LABEL maintainer="Bunkermuseum Wurzenpass"
+LABEL description="Bunkermuseum Member Management Platform - Production"
+LABEL version="1.0.0"
+
+# Create non-root user for security
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+# Install required packages
+RUN apk add --no-cache \
+    curl \
+    wget \
+    tzdata \
+    && rm -rf /var/cache/apk/*
+
+# Set timezone (configurable via build arg)
+ARG TZ=Europe/Vienna
+ENV TZ=${TZ}
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# Set working directory
+WORKDIR /app
+
+# Copy built artifact from build stage
+COPY --from=build --chown=appuser:appgroup /app/target/*.jar app.jar
+
+# Create data directory for potential file storage
+RUN mkdir -p /app/data && chown -R appuser:appgroup /app
+
+# Switch to non-root user
+USER appuser
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
+
+# Expose application port (internal only, not published directly)
+EXPOSE 8080
+
+# JVM tuning for containerized environment
+ENV JAVA_OPTS="-XX:+UseContainerSupport \
+    -XX:MaxRAMPercentage=75.0 \
+    -XX:+UseG1GC \
+    -XX:+UseStringDeduplication \
+    -XX:+OptimizeStringConcat \
+    -Djava.security.egd=file:/dev/./urandom"
+
+# Run application with production profile
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar --spring.profiles.active=prod"]

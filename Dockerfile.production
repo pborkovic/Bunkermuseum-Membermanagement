@@ -15,6 +15,9 @@ COPY .mvn .mvn
 COPY mvnw pom.xml ./
 RUN chmod +x ./mvnw
 
+# Copy frontend config files (needed for npm install)
+COPY package.json package-lock.json tsconfig.json vite.config.ts types.d.ts ./
+
 # Download dependencies (cached layer if pom.xml doesn't change)
 RUN --mount=type=cache,target=/root/.m2 \
     ./mvnw dependency:go-offline -B

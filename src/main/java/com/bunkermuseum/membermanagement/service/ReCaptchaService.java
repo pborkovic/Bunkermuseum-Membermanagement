@@ -60,8 +60,9 @@ public class ReCaptchaService implements ReCaptchaServiceContract {
     @Override
     public boolean verifyToken(String token) {
         if (!StringUtils.hasText(token)) {
-            logger.warn("reCAPTCHA token is null or blank");
-            throw new IllegalArgumentException("reCAPTCHA token is required");
+            logger.info("reCAPTCHA token is null or blank - skipping verification (optional)");
+
+            return true;
         }
 
         try {

@@ -176,7 +176,7 @@ public class UserService extends BaseService<User, UserRepositoryContract>
                     <html>
                     <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
                         <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                            <h2 style="color: #2c3e50;">Willkommen beim Bunkermuseum!</h2>
+                            <h2 style="color: #2c3e50;">Willkommen bei IG BUNKER-museum.at</h2>
 
                             <p>Hallo %s,</p>
 

@@ -6,11 +6,13 @@ import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {DatePicker} from '@/components/ui/date-picker';
+import {Checkbox} from '@/components/ui/checkbox';
 import {z} from 'zod';
 import {subYears} from 'date-fns';
 import {AuthController} from 'Frontend/generated/endpoints';
 import {getErrorMessage} from '../../types/vaadin';
 import logo from 'Frontend/assets/images/logo_bunkermuseum.jpg';
+import loginImage from 'Frontend/assets/images/login_image.svg';
 
 /**
  * Google reCAPTCHA v2 site key.
@@ -114,6 +116,9 @@ const registrationSchema = z.object({
       'Dieses Passwort ist zu häufig verwendet und nicht sicher'
     ),
   confirmPassword: z.string(),
+  membershipDeclaration: z.boolean().refine((val) => val === true, {
+    message: 'Sie müssen die Mitgliedschaftserklärung akzeptieren',
+  }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'Passwörter stimmen nicht überein',
   path: ['confirmPassword'],
@@ -185,6 +190,7 @@ export default function RegisterView(): JSX.Element {
   const [land, setLand] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [membershipDeclaration, setMembershipDeclaration] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [recaptchaToken, setRecaptchaToken] = useState('');
@@ -284,6 +290,7 @@ export default function RegisterView(): JSX.Element {
         country: land,
         password,
         confirmPassword,
+        membershipDeclaration,
       });
 
       setIsLoading(true);
@@ -323,12 +330,18 @@ export default function RegisterView(): JSX.Element {
   };
 
   return (
-    <div className="flex min-h-screen w-full">
-      {/* Left side - blank (desktop only) */}
-      <div className="hidden lg:flex lg:w-1/2 bg-muted" />
+    <div className="flex h-screen w-full overflow-hidden">
+      {/* Left side - image (desktop only) */}
+      <div className="hidden lg:flex lg:w-1/2 h-full items-center justify-start overflow-hidden bg-white">
+        <img
+          src={loginImage}
+          alt="Bunkermuseum Register"
+          className="h-full w-auto object-contain"
+        />
+      </div>
 
       {/* Right side - register form */}
-      <div className="flex w-full items-center justify-center p-4 lg:w-1/2 lg:p-8">
+      <div className="flex w-full items-center justify-center p-4 lg:w-1/2 lg:p-8 overflow-y-auto h-full">
         <div className="w-full max-w-2xl space-y-4">
           {/* Logo */}
           <div className="flex flex-col items-center space-y-2 text-center">
@@ -338,6 +351,28 @@ export default function RegisterView(): JSX.Element {
               className="h-16 w-auto object-contain mb-2"
             />
             <p className="text-sm text-muted-foreground">Erstellen Sie Ihr Konto</p>
+          </div>
+
+          {/* Information Box */}
+          <div className="rounded-lg border bg-muted/30 p-6 space-y-3">
+            <h3 className="font-semibold text-lg">Willkommen bei IG BUNKER-museum.at</h3>
+            <div className="text-sm leading-relaxed space-y-2">
+              <p>
+                Sie haben allgemein Interesse an Bunkern, Stellungen und Sperren? Oder wollen konkret das „Bunkermuseum Wurzenpass/Kärnten" unterstützen?
+                Dann sind Sie bei uns genau richtig: Wir freuen uns über jedes neue Mitglied!
+              </p>
+              <p>
+                Mit Ihrem Mitgliedsbeitrag (und allfälligen Spenden) unterstützen Sie unsere Interessensgemeinschaft - und sind herzlich zur aktiven Teilnahme
+                an unserem Vereinsleben eingeladen. Ihre Erfahrungen und Kenntnisse sind sehr willkommen – (militärische) „Vergangenheit", besondere Ausbildung
+                oder Spezialkenntnisse sind aber keine Voraussetzung! Jede(r) kann dabei sein und beitragen...
+              </p>
+              <p>
+                Unsere Statuten sind online einsehbar. Sollen Sie Fragen haben: wir beantworten gerne Ihr E-Mail an{' '}
+                <a href="mailto:verein@bunkermuseum.at" className="text-primary hover:underline font-medium">
+                  verein@bunkermuseum.at
+                </a>.
+              </p>
+            </div>
           </div>
 
           {/* Register form */}
@@ -529,6 +564,28 @@ export default function RegisterView(): JSX.Element {
               </div>
             </div>
 
+            {/* Membership Declaration Checkbox */}
+            <div className="flex items-start space-x-3 rounded-md border p-4 bg-muted/50">
+              <Checkbox
+                id="membershipDeclaration"
+                checked={membershipDeclaration}
+                onCheckedChange={(checked) => setMembershipDeclaration(checked === true)}
+                disabled={isLoading}
+                className="mt-1"
+              />
+              <div className="flex-1">
+                <label
+                  htmlFor="membershipDeclaration"
+                  className="text-sm leading-relaxed cursor-pointer"
+                >
+                  <span className="text-destructive">*</span> Ich erkläre hiermit meine Absicht, dem Verein "IG BUNKER-museum.at" beizutreten.
+                  Ich bin mit der automationsunterstützten Verarbeitung meiner Daten ausdrücklich einverstanden und habe das Recht, diese Einverständniserklärung jederzeit nachweislich schriftlich zurückzuziehen.
+                  Nach schriftlicher Bestätigung meiner Aufnahme (die ohne Angabe von Gründen verweigert werden kann) beginnt meine Mitgliedschaft.
+                  Meinen Mitgliedsbeitrag in der Höhe von € 15.- (oM) bzw. € 45.- (fM) zahle ich danach ehest möglich am Vereins-Konto ein: IBAN AT18 1420 0200 1047 1444 (BIC: BAWAATWW). Bei einem Beitritt nach dem 01. Oktober ist für dieses jeweilige Jahr kein Mitgliedsbeitrag zu bezahlen.
+                </label>
+              </div>
+            </div>
+
             {/* reCAPTCHA checkbox widget */}
             <div className="flex justify-center">
               <div ref={recaptchaRef} id="recaptcha-container"></div>
@@ -539,7 +596,7 @@ export default function RegisterView(): JSX.Element {
                 {error}
               </div>
             )}
-              <Button type="submit" className="w-full bg-black text-white hover:bg-gray-800" disabled={isLoading || !recaptchaToken}>
+              <Button type="submit" className="w-full bg-black text-white hover:bg-gray-800" disabled={isLoading || !recaptchaToken || !membershipDeclaration}>
                   {isLoading ? 'Registrieren...' : 'Registrieren'}
               </Button>
           </form>

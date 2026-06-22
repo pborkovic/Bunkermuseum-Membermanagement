@@ -806,7 +806,7 @@ class AuthControllerTest {
         );
 
         when(request.getRemoteAddr()).thenReturn("192.168.1.1");
-        when(reCaptchaService.verifyToken(recaptchaToken)).thenReturn(true);
+        when(reCaptchaService.verifyToken(eq(recaptchaToken), eq("register"))).thenReturn(true);
 
         // Act
         AuthController.RegistrationResponse response = authController.register(registrationRequest);
@@ -815,7 +815,7 @@ class AuthControllerTest {
         assertNotNull(response);
         assertTrue(response.success());
         assertEquals("Registration successful", response.message());
-        verify(reCaptchaService).verifyToken(recaptchaToken);
+        verify(reCaptchaService).verifyToken(eq(recaptchaToken), eq("register"));
         verify(userService).register(
                 registrationRequest.name(),
                 registrationRequest.email(),
@@ -866,7 +866,7 @@ class AuthControllerTest {
         );
 
         when(request.getRemoteAddr()).thenReturn("192.168.1.1");
-        when(reCaptchaService.verifyToken(recaptchaToken)).thenReturn(false);
+        when(reCaptchaService.verifyToken(eq(recaptchaToken), eq("register"))).thenReturn(false);
 
         // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
@@ -914,7 +914,7 @@ class AuthControllerTest {
         );
 
         when(request.getRemoteAddr()).thenReturn("192.168.1.1");
-        when(reCaptchaService.verifyToken(recaptchaToken)).thenReturn(true);
+        when(reCaptchaService.verifyToken(eq(recaptchaToken), eq("register"))).thenReturn(true);
         doThrow(new IllegalArgumentException("Invalid email format"))
                 .when(userService).register(
                         eq(registrationRequest.name()),
@@ -972,7 +972,7 @@ class AuthControllerTest {
         );
 
         when(request.getRemoteAddr()).thenReturn("192.168.1.1");
-        when(reCaptchaService.verifyToken(recaptchaToken)).thenReturn(true);
+        when(reCaptchaService.verifyToken(eq(recaptchaToken), eq("register"))).thenReturn(true);
         doThrow(new IllegalArgumentException("Password does not meet security requirements"))
                 .when(userService).register(
                         eq(registrationRequest.name()),
@@ -1030,7 +1030,7 @@ class AuthControllerTest {
         );
 
         when(request.getRemoteAddr()).thenReturn("192.168.1.1");
-        when(reCaptchaService.verifyToken(recaptchaToken)).thenReturn(true);
+        when(reCaptchaService.verifyToken(eq(recaptchaToken), eq("register"))).thenReturn(true);
         doThrow(new IllegalArgumentException("Email already exists"))
                 .when(userService).register(
                         eq(registrationRequest.name()),

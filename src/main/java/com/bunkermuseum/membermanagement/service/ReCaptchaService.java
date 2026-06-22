@@ -16,7 +16,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 
 /**
- * Service implementation for verifying Google reCAPTCHA v2 tokens.
+ * Service implementation for verifying Google reCAPTCHA v3 tokens.
  *
  * <p>This service validates reCAPTCHA tokens by making requests to Google's
  * verification API. It provides protection against automated bot registrations.</p>
@@ -24,7 +24,8 @@ import java.time.Duration;
  * <h3>Security Features:</h3>
  * <ul>
  *     <li>Verifies reCAPTCHA tokens with Google's API</li>
- *     <li>Validates token presence and format</li>
+ *     <li>Evaluates the v3 risk score against a configurable threshold</li>
+ *     <li>Confirms the token was issued for the expected action</li>
  *     <li>Handles verification errors gracefully</li>
  *     <li>Provides detailed error logging for debugging</li>
  * </ul>
@@ -42,6 +43,9 @@ public class ReCaptchaService implements ReCaptchaServiceContract {
     @Value("${recaptcha.verify-url}")
     private String verifyUrl;
 
+    @Value("${recaptcha.score-threshold:0.5}")
+    private double scoreThreshold;
+
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
 
@@ -58,7 +62,7 @@ public class ReCaptchaService implements ReCaptchaServiceContract {
      * @author Philipp Borkovic
      */
     @Override
-    public boolean verifyToken(String token) {
+    public boolean verifyToken(String token, String expectedAction) {
         if (!StringUtils.hasText(token)) {
             logger.info("reCAPTCHA token is null or blank - skipping verification (optional)");
 
@@ -99,8 +103,26 @@ public class ReCaptchaService implements ReCaptchaServiceContract {
                 return false;
             }
 
+            String action = jsonResponse.path("action").asText("");
+
+            if (StringUtils.hasText(expectedAction) && !expectedAction.equals(action)) {
+                logger.warn("reCAPTCHA action mismatch. Expected: {}, Actual: {}", expectedAction, action);
+
+                return false;
+            }
+
+            double score = jsonResponse.path("score").asDouble(0.0);
+
+            if (score < scoreThreshold) {
+                logger.warn("reCAPTCHA score {} is below threshold {} for action: {}",
+                        score, scoreThreshold, action);
+
+                return false;
+            }
+
             String hostname = jsonResponse.path("hostname").asText("unknown");
-            logger.info("reCAPTCHA verification successful for hostname: {}", hostname);
+            logger.info("reCAPTCHA v3 verification successful. Action: {}, Score: {}, Hostname: {}",
+                    action, score, hostname);
 
             return true;
 

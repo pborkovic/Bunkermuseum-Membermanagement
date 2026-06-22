@@ -10,6 +10,7 @@ import {Checkbox} from '@/components/ui/checkbox';
 import {z} from 'zod';
 import {subYears} from 'date-fns';
 import {AuthController} from 'Frontend/generated/endpoints';
+import {executeRecaptcha} from 'Frontend/lib/recaptcha';
 import {getErrorMessage} from '../../types/vaadin';
 import logo from 'Frontend/assets/images/logo_bunkermuseum.jpg';
 import loginImage from 'Frontend/assets/images/login_image.svg';
@@ -198,6 +199,9 @@ export default function RegisterView(): JSX.Element {
 
       setIsLoading(true);
 
+      // Generate an invisible reCAPTCHA v3 token bound to the "register" action.
+      const recaptchaToken = await executeRecaptcha('register');
+
       // Submit registration
       const response = await AuthController.register({
         name: validatedData.name,
@@ -212,7 +216,7 @@ export default function RegisterView(): JSX.Element {
         city: validatedData.city,
         postalCode: validatedData.postalCode,
         country: validatedData.country,
-        recaptchaToken: '',
+        recaptchaToken,
       });
 
       if (response?.success) {

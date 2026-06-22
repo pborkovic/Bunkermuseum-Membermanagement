@@ -356,7 +356,7 @@ public class AuthController {
         String email = request.email();
 
         try {
-            boolean isValidRecaptcha = reCaptchaService.verifyToken(request.recaptchaToken());
+            boolean isValidRecaptcha = reCaptchaService.verifyToken(request.recaptchaToken(), "register");
 
             if (!isValidRecaptcha) {
                 logger.warn("reCAPTCHA verification failed for registration attempt from IP: {}", clientIp);

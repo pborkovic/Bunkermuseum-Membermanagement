@@ -1,11 +1,11 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router';
-import { ViewConfig } from '@vaadin/hilla-file-router/types.js';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { AuthController } from 'Frontend/generated/endpoints';
-import { getErrorMessage } from '../../types/vaadin';
+import {useState} from 'react';
+import {useNavigate} from 'react-router';
+import {ViewConfig} from '@vaadin/hilla-file-router/types.js';
+import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
+import {Label} from '@/components/ui/label';
+import {AuthController} from 'Frontend/generated/endpoints';
+import {getErrorMessage} from '../../types/vaadin';
 import logo from 'Frontend/assets/images/logo_bunkermuseum.jpg';
 import loginImage from 'Frontend/assets/images/login_image.svg';
 
@@ -165,6 +165,13 @@ export default function LoginView(): JSX.Element {
                   {isLoading ? 'Anmelden...' : 'Anmelden'}
               </Button>
           </form>
+
+          {/* Forgot password link */}
+          <div className="text-center text-sm">
+            <a href="/forgot-password" className="text-primary hover:underline">
+              Passwort vergessen?
+            </a>
+          </div>
 
           {/* Register link */}
           <div className="text-center text-sm">

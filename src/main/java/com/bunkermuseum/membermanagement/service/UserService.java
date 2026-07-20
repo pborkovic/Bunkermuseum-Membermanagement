@@ -212,12 +212,112 @@ public class UserService extends BaseService<User, UserRepositoryContract>
                     setupUrl
             );
 
-            emailService.sendSimpleEmail("noreply@bunkermuseum.com", user.getEmail(), subject, content, null);
+            emailService.sendSimpleEmail("noreply@bunkermuseum.at", user.getEmail(), subject, content, null);
 
             logger.info("Password setup email sent to user: {} ({})", user.getName(), user.getEmail());
         } catch (Exception e) {
             logger.error("Failed to send password setup email to user: {} ({})", user.getName(), user.getEmail(), e);
             throw new RuntimeException("Failed to send password setup email", e);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @author Philipp Borkovic
+     */
+    @Override
+    @Transactional
+    public void requestPasswordReset(String email) {
+        if (email == null || email.isBlank()) {
+            return;
+        }
+
+        String normalizedEmail = email.trim().toLowerCase();
+
+        try {
+            Optional<User> userOptional = repository.findByEmail(normalizedEmail);
+
+            if (userOptional.isEmpty()) {
+                logger.info("Password reset requested for an email that has no account (ignored)");
+
+                return;
+            }
+
+            sendPasswordResetEmail(userOptional.get());
+        } catch (Exception e) {
+            logger.error("Error while processing password reset request", e);
+        }
+    }
+
+    /**
+     * Sends a password reset email to an existing user.
+     *
+     * <p>Generates a unique, time-limited token (valid for 1 hour) and emails the
+     * user a link to choose a new password. Reuses the {@link PasswordSetupToken}
+     * mechanism; the link points to the {@code /reset-password} view.</p>
+     *
+     * @param user the user requesting a password reset
+     * @throws RuntimeException if email sending fails
+     *
+     * @author Philipp Borkovic
+     */
+    private void sendPasswordResetEmail(User user) {
+        try {
+            String token = UUID.randomUUID().toString();
+            LocalDateTime expiresAt = LocalDateTime.now().plusHours(1);
+            PasswordSetupToken resetToken = new PasswordSetupToken(user, token, expiresAt);
+
+            tokenRepository.create(resetToken);
+
+            String resetUrl = baseUrl + "/reset-password?token=" + token;
+
+            String subject = "Passwort zurücksetzen - IG BUNKER-museum.at";
+            String content = String.format("""
+                    <html>
+                    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                        <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                            <h2 style="color: #2c3e50;">Passwort zurücksetzen</h2>
+
+                            <p>Hallo %s,</p>
+
+                            <p>Wir haben eine Anfrage erhalten, das Passwort für Ihr Konto zurückzusetzen.
+                            Klicken Sie auf den folgenden Link, um ein neues Passwort festzulegen:</p>
+
+                            <p style="margin: 30px 0;">
+                                <a href="%s"
+                                   style="background-color: #3498db; color: white; padding: 12px 24px;
+                                          text-decoration: none; border-radius: 4px; display: inline-block;">
+                                    Passwort zurücksetzen
+                                </a>
+                            </p>
+
+                            <p style="color: #7f8c8d; font-size: 14px;">
+                                Oder kopieren Sie diesen Link in Ihren Browser:<br>
+                                <a href="%s" style="color: #3498db;">%s</a>
+                            </p>
+
+                            <p style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ecf0f1; color: #7f8c8d; font-size: 12px;">
+                                <strong>Wichtig:</strong> Dieser Link ist 1 Stunde gültig.<br>
+                                Falls Sie kein Zurücksetzen des Passworts angefordert haben, können Sie diese
+                                E-Mail ignorieren. Ihr Passwort bleibt unverändert.
+                            </p>
+                        </div>
+                    </body>
+                    </html>
+                    """,
+                    user.getName(),
+                    resetUrl,
+                    resetUrl,
+                    resetUrl
+            );
+
+            emailService.sendSimpleEmail("noreply@bunkermuseum.at", user.getEmail(), subject, content, null);
+
+            logger.info("Password reset email sent to user: {} ({})", user.getName(), user.getEmail());
+        } catch (Exception e) {
+            logger.error("Failed to send password reset email to user: {} ({})", user.getName(), user.getEmail(), e);
+            throw new RuntimeException("Failed to send password reset email", e);
         }
     }
 
@@ -1005,7 +1105,7 @@ public class UserService extends BaseService<User, UserRepositoryContract>
             for (User admin : adminUsers) {
                 try {
                     emailService.sendSimpleEmail(
-                        "noreply@bunkermuseum.com",
+                        "noreply@bunkermuseum.at",
                         admin.getEmail(),
                         subject,
                         content,

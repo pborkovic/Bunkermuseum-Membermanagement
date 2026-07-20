@@ -1295,4 +1295,91 @@ class AuthControllerTest {
 
         SecurityContextHolder.clearContext();
     }
+
+    @Test
+    @DisplayName("requestPasswordReset: valid reCAPTCHA triggers the service and returns generic success")
+    void testRequestPasswordReset_ValidRecaptcha_SendsResetAndReturnsGenericSuccess() {
+        // Arrange
+        String email = "member@bunkermuseum.at";
+        String recaptchaToken = "recaptcha-token";
+        when(reCaptchaService.verifyToken(recaptchaToken, "reset_password")).thenReturn(true);
+
+        // Act
+        AuthController.PasswordResetResponse response =
+                authController.requestPasswordReset(email, recaptchaToken);
+
+        // Assert
+        assertNotNull(response);
+        assertTrue(response.success());
+        assertNotNull(response.message());
+        verify(userService).requestPasswordReset(email);
+    }
+
+    @Test
+    @DisplayName("requestPasswordReset: failed reCAPTCHA skips the service but still returns generic success")
+    void testRequestPasswordReset_InvalidRecaptcha_DoesNotCallServiceButReturnsSuccess() {
+        // Arrange
+        String email = "member@bunkermuseum.at";
+        String recaptchaToken = "bad-token";
+        when(reCaptchaService.verifyToken(recaptchaToken, "reset_password")).thenReturn(false);
+
+        // Act
+        AuthController.PasswordResetResponse response =
+                authController.requestPasswordReset(email, recaptchaToken);
+
+        // Assert - identical generic response, no email sent
+        assertNotNull(response);
+        assertTrue(response.success());
+        verify(userService, never()).requestPasswordReset(anyString());
+    }
+
+    @Test
+    @DisplayName("requestPasswordReset: a service failure never propagates (anti-enumeration)")
+    void testRequestPasswordReset_ServiceThrows_StillReturnsGenericSuccess() {
+        // Arrange
+        String email = "member@bunkermuseum.at";
+        String recaptchaToken = "recaptcha-token";
+        when(reCaptchaService.verifyToken(recaptchaToken, "reset_password")).thenReturn(true);
+        doThrow(new RuntimeException("db down")).when(userService).requestPasswordReset(email);
+
+        // Act
+        AuthController.PasswordResetResponse response =
+                authController.requestPasswordReset(email, recaptchaToken);
+
+        // Assert
+        assertNotNull(response);
+        assertTrue(response.success());
+    }
+
+    @Test
+    @DisplayName("resetPassword: valid token sets the new password and returns success")
+    void testResetPassword_ValidToken_Success() {
+        // Arrange
+        String token = UUID.randomUUID().toString();
+        String password = "NewStr0ng!Pass";
+        doNothing().when(userService).setupPasswordWithToken(token, password);
+
+        // Act
+        AuthController.PasswordSetupResponse response = authController.resetPassword(token, password);
+
+        // Assert
+        assertNotNull(response);
+        assertTrue(response.success());
+        verify(userService).setupPasswordWithToken(token, password);
+    }
+
+    @Test
+    @DisplayName("resetPassword: invalid/expired token propagates IllegalArgumentException")
+    void testResetPassword_InvalidToken_ThrowsException() {
+        // Arrange
+        String token = "invalid-token";
+        String password = "NewStr0ng!Pass";
+        doThrow(new IllegalArgumentException("Invalid or expired password setup token"))
+                .when(userService).setupPasswordWithToken(token, password);
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> authController.resetPassword(token, password));
+        assertTrue(exception.getMessage().contains("Invalid or expired"));
+    }
 }

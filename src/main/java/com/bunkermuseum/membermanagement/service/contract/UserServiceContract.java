@@ -369,6 +369,22 @@ public interface UserServiceContract {
     void setupPasswordWithToken(String token, String password);
 
     /**
+     * Initiates a password reset for the account with the given email address.
+     *
+     * <p>Generates a unique, time-limited token and sends the user an email with a
+     * link to choose a new password. The token reuses the same mechanism as the
+     * initial password setup and expires after 1 hour.</p>
+     *
+     * <p><strong>Security:</strong> To prevent account enumeration, this method
+     * completes silently (without throwing or signalling) regardless of whether a
+     * user with the given email exists. Callers must therefore always return the
+     * same generic response.</p>
+     *
+     * @param email The email address of the account to reset. Ignored if null or blank.
+     */
+    void requestPasswordReset(String email);
+
+    /**
      * Retrieves the currently authenticated user from the Spring Security context.
      *
      * <p>This method extracts the authenticated user from the security context.

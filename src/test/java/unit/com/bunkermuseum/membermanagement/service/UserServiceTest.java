@@ -1,5 +1,6 @@
 package unit.com.bunkermuseum.membermanagement.service;
 
+import com.bunkermuseum.membermanagement.model.PasswordSetupToken;
 import com.bunkermuseum.membermanagement.model.User;
 import com.bunkermuseum.membermanagement.repository.contract.PasswordSetupTokenRepositoryContract;
 import com.bunkermuseum.membermanagement.repository.contract.UserRepositoryContract;
@@ -1004,5 +1005,63 @@ class UserServiceTest {
         assertNotNull(result);
         assertTrue(result.contains("\\\""));
         assertTrue(result.contains("\\n"));
+    }
+
+    @Test
+    @DisplayName("requestPasswordReset: existing account creates a token and sends a reset email")
+    void testRequestPasswordReset_ExistingUser_CreatesTokenAndSendsEmail() {
+        // Arrange
+        String email = "test@example.com";
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(testUser));
+
+        // Act
+        userService.requestPasswordReset(email);
+
+        // Assert
+        verify(userRepository).findByEmail(email);
+        verify(tokenRepository).create(any(PasswordSetupToken.class));
+        verify(emailService).sendSimpleEmail(
+                eq("noreply@bunkermuseum.at"), eq(email), anyString(), anyString(), any());
+    }
+
+    @Test
+    @DisplayName("requestPasswordReset: unknown email sends nothing (anti-enumeration)")
+    void testRequestPasswordReset_NonExistentUser_DoesNothing() {
+        // Arrange
+        String email = "ghost@example.com";
+        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+        // Act
+        userService.requestPasswordReset(email);
+
+        // Assert
+        verify(userRepository).findByEmail(email);
+        verify(tokenRepository, never()).create(any(PasswordSetupToken.class));
+        verify(emailService, never()).sendSimpleEmail(anyString(), anyString(), anyString(), anyString(), any());
+    }
+
+    @Test
+    @DisplayName("requestPasswordReset: blank email is ignored without hitting the repository")
+    void testRequestPasswordReset_BlankEmail_DoesNothing() {
+        // Act
+        userService.requestPasswordReset("   ");
+
+        // Assert
+        verify(userRepository, never()).findByEmail(any());
+        verify(tokenRepository, never()).create(any(PasswordSetupToken.class));
+        verify(emailService, never()).sendSimpleEmail(anyString(), anyString(), anyString(), anyString(), any());
+    }
+
+    @Test
+    @DisplayName("requestPasswordReset: email is normalized (trimmed + lowercased) before lookup")
+    void testRequestPasswordReset_NormalizesEmail() {
+        // Arrange
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
+
+        // Act
+        userService.requestPasswordReset("  TEST@Example.com  ");
+
+        // Assert
+        verify(userRepository).findByEmail("test@example.com");
     }
 }

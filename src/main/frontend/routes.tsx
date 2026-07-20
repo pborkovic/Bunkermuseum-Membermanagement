@@ -9,7 +9,7 @@
  * unmatched routes and cause "Connection lost" errors. Instead, we use a catch-all
  * route (*) to show our custom 404 page.
  */
-import { RouterConfigurationBuilder } from '@vaadin/hilla-file-router/runtime.js';
+import {RouterConfigurationBuilder} from '@vaadin/hilla-file-router/runtime.js';
 import MainLayout from 'Frontend/views/@layout';
 import RootView from 'Frontend/views/@index';
 import LoginLayout from 'Frontend/views/login/@layout';
@@ -17,6 +17,8 @@ import LoginView from 'Frontend/views/login/@index';
 import RegisterLayout from 'Frontend/views/register/@layout';
 import RegisterView from 'Frontend/views/register/@index';
 import SetupPasswordView from 'Frontend/views/setup-password/@index';
+import ForgotPasswordView from 'Frontend/views/forgot-password/@index';
+import ResetPasswordView from 'Frontend/views/reset-password/@index';
 import DashboardSelectionView from 'Frontend/views/dashboard-selection/@index';
 import AdminView from 'Frontend/views/admin/@index';
 import MemberView from 'Frontend/views/member/@index';
@@ -47,6 +49,8 @@ export const { router, routes } = new RouterConfigurationBuilder()
           ],
         },
         { path: '/setup-password', element: <SetupPasswordView />, handle: { title: 'Passwort einrichten' } },
+        { path: '/forgot-password', element: <ForgotPasswordView />, handle: { title: 'Passwort vergessen' } },
+        { path: '/reset-password', element: <ResetPasswordView />, handle: { title: 'Passwort zurücksetzen' } },
         { path: '/dashboard-selection', element: <DashboardSelectionView />, handle: { title: 'Select Dashboard' } },
         { path: '/admin/*', element: <AdminView />, handle: { title: 'Admin Dashboard' } },
         { path: '/member/*', element: <MemberView />, handle: { title: 'Member Dashboard' } },

@@ -131,7 +131,7 @@ export default function ForgotPasswordView(): JSX.Element {
             <Input
               id="email"
               type="email"
-              placeholder="name@beispiel.de"
+              autoComplete="off"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading}

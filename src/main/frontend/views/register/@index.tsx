@@ -5,7 +5,6 @@ import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
-import {DatePicker} from '@/components/ui/date-picker';
 import {Checkbox} from '@/components/ui/checkbox';
 import {z} from 'zod';
 import {subYears} from 'date-fns';
@@ -50,6 +49,39 @@ const FORBIDDEN_PASSWORDS = [
 ] as const;
 
 /**
+ * Parses a German-formatted date string ("tt.mm.jjjj" / "dd.mm.yyyy") into a Date.
+ * Returns undefined for malformed strings or impossible calendar dates (e.g. 31.02.2000).
+ *
+ * @author Philipp Borkovic
+ */
+function parseGermanDate(value: string): Date | undefined {
+  const match = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(value.trim());
+  if (!match) return undefined;
+
+  const day = Number(match[1]);
+  const month = Number(match[2]);
+  const year = Number(match[3]);
+
+  const date = new Date(year, month - 1, day);
+  // Reject overflowed dates (e.g. 31.02 rolling over into March).
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+    return undefined;
+  }
+  return date;
+}
+
+/**
+ * Converts a valid "tt.mm.jjjj" string into the API date format "jjjj-mm-tt".
+ * Built from the raw parts to avoid timezone shifts from Date.toISOString().
+ *
+ * @author Philipp Borkovic
+ */
+function toApiDate(value: string): string {
+  const match = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(value.trim())!;
+  return `${match[3]}-${match[2]}-${match[1]}`;
+}
+
+/**
  * Zod validation schema for registration form.
  * Validates all required fields with appropriate constraints.
  *
@@ -59,16 +91,20 @@ const registrationSchema = z.object({
   salutation: z.string().min(1, 'Anrede ist erforderlich'),
   academicTitle: z.string().optional(),
   rank: z.string().optional(),
-  name: z.string().min(1, 'Name ist erforderlich'),
+  lastName: z.string().min(1, 'Familienname ist erforderlich'),
+  firstName: z.string().min(1, 'Vorname ist erforderlich'),
   email: z.string().email('Ungültige E-Mail-Adresse'),
-  birthday: z.date()
-    .max(new Date(), 'Geburtsdatum darf nicht in der Zukunft liegen')
-    .min(
-      subYears(new Date(), VALIDATION.MAX_AGE_YEARS),
-      `Sie können nicht älter als ${VALIDATION.MAX_AGE_YEARS} Jahre sein`
+  birthday: z.string()
+    .min(1, 'Geburtstag ist erforderlich')
+    .refine((value) => parseGermanDate(value) !== undefined, 'Ungültiges Datum (Format: tt.mm.jjjj)')
+    .refine(
+      (value) => parseGermanDate(value)! <= new Date(),
+      'Geburtsdatum darf nicht in der Zukunft liegen'
     )
-    .optional()
-    .refine((date) => date !== undefined, 'Geburtstag ist erforderlich'),
+    .refine(
+      (value) => parseGermanDate(value)! >= subYears(new Date(), VALIDATION.MAX_AGE_YEARS),
+      `Sie können nicht älter als ${VALIDATION.MAX_AGE_YEARS} Jahre sein`
+    ),
   phone: z.string().min(1, 'Telefonnummer ist erforderlich'),
   street: z.string().min(1, 'Straße ist erforderlich'),
   city: z.string().min(1, 'Stadt ist erforderlich'),
@@ -152,9 +188,10 @@ export default function RegisterView(): JSX.Element {
   const [anrede, setAnrede] = useState('');
   const [akademischerTitel, setAkademischerTitel] = useState('');
   const [dienstgrad, setDienstgrad] = useState('');
-  const [name, setName] = useState('');
+  const [familienname, setFamilienname] = useState('');
+  const [vorname, setVorname] = useState('');
   const [email, setEmail] = useState('');
-  const [geburtstag, setGeburtstag] = useState<Date>();
+  const [geburtstag, setGeburtstag] = useState('');
   const [telefon, setTelefon] = useState('');
   const [strasse, setStrasse] = useState('');
   const [stadt, setStadt] = useState('');
@@ -165,6 +202,25 @@ export default function RegisterView(): JSX.Element {
   const [membershipDeclaration, setMembershipDeclaration] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  /**
+   * Handles input for the birthday field, auto-inserting dots so the user
+   * only types digits and ends up with the "tt.mm.jjjj" format.
+   *
+   * @param {string} raw - The raw input value
+   *
+   * @author Philipp Borkovic
+   */
+  const handleGeburtstagChange = (raw: string): void => {
+    const digits = raw.replace(/\D/g, '').slice(0, 8);
+    let formatted = digits;
+    if (digits.length > 4) {
+      formatted = `${digits.slice(0, 2)}.${digits.slice(2, 4)}.${digits.slice(4)}`;
+    } else if (digits.length > 2) {
+      formatted = `${digits.slice(0, 2)}.${digits.slice(2)}`;
+    }
+    setGeburtstag(formatted);
+  };
 
   /**
    * Handles form submission and registration process.
@@ -184,7 +240,8 @@ export default function RegisterView(): JSX.Element {
         salutation: anrede,
         academicTitle: akademischerTitel,
         rank: dienstgrad,
-        name,
+        lastName: familienname,
+        firstName: vorname,
         email,
         birthday: geburtstag,
         phone: telefon,
@@ -202,15 +259,16 @@ export default function RegisterView(): JSX.Element {
       // Generate an invisible reCAPTCHA v3 token bound to the "register" action.
       const recaptchaToken = await executeRecaptcha('register');
 
-      // Submit registration
+      // Submit registration. The form splits the name into two fields for UX,
+      // but the backend data structure is unchanged: a single "Vorname Familienname" string.
       const response = await AuthController.register({
-        name: validatedData.name,
+        name: `${validatedData.firstName} ${validatedData.lastName}`.trim(),
         email: validatedData.email,
         password: validatedData.password,
         salutation: validatedData.salutation,
         academicTitle: validatedData.academicTitle || '',
         rank: validatedData.rank || '',
-        birthday: validatedData.birthday!.toISOString().split('T')[0],
+        birthday: toApiDate(validatedData.birthday),
         phone: validatedData.phone,
         street: validatedData.street,
         city: validatedData.city,
@@ -247,9 +305,11 @@ export default function RegisterView(): JSX.Element {
         />
       </div>
 
-      {/* Right side - register form */}
-      <div className="flex w-full items-center justify-center p-4 lg:w-1/2 lg:p-8 overflow-y-auto h-full">
-        <div className="w-full max-w-2xl space-y-4 py-8">
+      {/* Right side - register form (scroll container; inner min-h-full wrapper
+          centers the form when it fits and scrolls from the top when it overflows) */}
+      <div className="w-full lg:w-1/2 h-full overflow-y-auto">
+        <div className="flex min-h-full w-full items-center justify-center p-4 lg:p-8">
+          <div className="w-full max-w-2xl space-y-4 py-8">
           {/* Logo */}
           <div className="flex flex-col items-center space-y-2 text-center">
             <img
@@ -306,7 +366,7 @@ export default function RegisterView(): JSX.Element {
                 <Input
                   id="akademischerTitel"
                   type="text"
-                  placeholder="Dr., Prof."
+                  autoComplete="off"
                   value={akademischerTitel}
                   onChange={(e) => setAkademischerTitel(e.target.value)}
                   disabled={isLoading}
@@ -319,7 +379,7 @@ export default function RegisterView(): JSX.Element {
                 <Input
                   id="dienstgrad"
                   type="text"
-                  placeholder="z.B. Oberst, Major"
+                  autoComplete="off"
                   value={dienstgrad}
                   onChange={(e) => setDienstgrad(e.target.value)}
                   disabled={isLoading}
@@ -328,13 +388,27 @@ export default function RegisterView(): JSX.Element {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="name" className="text-sm">Name</Label>
+                <Label htmlFor="familienname" className="text-sm">Familienname</Label>
                 <Input
-                  id="name"
+                  id="familienname"
                   type="text"
-                  placeholder="Max Mustermann"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  autoComplete="off"
+                  value={familienname}
+                  onChange={(e) => setFamilienname(e.target.value)}
+                  disabled={isLoading}
+                  required
+                  className="h-9"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="vorname" className="text-sm">Vorname</Label>
+                <Input
+                  id="vorname"
+                  type="text"
+                  autoComplete="off"
+                  value={vorname}
+                  onChange={(e) => setVorname(e.target.value)}
                   disabled={isLoading}
                   required
                   className="h-9"
@@ -346,7 +420,7 @@ export default function RegisterView(): JSX.Element {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="max@example.com"
+                  autoComplete="off"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
@@ -357,10 +431,18 @@ export default function RegisterView(): JSX.Element {
 
               <div className="space-y-1.5">
                 <Label htmlFor="geburtstag" className="text-sm">Geburtstag</Label>
-                <DatePicker
+                <Input
+                  id="geburtstag"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  placeholder="tt.mm.jjjj"
                   value={geburtstag}
-                  onChange={setGeburtstag}
+                  onChange={(e) => handleGeburtstagChange(e.target.value)}
                   disabled={isLoading}
+                  required
+                  maxLength={10}
+                  className="h-9"
                 />
               </div>
 
@@ -369,7 +451,7 @@ export default function RegisterView(): JSX.Element {
                 <Input
                   id="telefon"
                   type="tel"
-                  placeholder="+43 123 456789"
+                  autoComplete="off"
                   value={telefon}
                   onChange={(e) => setTelefon(e.target.value)}
                   disabled={isLoading}
@@ -383,7 +465,7 @@ export default function RegisterView(): JSX.Element {
                 <Input
                   id="strasse"
                   type="text"
-                  placeholder="Krainberg 73"
+                  autoComplete="off"
                   value={strasse}
                   onChange={(e) => setStrasse(e.target.value)}
                   disabled={isLoading}
@@ -397,7 +479,7 @@ export default function RegisterView(): JSX.Element {
                 <Input
                   id="postleitzahl"
                   type="text"
-                  placeholder="9587"
+                  autoComplete="off"
                   value={postleitzahl}
                   onChange={(e) => setPostleitzahl(e.target.value)}
                   disabled={isLoading}
@@ -412,7 +494,7 @@ export default function RegisterView(): JSX.Element {
                 <Input
                   id="stadt"
                   type="text"
-                  placeholder="Riegersdorf"
+                  autoComplete="off"
                   value={stadt}
                   onChange={(e) => setStadt(e.target.value)}
                   disabled={isLoading}
@@ -426,7 +508,7 @@ export default function RegisterView(): JSX.Element {
                 <Input
                   id="land"
                   type="text"
-                  placeholder="Österreich"
+                  autoComplete="off"
                   value={land}
                   onChange={(e) => setLand(e.target.value)}
                   disabled={isLoading}
@@ -440,7 +522,7 @@ export default function RegisterView(): JSX.Element {
                 <Input
                   id="password"
                   type="password"
-                  placeholder="••••••••"
+                  autoComplete="new-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
@@ -459,7 +541,7 @@ export default function RegisterView(): JSX.Element {
                 <Input
                   id="confirmPassword"
                   type="password"
-                  placeholder="••••••••"
+                  autoComplete="new-password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   disabled={isLoading}
@@ -488,7 +570,7 @@ export default function RegisterView(): JSX.Element {
                   <span className="text-destructive">*</span> Ich erkläre hiermit meine Absicht, dem Verein "IG BUNKER-museum.at" beizutreten.
                   Ich bin mit der automationsunterstützten Verarbeitung meiner Daten ausdrücklich einverstanden und habe das Recht, diese Einverständniserklärung jederzeit nachweislich schriftlich zurückzuziehen.
                   Nach schriftlicher Bestätigung meiner Aufnahme (die ohne Angabe von Gründen verweigert werden kann) beginnt meine Mitgliedschaft.
-                  Meinen Mitgliedsbeitrag in der Höhe von € 15.- (oM) bzw. € 45.- (fM) zahle ich danach ehest möglich am Vereins-Konto ein: IBAN AT18 1420 0200 1047 1444 (BIC: BAWAATWW). Bei einem Beitritt nach dem 01. Oktober ist für dieses jeweilige Jahr kein Mitgliedsbeitrag zu bezahlen.
+                  Meinen Mitgliedsbeitrag in der Höhe von € 15.- (oM) bzw. € 45.- (fM) zahle ich danach ehest möglich am Vereins-Konto „IG BUNKER-museum.at" ein: IBAN AT18 1420 0200 1047 1444 (BIC: BAWAATWW). Bei einem Beitritt nach dem 01. Oktober ist für dieses jeweilige Jahr kein Mitgliedsbeitrag zu bezahlen.
                 </label>
               </div>
             </div>
@@ -509,6 +591,7 @@ export default function RegisterView(): JSX.Element {
             <a href="/login" className="text-primary hover:underline">
               Jetzt anmelden
             </a>
+          </div>
           </div>
         </div>
       </div>

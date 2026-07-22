@@ -510,6 +510,81 @@ public class AuthController {
     }
 
     /**
+     * Initiates a password reset by emailing a reset link to the given address.
+     *
+     * <p>This endpoint always returns the same generic success response regardless
+     * of whether an account with the supplied email exists, to prevent account
+     * enumeration. A reset email is only sent when reCAPTCHA verification passes
+     * and an account actually exists.</p>
+     *
+     * @param email The email address of the account to reset
+     * @param recaptchaToken The reCAPTCHA v3 token for bot protection (may be blank)
+     *
+     * @return A generic {@link PasswordResetResponse} that never reveals account existence
+     *
+     * @author Philipp Borkovic
+     */
+    public PasswordResetResponse requestPasswordReset(String email, String recaptchaToken) {
+        String clientIp = getClientIp();
+
+        try {
+            boolean isValidRecaptcha = reCaptchaService.verifyToken(recaptchaToken, "reset_password");
+
+            if (isValidRecaptcha) {
+                userService.requestPasswordReset(email);
+
+                logger.info("Password reset requested from IP: {}", clientIp);
+            } else {
+                logger.warn("reCAPTCHA verification failed for password reset request from IP: {}", clientIp);
+            }
+        } catch (Exception e) {
+            logger.error("Error during password reset request from IP: {}", clientIp, e);
+        }
+
+        return new PasswordResetResponse(
+                true,
+                "Falls ein Konto mit dieser E-Mail-Adresse existiert, wurde eine E-Mail zum "
+                        + "Zurücksetzen des Passworts gesendet.");
+    }
+
+    /**
+     * Completes a password reset by setting a new password for the account
+     * associated with the supplied token.
+     *
+     * <p>Reuses the same token mechanism as the initial password setup. The token
+     * is validated (not used, not expired) and the new password must meet the
+     * OWASP requirements before it is applied. The token is single-use.</p>
+     *
+     * @param token The unique password reset token from the email
+     * @param password The new password (must meet OWASP requirements)
+     *
+     * @return A {@link PasswordSetupResponse} indicating success
+     *
+     * @throws IllegalArgumentException if the token is invalid/expired or the password is weak
+     *
+     * @author Philipp Borkovic
+     */
+    public PasswordSetupResponse resetPassword(String token, String password) {
+        String clientIp = getClientIp();
+
+        try {
+            logger.info("Password reset attempt from IP: {}", clientIp);
+
+            userService.setupPasswordWithToken(token, password);
+
+            return new PasswordSetupResponse(true, "Passwort erfolgreich zurückgesetzt");
+        } catch (IllegalArgumentException e) {
+            logger.error("Validation error during password reset from IP: {}", clientIp, e);
+
+            throw e;
+        } catch (Exception e) {
+            logger.error("Unexpected error during password reset from IP: {}", clientIp, e);
+
+            throw new RuntimeException("Fehler beim Zurücksetzen des Passworts. Bitte versuchen Sie es erneut.", e);
+        }
+    }
+
+    /**
      * Response object for password setup operations.
      *
      * @param success Whether the password setup was successful
@@ -518,6 +593,21 @@ public class AuthController {
      * @author Philipp Borkovic
      */
     public record PasswordSetupResponse(
+            boolean success,
+            String message
+    ) {}
+
+    /**
+     * Response object for password reset requests.
+     *
+     * <p>Intentionally generic so it never reveals whether an account exists.</p>
+     *
+     * @param success Always {@code true} (the request was accepted)
+     * @param message A generic message describing the result
+     *
+     * @author Philipp Borkovic
+     */
+    public record PasswordResetResponse(
             boolean success,
             String message
     ) {}

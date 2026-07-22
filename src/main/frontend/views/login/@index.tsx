@@ -137,7 +137,6 @@ export default function LoginView(): JSX.Element {
               <Input
                 id="email"
                 type="email"
-                placeholder="name@beispiel.de"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
@@ -149,7 +148,6 @@ export default function LoginView(): JSX.Element {
               <Input
                 id="password"
                 type="password"
-                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}

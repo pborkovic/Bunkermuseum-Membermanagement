@@ -20,7 +20,7 @@ import SettingsTab from './components/_SettingsTab';
 import logo from 'Frontend/assets/images/logo_bunkermuseum.jpg';
 import {useCurrentUser} from './hooks';
 import {type TabConfig, TabId} from './types';
-import {BookingsIcon, PROFILE_PICTURE, SettingsIcon, UI_TEXT, UserIcon} from './constants';
+import {BookingsIcon, PROFILE_PICTURE, UI_TEXT, UserIcon} from './constants';
 
 /**
  * Hilla view configuration for the member dashboard.
@@ -116,8 +116,8 @@ export default function MemberDashboard(): JSX.Element {
     },
     {
       tabId: TabId.SETTINGS,
-      icon: <SettingsIcon style={{ width: '16px', height: '16px' }} />,
-      label: 'Einstellungen',
+      icon: <UserIcon style={{ width: '16px', height: '16px' }} />,
+      label: 'Persönliche Daten',
     },
   ], []);
 
@@ -351,8 +351,8 @@ export default function MemberDashboard(): JSX.Element {
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
-                <SettingsIcon style={{ width: '18px', height: '18px' }} />
-                <span className="font-medium">Einstellungen</span>
+                <UserIcon style={{ width: '18px', height: '18px' }} />
+                <span className="font-medium">Persönliche Daten</span>
               </button>
             </div>
           </div>

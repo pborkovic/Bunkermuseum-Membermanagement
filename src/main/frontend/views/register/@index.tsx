@@ -143,9 +143,8 @@ type RegistrationFormInput = z.infer<typeof registrationSchema>;
  * @author Philipp Borkovic
  */
 const ANREDE_OPTIONS = [
-  { value: 'männlich', label: 'Männlich' },
-  { value: 'weiblich', label: 'Weiblich' },
-  { value: 'divers', label: 'Divers' },
+  { value: 'Herr', label: 'Herr' },
+  { value: 'Frau', label: 'Frau' },
 ] as const;
 
 /**

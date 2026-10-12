@@ -3,19 +3,25 @@ package com.bunkermuseum.membermanagement.service;
 import com.bunkermuseum.membermanagement.dto.AssignBookingRequest;
 import com.bunkermuseum.membermanagement.dto.BookingDTO;
 import com.bunkermuseum.membermanagement.dto.MemberType;
+import com.bunkermuseum.membermanagement.dto.UpdateBookingRequest;
 import com.bunkermuseum.membermanagement.model.Booking;
 import com.bunkermuseum.membermanagement.model.User;
 import com.bunkermuseum.membermanagement.repository.contract.BookingRepositoryContract;
 import com.bunkermuseum.membermanagement.repository.contract.UserRepositoryContract;
 import com.bunkermuseum.membermanagement.service.base.BaseService;
 import com.bunkermuseum.membermanagement.service.contract.BookingServiceContract;
+import jakarta.persistence.EntityNotFoundException;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.time.LocalDate;
 import java.time.Year;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -39,6 +45,11 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class BookingService extends BaseService<Booking, BookingRepositoryContract>
         implements BookingServiceContract {
+
+    /**
+     * Time zone used to interpret booking dates entered by administrators.
+     */
+    private static final ZoneId BOOKING_ZONE = ZoneId.of("Europe/Vienna");
 
     @Autowired(required = false)
     private UserRepositoryContract userRepository;
@@ -87,11 +98,17 @@ public class BookingService extends BaseService<Booking, BookingRepositoryContra
     @Transactional
     public int assignBookingToUsers(AssignBookingRequest request) {
         try {
-            if (request.getMemberType() == null) {
-                throw new IllegalArgumentException("Member type is required");
+            boolean hasMemberType = request.getMemberType() != null;
+            boolean hasUserId = request.getUserId() != null;
+
+            if (hasMemberType == hasUserId) {
+                throw new IllegalArgumentException(
+                    "Bitte wählen Sie entweder einen Mitgliedstyp oder ein einzelnes Mitglied aus.");
             }
 
-            List<User> targets = resolveUsersByMemberType(request.getMemberType());
+            List<User> targets = hasUserId
+                ? List.of(resolveActiveUser(request.getUserId()))
+                : resolveUsersByMemberType(request.getMemberType());
 
             if (targets.isEmpty()) {
                 logger.warn("No users found with member type: {}", request.getMemberType());
@@ -123,8 +140,8 @@ public class BookingService extends BaseService<Booking, BookingRepositoryContra
 
             repository.createAll(toCreate);
 
-            logger.info("Successfully assigned booking to {} users with member type: {}",
-                    toCreate.size(), request.getMemberType());
+            logger.info("Successfully assigned booking to {} users (memberType={}, userId={})",
+                    toCreate.size(), request.getMemberType(), request.getUserId());
 
             return toCreate.size();
         } catch (IllegalArgumentException exception) {
@@ -136,6 +153,83 @@ public class BookingService extends BaseService<Booking, BookingRepositoryContra
 
             throw new RuntimeException("Failed to assign booking to users", exception);
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @author Philipp Borkovic
+     */
+    @Override
+    @Transactional
+    public BookingDTO updateBooking(UUID bookingId, UpdateBookingRequest request) {
+        if (bookingId == null || request == null) {
+            throw new IllegalArgumentException("Booking ID and request are required");
+        }
+
+        Booking booking = repository.findById(bookingId)
+            .filter(Booking::isActive)
+            .orElseThrow(() -> new EntityNotFoundException("Buchung wurde nicht gefunden."));
+
+        booking.setExpectedPurpose(blankToNull(request.getExpectedPurpose()));
+        booking.setExpectedAmount(request.getExpectedAmount());
+        booking.setReceivedAt(toInstant(request.getReceivedAt()));
+        booking.setActualPurpose(blankToNull(request.getActualPurpose()));
+        booking.setActualAmount(request.getActualAmount());
+        booking.setOfMG(blankToNull(request.getOfMG()));
+        booking.setNote(blankToNull(request.getNote()));
+        booking.setAccountStatementPage(blankToNull(request.getAccountStatementPage()));
+        booking.setCode(blankToNull(request.getCode()));
+
+        Booking updated = repository.update(bookingId, booking);
+
+        logger.info("Updated booking {}", bookingId);
+
+        return toDTO(updated);
+    }
+
+    /**
+     * Trims a text value and converts blank values to {@code null}.
+     *
+     * @param value The raw text value
+     * @return The trimmed value, or null if blank
+     *
+     * @author Philipp Borkovic
+     */
+    private @Nullable String blankToNull(@Nullable String value) {
+        return (value == null || value.isBlank()) ? null : value.trim();
+    }
+
+    /**
+     * Converts a calendar date to the start of that day in Austrian local time.
+     *
+     * @param date The date, may be null
+     * @return The corresponding instant, or null
+     *
+     * @author Philipp Borkovic
+     */
+    private @Nullable Instant toInstant(@Nullable LocalDate date) {
+        return date == null ? null : date.atStartOfDay(BOOKING_ZONE).toInstant();
+    }
+
+    /**
+     * Resolves a single active user for a one-person booking.
+     *
+     * @param userId The ID of the target user
+     * @return The active user, never null
+     * @throws IllegalArgumentException if the user does not exist or is deleted
+     *
+     * @author Philipp Borkovic
+     */
+    private User resolveActiveUser(UUID userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("Mitglied wurde nicht gefunden."));
+
+        if (!user.isActive()) {
+            throw new IllegalArgumentException("Mitglied ist nicht aktiv.");
+        }
+
+        return user;
     }
 
     /**
@@ -263,6 +357,7 @@ public class BookingService extends BaseService<Booking, BookingRepositoryContra
         List<Booking> allBookings = repository.findAll();
 
         return allBookings.stream()
+            .filter(Booking::isActive)
             .filter(booking -> booking.getUser() != null)
             .filter(booking -> userId.equals(booking.getUser().getId()))
             .collect(Collectors.toList());
@@ -292,7 +387,9 @@ public class BookingService extends BaseService<Booking, BookingRepositoryContra
             booking.getUser() != null ? booking.getUser().getId() : null,
             booking.getNote(),
             booking.getAccountStatementPage(),
-            booking.getCode()
+            booking.getCode(),
+            booking.getUser() != null ? booking.getUser().getName() : null,
+            booking.getUser() != null ? booking.getUser().getMemberNumber() : null
         );
     }
 }

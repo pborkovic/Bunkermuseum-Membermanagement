@@ -2,9 +2,11 @@ package com.bunkermuseum.membermanagement.service.contract;
 
 import com.bunkermuseum.membermanagement.dto.AssignBookingRequest;
 import com.bunkermuseum.membermanagement.dto.BookingDTO;
+import com.bunkermuseum.membermanagement.dto.UpdateBookingRequest;
 import com.bunkermuseum.membermanagement.model.Booking;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Service contract interface for Booking entity business operations.
@@ -67,7 +69,8 @@ public interface BookingServiceContract {
      *
      * @param request The validated booking assignment request containing:
      *                <ul>
-     *                  <li>{@code memberType} - The target member category (required)</li>
+     *                  <li>{@code memberType} - The target member category (exclusive with {@code userId})</li>
+     *                  <li>{@code userId} - A single target user (exclusive with {@code memberType})</li>
      *                  <li>{@code expectedAmount} - The anticipated payment amount</li>
      *                  <li>{@code actualAmount} - The actual payment amount (may be null for pending)</li>
      *                  <li>{@code actualPurpose} - Description of the booking purpose</li>
@@ -85,6 +88,22 @@ public interface BookingServiceContract {
      * @see com.bunkermuseum.membermanagement.model.Booking
      */
     int assignBookingToUsers(AssignBookingRequest request);
+
+    /**
+     * Updates the entries of a single existing booking.
+     *
+     * <p>All editable fields are replaced with the values from the request; blank text
+     * values are stored as {@code null}. The member the booking belongs to is unchanged.
+     * The received date is stored as the start of that day in Austrian local time.</p>
+     *
+     * @param bookingId The ID of the booking to update
+     * @param request The new booking entries
+     * @return The updated booking
+     * @throws jakarta.persistence.EntityNotFoundException if no active booking exists with the given ID
+     *
+     * @author Philipp Borkovic
+     */
+    BookingDTO updateBooking(UUID bookingId, UpdateBookingRequest request);
 
     /**
      * Retrieves all bookings associated with the currently authenticated user.

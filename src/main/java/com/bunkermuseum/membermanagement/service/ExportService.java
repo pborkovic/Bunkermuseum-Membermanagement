@@ -37,7 +37,10 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -69,6 +72,11 @@ import java.util.UUID;
 public class ExportService implements ExportServiceContract {
 
     private static final Logger log = LoggerFactory.getLogger(ExportService.class);
+
+    /**
+     * Time zone used to interpret export date ranges and format booking dates.
+     */
+    private static final ZoneId EXPORT_ZONE = ZoneId.of("Europe/Vienna");
 
     private final UserRepositoryContract userRepository;
     private final BookingRepositoryContract bookingRepository;
@@ -504,39 +512,73 @@ public class ExportService implements ExportServiceContract {
     /**
      * Filters bookings by type and optional date range.
      *
-     * <p>This is a placeholder implementation. Expected behavior:
+     * <p>Supported bookingType values (case-insensitive):
      * <ul>
-     *   <li>"all" — return all bookings</li>
-     *   <li>"today", "yesterday" — filter by creation date</li>
-     *   <li>"this_week", "last_week" — filter by ISO week</li>
-     *   <li>"custom" — filter inclusively between {@code startDate} and {@code endDate}</li>
+     *   <li>"all" — all bookings</li>
+     *   <li>"open" — bookings without a received payment</li>
+     *   <li>"completed" — bookings with a received payment</li>
      * </ul>
-     * If {@code bookingType} is "custom", both dates should be provided.</p>
+     *
+     * <p>{@code startDate} and {@code endDate} optionally restrict the export (inclusive, Austrian
+     * local dates) by the received date, or by the creation date for open bookings.
+     * Deleted bookings are never exported.</p>
      *
      * @param bookingType the booking category selector
-     * @param startDate start of range, required for "custom"
-     * @param endDate end of range, required for "custom"
-     * @return the filtered list of bookings
+     * @param startDate optional start of range (inclusive)
+     * @param endDate optional end of range (inclusive)
+     * @return the matching bookings, newest first
+     * @throws IllegalArgumentException if {@code bookingType} is unsupported
      */
-    private List<BookingDTO> filterBookingsByType(String bookingType, LocalDate startDate, LocalDate endDate) {
-        // TODO: Implement proper filtering based on booking type and date range
-        return List.of();
+    private List<BookingDTO> filterBookingsByType(
+            String bookingType,
+            @Nullable LocalDate startDate,
+            @Nullable LocalDate endDate
+    ) {
+        Instant from = startDate != null ? startDate.atStartOfDay(EXPORT_ZONE).toInstant() : null;
+        Instant to = endDate != null ? endDate.plusDays(1).atStartOfDay(EXPORT_ZONE).toInstant() : null;
+
+        List<Booking> matching = bookingRepository.findAll().stream()
+                .filter(Booking::isActive)
+                .filter(booking -> switch (bookingType.toLowerCase()) {
+                    case "all" -> true;
+                    case "open" -> booking.getReceivedAt() == null;
+                    case "completed" -> booking.getReceivedAt() != null;
+                    default -> throw new IllegalArgumentException("Unsupported booking type: " + bookingType);
+                })
+                .filter(booking -> {
+                    Instant date = effectiveDate(booking);
+                    return (from == null || !date.isBefore(from)) && (to == null || date.isBefore(to));
+                })
+                .sorted(Comparator.comparing(ExportService::effectiveDate).reversed())
+                .toList();
+
+        log.info("Booking export matched {} bookings (type={}, startDate={}, endDate={})",
+                matching.size(), bookingType, startDate, endDate);
+
+        return matching.stream().map(this::toDTO).toList();
+    }
+
+    /**
+     * Returns the date used to filter and sort a booking in exports: the date the payment
+     * was received, or, for open bookings without payment, the date the booking was created.
+     *
+     * @param booking the booking
+     * @return the effective date, never null
+     *
+     * @author Philipp Borkovic
+     */
+    private static Instant effectiveDate(Booking booking) {
+        return booking.getReceivedAt() != null ? booking.getReceivedAt() : booking.getCreatedAt();
     }
 
     /**
      * Generates an Excel (XLSX) spreadsheet representing a list of {@link BookingDTO} objects and returns it as a byte array.
      *
      * <p>
-     * This method creates a workbook with a single sheet named "Bookings" containing the following columns:
-     * <ul>
-     *     <li>ID</li>
-     *     <li>Code</li>
-     *     <li>MG</li>
-     *     <li>Purpose</li>
-     *     <li>Amount</li>
-     *     <li>Received At</li>
-     *     <li>Status (Assigned or Open)</li>
-     * </ul>
+     * This method creates a workbook with a single sheet named "Buchungen" containing the member,
+     * code, expected ("Soll") and actual ("Ist") purpose and amount, received date, account
+     * statement page, note, status (Abgeschlossen when a payment was received, otherwise Offen)
+     * and ID. Amounts are numeric currency cells and dates are real date cells.
      * Column headers are bolded for clarity. Each booking in the provided list is added as a row with its respective values.
      * Columns are auto-sized for readability.
      * </p>
@@ -551,31 +593,57 @@ public class ExportService implements ExportServiceContract {
      */
     private byte[] exportBookingsToExcel(List<BookingDTO> bookings) {
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            Sheet sheet = workbook.createSheet("Bookings");
+            Sheet sheet = workbook.createSheet("Buchungen");
+
+            CellStyle headerStyle = workbook.createCellStyle();
+            Font font = workbook.createFont();
+            font.setBold(true);
+            headerStyle.setFont(font);
+
+            DataFormat dataFormat = workbook.createDataFormat();
+            CellStyle amountStyle = workbook.createCellStyle();
+            amountStyle.setDataFormat(dataFormat.getFormat("#,##0.00 \"€\""));
+            CellStyle dateStyle = workbook.createCellStyle();
+            dateStyle.setDataFormat(dataFormat.getFormat("dd.mm.yyyy"));
 
             Row headerRow = sheet.createRow(0);
-            String[] headers = {"ID", "Code", "MG", "Purpose", "Amount", "Received At", "Status"};
+            String[] headers = {
+                "Mitglied", "Code", "Soll Verwendungszweck", "Soll Betrag",
+                "Ist Verwendungszweck", "Ist Betrag", "Empfangen am",
+                "Kontoauszug Seite", "Notiz", "Status", "ID"
+            };
             for (int i = 0; i < headers.length; i++) {
                 Cell cell = headerRow.createCell(i);
                 cell.setCellValue(headers[i]);
-
-                CellStyle headerStyle = workbook.createCellStyle();
-                Font font = workbook.createFont();
-                font.setBold(true);
-                headerStyle.setFont(font);
                 cell.setCellStyle(headerStyle);
             }
 
             int rowNum = 1;
             for (BookingDTO booking : bookings) {
                 Row row = sheet.createRow(rowNum++);
-                row.createCell(0).setCellValue(booking.getId() != null ? booking.getId().toString() : "");
-                row.createCell(1).setCellValue(booking.getCode() != null ? booking.getCode() : "");
-                row.createCell(2).setCellValue(booking.getOfMG() != null ? booking.getOfMG() : "");
-                row.createCell(3).setCellValue(booking.getExpectedPurpose() != null ? booking.getExpectedPurpose() : "");
-                row.createCell(4).setCellValue(booking.getExpectedAmount() != null ? booking.getExpectedAmount().toString() : "");
-                row.createCell(5).setCellValue(booking.getReceivedAt() != null ? booking.getReceivedAt().toString() : "");
-                row.createCell(6).setCellValue(booking.getUserId() != null ? "Assigned" : "Open");
+                row.createCell(0).setCellValue(nullToEmpty(booking.getOfMG()));
+                row.createCell(1).setCellValue(nullToEmpty(booking.getCode()));
+                row.createCell(2).setCellValue(nullToEmpty(booking.getExpectedPurpose()));
+                if (booking.getExpectedAmount() != null) {
+                    Cell cell = row.createCell(3);
+                    cell.setCellValue(booking.getExpectedAmount().doubleValue());
+                    cell.setCellStyle(amountStyle);
+                }
+                row.createCell(4).setCellValue(nullToEmpty(booking.getActualPurpose()));
+                if (booking.getActualAmount() != null) {
+                    Cell cell = row.createCell(5);
+                    cell.setCellValue(booking.getActualAmount().doubleValue());
+                    cell.setCellStyle(amountStyle);
+                }
+                if (booking.getReceivedAt() != null) {
+                    Cell cell = row.createCell(6);
+                    cell.setCellValue(booking.getReceivedAt().atZone(EXPORT_ZONE).toLocalDate());
+                    cell.setCellStyle(dateStyle);
+                }
+                row.createCell(7).setCellValue(nullToEmpty(booking.getAccountStatementPage()));
+                row.createCell(8).setCellValue(nullToEmpty(booking.getNote()));
+                row.createCell(9).setCellValue(booking.getReceivedAt() != null ? "Abgeschlossen" : "Offen");
+                row.createCell(10).setCellValue(booking.getId() != null ? booking.getId().toString() : "");
             }
 
             for (int i = 0; i < headers.length; i++) {
@@ -590,6 +658,18 @@ public class ExportService implements ExportServiceContract {
 
             throw new RuntimeException("Failed to export bookings to Excel", exception);
         }
+    }
+
+    /**
+     * Returns the given string, or an empty string if it is null.
+     *
+     * @param value the value; may be null
+     * @return the value or an empty string, never null
+     *
+     * @author Philipp Borkovic
+     */
+    private static String nullToEmpty(@Nullable String value) {
+        return value != null ? value : "";
     }
 
     /**

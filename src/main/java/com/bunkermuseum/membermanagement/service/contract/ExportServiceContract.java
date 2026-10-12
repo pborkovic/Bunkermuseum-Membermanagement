@@ -43,19 +43,20 @@ public interface ExportServiceContract {
      * <p>Supported bookingType values (case-insensitive):
      * <ul>
      *   <li>"all" — all bookings</li>
-     *   <li>"today" — bookings created today</li>
-     *   <li>"yesterday" — bookings created yesterday</li>
-     *   <li>"this_week" — bookings from the current ISO week</li>
-     *   <li>"last_week" — bookings from the previous ISO week</li>
-     *   <li>"custom" — bookings between {@code startDate} and {@code endDate} (inclusive)</li>
+     *   <li>"open" — bookings without a received payment</li>
+     *   <li>"completed" — bookings with a received payment</li>
      * </ul>
+     *
+     * <p>{@code startDate} and {@code endDate} optionally restrict the export (inclusive, Austrian
+     * local dates) by the received date, or by the creation date for open bookings.
+     * Deleted bookings are never exported.</p>
      *
      * <p>Supported format values (case-insensitive): "xlsx", "pdf", "xml", "json".</p>
      *
      * @param bookingType the logical group of bookings to include
      * @param format the target file format to generate
-     * @param startDate optional start of the date range (required if {@code bookingType} is "custom")
-     * @param endDate optional end of the date range (required if {@code bookingType} is "custom")
+     * @param startDate optional start of the date range
+     * @param endDate optional end of the date range
      *
      * @return the exported document as a byte array
      *

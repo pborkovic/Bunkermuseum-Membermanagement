@@ -382,6 +382,17 @@ public class User extends Model {
     private Boolean ofMg = false;
 
     /**
+     * The member number (MGNr) carried over from the legacy member database.
+     *
+     * <p><strong>Database Mapping:</strong> Maps to 'member_number' column</p>
+     * <p><strong>Constraints:</strong> Nullable, unique when set</p>
+     *
+     * @author Philipp Borkovic
+     */
+    @Column(name = "member_number", unique = true)
+    private @Nullable Integer memberNumber;
+
+    /**
      * The roles assigned to this user.
      *
      * <p>This represents the many-to-many relationship between users and roles.
@@ -833,6 +844,28 @@ public class User extends Model {
      */
     public void setOfMg(Boolean ofMg) {
         this.ofMg = ofMg;
+    }
+
+    /**
+     * Gets the legacy member number (MGNr).
+     *
+     * @return The member number, or null for members without a legacy number
+     *
+     * @author Philipp Borkovic
+     */
+    public @Nullable Integer getMemberNumber() {
+        return memberNumber;
+    }
+
+    /**
+     * Sets the legacy member number (MGNr).
+     *
+     * @param memberNumber The member number
+     *
+     * @author Philipp Borkovic
+     */
+    public void setMemberNumber(@Nullable Integer memberNumber) {
+        this.memberNumber = memberNumber;
     }
 
     /**

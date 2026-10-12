@@ -101,6 +101,21 @@ public class UserDTO {
     private final @Nullable String country;
 
     /**
+     * The legacy member number (MGNr), if the member has one.
+     */
+    private final @Nullable Integer memberNumber;
+
+    /**
+     * Date the member joined (Eintrittsdatum); the account creation time.
+     */
+    private final @Nullable Instant joinedAt;
+
+    /**
+     * Date the member left (Austrittsdatum); null for current members.
+     */
+    private final @Nullable Instant leftAt;
+
+    /**
      * The roles assigned to this user.
      * Uses RoleDTO to avoid circular references.
      */
@@ -127,6 +142,9 @@ public class UserDTO {
      * @param city The user's city
      * @param postalCode The user's postal code
      * @param country The user's country
+     * @param memberNumber The legacy member number (MGNr), or null
+     * @param joinedAt The date the member joined (Eintrittsdatum)
+     * @param leftAt The date the member left (Austrittsdatum), or null
      * @param roles The set of roles assigned to this user
      *
      * @author Philipp Borkovic
@@ -146,6 +164,9 @@ public class UserDTO {
         @Nullable String city,
         @Nullable String postalCode,
         @Nullable String country,
+        @Nullable Integer memberNumber,
+        @Nullable Instant joinedAt,
+        @Nullable Instant leftAt,
         Set<RoleDTO> roles
     ) {
         this.id = id;
@@ -162,6 +183,9 @@ public class UserDTO {
         this.city = city;
         this.postalCode = postalCode;
         this.country = country;
+        this.memberNumber = memberNumber;
+        this.joinedAt = joinedAt;
+        this.leftAt = leftAt;
         this.roles = roles;
     }
 
@@ -317,6 +341,39 @@ public class UserDTO {
      */
     public @Nullable String getCountry() {
         return country;
+    }
+
+    /**
+     * Gets the legacy member number (MGNr).
+     *
+     * @return The member number, or null if the member has none
+     *
+     * @author Philipp Borkovic
+     */
+    public @Nullable Integer getMemberNumber() {
+        return memberNumber;
+    }
+
+    /**
+     * Gets the date the member joined (Eintrittsdatum).
+     *
+     * @return The join date
+     *
+     * @author Philipp Borkovic
+     */
+    public @Nullable Instant getJoinedAt() {
+        return joinedAt;
+    }
+
+    /**
+     * Gets the date the member left (Austrittsdatum).
+     *
+     * @return The leave date, or null for current members
+     *
+     * @author Philipp Borkovic
+     */
+    public @Nullable Instant getLeftAt() {
+        return leftAt;
     }
 
     /**

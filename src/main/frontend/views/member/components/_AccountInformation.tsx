@@ -8,11 +8,11 @@
  * @author Philipp Borkovic
  */
 
-import { useMemo } from 'react';
-import { FaInfoCircle, FaCheckCircle } from 'react-icons/fa';
+import {useMemo} from 'react';
+import {FaCheckCircle, FaInfoCircle} from 'react-icons/fa';
 import type UserDTO from 'Frontend/generated/com/bunkermuseum/membermanagement/dto/UserDTO';
-import { formatDate, formatRoles } from '../utils/formatting';
-import { UI_TEXT } from '../constants';
+import {formatDate, formatRoles} from '../utils/formatting';
+import {UI_TEXT} from '../constants';
 
 /**
  * Props for the AccountInformation component.
@@ -88,6 +88,28 @@ export default function AccountInformation({
       </div>
 
       <div className="space-y-3 text-sm">
+        {/* Member Number */}
+        {currentUser?.memberNumber != null && (
+          <div className="grid grid-cols-3 gap-2">
+            <span className="font-medium text-gray-700">Mitgliedsnummer:</span>
+            <span className="col-span-2 text-black">{currentUser.memberNumber}</span>
+          </div>
+        )}
+
+        {/* Membership Dates */}
+        <div className="grid grid-cols-3 gap-2">
+          <span className="font-medium text-gray-700">Eintrittsdatum:</span>
+          <span className="col-span-2 text-black">
+            {currentUser?.joinedAt ? formatDate(currentUser.joinedAt) : '–'}
+          </span>
+        </div>
+        {currentUser?.leftAt && (
+          <div className="grid grid-cols-3 gap-2">
+            <span className="font-medium text-gray-700">Austrittsdatum:</span>
+            <span className="col-span-2 text-black">{formatDate(currentUser.leftAt)}</span>
+          </div>
+        )}
+
         {/* Email Verification Status */}
         <div className="grid grid-cols-3 gap-2">
           <span className="font-medium text-gray-700">E-Mail verifiziert:</span>

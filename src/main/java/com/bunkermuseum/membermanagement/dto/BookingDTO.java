@@ -72,6 +72,16 @@ public class BookingDTO {
     private final @Nullable String code;
 
     /**
+     * Name of the linked member, or null if the booking is not linked to a member.
+     */
+    private final @Nullable String memberName;
+
+    /**
+     * Member number (MGNr) of the linked member, or null.
+     */
+    private final @Nullable Integer memberNumber;
+
+    /**
      * Constructs a new BookingDTO with all fields.
      *
      * @param id The unique identifier for this booking
@@ -101,6 +111,33 @@ public class BookingDTO {
         @Nullable String accountStatementPage,
         @Nullable String code
     ) {
+        this(id, expectedPurpose, expectedAmount, receivedAt, actualPurpose, actualAmount,
+            ofMG, userId, note, accountStatementPage, code, null, null);
+    }
+
+    /**
+     * Constructs a BookingDTO including the linked member's name and number.
+     *
+     * @param memberName name of the linked member, or null
+     * @param memberNumber member number (MGNr) of the linked member, or null
+     *
+     * @author Philipp Borkovic
+     */
+    public BookingDTO(
+        UUID id,
+        @Nullable String expectedPurpose,
+        @Nullable BigDecimal expectedAmount,
+        @Nullable Instant receivedAt,
+        @Nullable String actualPurpose,
+        @Nullable BigDecimal actualAmount,
+        @Nullable String ofMG,
+        @Nullable UUID userId,
+        @Nullable String note,
+        @Nullable String accountStatementPage,
+        @Nullable String code,
+        @Nullable String memberName,
+        @Nullable Integer memberNumber
+    ) {
         this.id = id;
         this.expectedPurpose = expectedPurpose;
         this.expectedAmount = expectedAmount;
@@ -112,6 +149,8 @@ public class BookingDTO {
         this.note = note;
         this.accountStatementPage = accountStatementPage;
         this.code = code;
+        this.memberName = memberName;
+        this.memberNumber = memberNumber;
     }
 
     /**
@@ -233,6 +272,28 @@ public class BookingDTO {
      */
     public @Nullable String getCode() {
         return code;
+    }
+
+    /**
+     * Gets the name of the linked member.
+     *
+     * @return The member name, or null if the booking is not linked to a member
+     *
+     * @author Philipp Borkovic
+     */
+    public @Nullable String getMemberName() {
+        return memberName;
+    }
+
+    /**
+     * Gets the member number (MGNr) of the linked member.
+     *
+     * @return The member number, or null
+     *
+     * @author Philipp Borkovic
+     */
+    public @Nullable Integer getMemberNumber() {
+        return memberNumber;
     }
 
     /**

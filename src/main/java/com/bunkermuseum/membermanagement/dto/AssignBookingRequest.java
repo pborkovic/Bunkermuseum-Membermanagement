@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 import org.jspecify.annotations.Nullable;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 /**
  * Request DTO for assigning bookings to users by member type.
@@ -24,9 +25,9 @@ import java.math.BigDecimal;
  *
  * <h3>Validation Rules:</h3>
  * <ul>
- *   <li><strong>memberType:</strong> Required, must be valid enum value</li>
+ *   <li><strong>memberType / userId:</strong> Exactly one is required (member group or single user)</li>
  *   <li><strong>expectedAmount:</strong> Required, must be > 0</li>
- *   <li><strong>actualAmount:</strong> Required, must be > 0</li>
+ *   <li><strong>actualAmount:</strong> Optional (can be entered later by editing the booking), must be > 0 when set</li>
  *   <li><strong>actualPurpose:</strong> Required, non-blank, max 500 characters</li>
  * </ul>
  *
@@ -37,9 +38,16 @@ public class AssignBookingRequest {
     /**
      * The member type to target for booking assignment.
      * Determines which users receive the booking based on their role.
+     * Exactly one of {@code memberType} and {@code userId} must be set.
      */
-    @NotNull(message = "Mitgliedstyp ist erforderlich")
-    private MemberType memberType;
+    private @Nullable MemberType memberType;
+
+    /**
+     * The single user to create the booking for.
+     * When set, the booking is created for this user only instead of a member group.
+     * Exactly one of {@code memberType} and {@code userId} must be set.
+     */
+    private @Nullable UUID userId;
 
     /**
      * The expected amount of the transaction.
@@ -51,11 +59,11 @@ public class AssignBookingRequest {
 
     /**
      * The actual amount of the transaction received.
-     * Must be a positive value greater than zero.
+     * Optional: may be left empty when creating the booking and entered later
+     * by editing the booking. When set, it must be greater than zero.
      */
-    @NotNull(message = "Tatsächlicher Betrag ist erforderlich")
     @DecimalMin(value = "0.01", message = "Tatsächlicher Betrag muss größer als 0 sein")
-    private BigDecimal actualAmount;
+    private @Nullable BigDecimal actualAmount;
 
     /**
      * The actual purpose of the transaction as received.
@@ -99,7 +107,7 @@ public class AssignBookingRequest {
     /**
      * Gets the member type for targeting.
      *
-     * @return The member type, never null after validation
+     * @return The member type, or null when targeting a single user
      *
      * @author Philipp Borkovic
      */
@@ -116,6 +124,28 @@ public class AssignBookingRequest {
      */
     public void setMemberType(@Nullable MemberType memberType) {
         this.memberType = memberType;
+    }
+
+    /**
+     * Gets the single target user ID.
+     *
+     * @return The user ID, or null when targeting a member group
+     *
+     * @author Philipp Borkovic
+     */
+    public @Nullable UUID getUserId() {
+        return userId;
+    }
+
+    /**
+     * Sets the single target user ID.
+     *
+     * @param userId The user ID to set
+     *
+     * @author Philipp Borkovic
+     */
+    public void setUserId(@Nullable UUID userId) {
+        this.userId = userId;
     }
 
     /**
@@ -143,7 +173,7 @@ public class AssignBookingRequest {
     /**
      * Gets the actual transaction amount.
      *
-     * @return The actual amount, never null after validation
+     * @return The actual amount, or null if not yet known
      *
      * @author Philipp Borkovic
      */
@@ -194,8 +224,8 @@ public class AssignBookingRequest {
     @Override
     public String toString() {
         return String.format(
-            "AssignBookingRequest{memberType=%s, expectedAmount=%s, actualAmount=%s}",
-                memberType, expectedAmount, actualAmount
+            "AssignBookingRequest{memberType=%s, userId=%s, expectedAmount=%s, actualAmount=%s}",
+                memberType, userId, expectedAmount, actualAmount
         );
     }
 }

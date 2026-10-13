@@ -92,6 +92,9 @@ public final class UserMapper {
             user.getCity(),
             user.getPostalCode(),
             user.getCountry(),
+            user.getMemberNumber(),
+            user.getCreatedAt(),
+            user.deletedAt(),
             roleDTOs
         );
     }

@@ -63,6 +63,7 @@ public class SecurityConfig extends VaadinWebSecurity {
         http.csrf(csrf -> csrf
             .ignoringRequestMatchers("/connect/**")
             .ignoringRequestMatchers("/api/upload/**")
+            .ignoringRequestMatchers("/api/navigator/**")
         );
 
         http.authorizeHttpRequests(auth -> auth
@@ -75,6 +76,7 @@ public class SecurityConfig extends VaadinWebSecurity {
             .requestMatchers("/VAADIN/**").permitAll()
             .requestMatchers(HttpMethod.GET, "/api/upload/profile-picture/**").permitAll()
             .requestMatchers("/api/upload/**").authenticated()
+            .requestMatchers(HttpMethod.POST, "/api/navigator/auth/verify").permitAll()
             .anyRequest().authenticated()
         );
 

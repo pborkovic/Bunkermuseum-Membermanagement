@@ -120,6 +120,9 @@ services:
       RECAPTCHA_SITE_KEY: ${RECAPTCHA_SITE_KEY}
       RECAPTCHA_SECRET_KEY: ${RECAPTCHA_SECRET_KEY}
 
+      # Bunkermuseum Navigator login
+      NAVIGATOR_API_KEY: ${NAVIGATOR_API_KEY:-}
+
       # Java Options (overrides Dockerfile defaults if needed)
       JAVA_OPTS: ${JAVA_OPTS:--XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0}
     volumes:

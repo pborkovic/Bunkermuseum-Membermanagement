@@ -41,6 +41,7 @@ services:
       - VITE_RECAPTCHA_SITE_KEY=${RECAPTCHA_SITE_KEY:-6LdcWy0tAAAAAGxuDLmnmlV2cgJGJ5ogh_5z325Y}
       - RECAPTCHA_VERIFY_URL=https://www.google.com/recaptcha/api/siteverify
       - RECAPTCHA_SCORE_THRESHOLD=${RECAPTCHA_SCORE_THRESHOLD:-0.5}
+      - NAVIGATOR_API_KEY=${NAVIGATOR_API_KEY:-}
     volumes:
       # Mount Java source code for hot reload
       - ./src/main/java:/app/src/main/java:delegated
